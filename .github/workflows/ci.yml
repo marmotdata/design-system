@@ -56,6 +56,9 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     container: mcr.microsoft.com/playwright:v1.64.1-noble
+    # The image runs as root but $HOME belongs to pwuser, and Firefox refuses to start that way.
+    env:
+      HOME: /root
     strategy:
       fail-fast: false
       matrix:
@@ -79,9 +82,10 @@ jobs:
     runs-on: ubuntu-24.04
     # Rendering is deterministic only with identical fonts and browser builds: always this image.
     container: mcr.microsoft.com/playwright:v1.64.1-noble
+    env:
+      HOME: /root
     steps:
       - uses: actions/checkout@v7
-        with: { lfs: true }
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with: { node-version: 24, cache: pnpm }

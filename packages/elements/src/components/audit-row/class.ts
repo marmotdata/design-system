@@ -487,8 +487,10 @@ export class MmAuditRow extends LitElement {
         gap: var(--space-2);
       }
       /* The table scrolls sideways when narrow, so the detail follows the log's visible width (its
-         scroll container), not the 66rem table or the viewport: one column, pinned to the visible area. */
-      @container mm-audit (max-width: 720px) {
+         scroll container), not the 66rem table or the viewport: one column, pinned to the visible area.
+         Unnamed on purpose: container names are scoped to the shadow tree that sets them, so WebKit
+         doesn't match the log's "mm-audit" from inside a row; the log is the row's nearest container. */
+      @container (max-width: 720px) {
         .cell {
           position: sticky;
           inset-inline-start: 0;

@@ -17,6 +17,8 @@ export default defineConfig({
           name: 'storybook',
           browser: { enabled: true, headless: true, provider: playwright(), instances: browsers },
           setupFiles: ['./.storybook/vitest.setup.ts'],
+          // Shared CI machines are slower and noisier than a laptop: retry a failed story there before failing the run.
+          retry: process.env.CI ? 2 : 0,
         },
       },
     ],

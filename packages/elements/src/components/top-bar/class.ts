@@ -152,7 +152,9 @@ export class MmTopBar extends LitElement {
       :host([nav-toggle]) .nav-toggle {
         display: inline-flex;
       }
-      @container mm-shell (max-width: 719.98px) {
+      /* Unnamed: container names are scoped to the shadow tree that sets them, so WebKit doesn't match
+         the shell's "mm-shell" from inside the top bar; the shell is the top bar's nearest container. */
+      @container (max-width: 719.98px) {
         .nav-toggle {
           display: inline-flex;
         }
