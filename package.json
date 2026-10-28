@@ -15,6 +15,7 @@
     "storybook": "pnpm --filter @marmotdata/storybook dev",
     "docs:dev": "pnpm --filter @marmotdata/docs start",
     "changeset": "changeset",
+    "release": "node tools/release/publish.ts",
     "storybook:calm": "MM_LIVE=0 pnpm --filter @marmotdata/storybook dev",
     "storybook:public": "pnpm --filter @marmotdata/storybook dev:public"
   },

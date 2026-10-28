@@ -21,5 +21,5 @@
   "scripts": {
     "build": "node scripts/build.ts && tsc -p tsconfig.json"
   },
-  "publishConfig": { "access": "public", "provenance": true }
+  "publishConfig": { "access": "public" }
 }

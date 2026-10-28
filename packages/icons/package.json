@@ -23,8 +23,7 @@
     "./src/providers-all.ts"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "devDependencies": {
     "@iconify-json/devicon": "^1.2.72",

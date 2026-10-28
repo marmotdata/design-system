@@ -10,5 +10,5 @@
   "exports": { ".": "./dist/marmot.css", "./*.css": "./dist/*.css" },
   "scripts": { "build": "node scripts/build.ts" },
   "dependencies": { "@marmotdata/tokens": "workspace:^" },
-  "publishConfig": { "access": "public", "provenance": true }
+  "publishConfig": { "access": "public" }
 }

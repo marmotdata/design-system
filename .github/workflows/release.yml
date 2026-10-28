@@ -1,6 +1,9 @@
 name: Release
 
-# Manual only until npm publishing is set up and agreed: Actions → Release → Run workflow.
+# Manual: Actions → Release → Run workflow. With pending changesets it opens the "Version packages"
+# PR; with none it publishes any version not yet on npm, through npm trusted publishing (OIDC), so
+# no npm token is stored anywhere. Each package's trusted publisher is this repo, release.yml and the
+# npm environment.
 on:
   workflow_dispatch:
 
@@ -10,6 +13,7 @@ jobs:
   release:
     name: Version or publish
     runs-on: ubuntu-24.04
+    environment: npm
     permissions:
       contents: write        # version commits and tags
       pull-requests: write   # the "Version packages" PR
@@ -24,17 +28,16 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo run build --filter="./packages/*"
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@latest
       - name: Create the release PR, or publish when it merges
         id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm changeset version
-          publish: pnpm changeset publish
+          publish: pnpm release
           commit: 'chore: version packages'
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Only for the first publish: npm trusted publishing can be set up once a package exists.
-          # Remove this and the NPM_TOKEN secret after configuring trusted publishing on each package.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'

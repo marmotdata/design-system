@@ -58,8 +58,7 @@
     "strings": "node scripts/gen-strings.mjs"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",
