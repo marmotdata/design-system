@@ -1,7 +1,6 @@
 {
   "name": "@marmotdata/css",
   "version": "0.1.1",
-  "description": "Zero-JS mm-* classes for static and server-rendered Marmot pages (docs and marketing). Same visuals as @marmotdata/elements.",
   "license": "MIT",
   "type": "module",
   "repository": { "type": "git", "url": "git+https://github.com/marmotdata/design-system.git", "directory": "packages/css" },

@@ -1,7 +1,6 @@
 {
   "name": "@marmotdata/icons",
   "version": "0.1.1",
-  "description": "Marmot icons: <mm-icon> with a bundled Material Symbols Outlined subset and <mm-provider-logo> with provider marks. Never fetched at runtime.",
   "license": "MIT",
   "type": "module",
   "repository": {

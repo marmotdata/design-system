@@ -31,6 +31,10 @@ The library fills these locally, using existing tokens where it can.
 - Light sidebar on paper; selection is a neutral fill, never the red tint.
 - Typography: mono only for code, SQL, the asset MRN and ID columns; no uppercase text; display face for page titles, KPI values and marketing heroes. Full rules in `docs/authoring.md`.
 
+## Known limitations
+
+- `mm-results-grid` in Firefox: Firefox caps an element at about 17.9 million px, so with 28px rows the grid can't scroll past about 640,000 rows there (Chrome and Safari reach about 1.2 million). The fix is to scale the scroll space once it passes the cap and map the scroll position back to rows. Query results usually arrive with a row limit well below this.
+
 ## Artwork
 
 38 providers have no mark and fall back to a generic icon, and Pulsar needs a Peat variant. See `packages/icons/MISSING-MARKS.md`.

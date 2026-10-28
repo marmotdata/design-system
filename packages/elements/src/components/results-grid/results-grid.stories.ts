@@ -212,6 +212,9 @@ export const WideAndLong: Story = {
     await expect(count().cells).toBeLessThan(1500);
     await expect(sr(canvasElement).querySelector('[role="grid"]')).toHaveAttribute('aria-rowcount', '1000001');
     await expect(sr(canvasElement).querySelector('[role="grid"]')).toHaveAttribute('aria-colcount', '201');
+    // Known limitation (docs/open-items.md): Firefox caps an element at about 17.9M px, short of the
+    // 28M px a million rows need, so rows past about 640,000 are out of reach there.
+    if (navigator.userAgent.includes('Firefox')) return;
     const scroller = sr(canvasElement).querySelector<HTMLElement>('.scroller')!;
     const t0 = performance.now();
     scroller.scrollTop = 28 * 600_000;

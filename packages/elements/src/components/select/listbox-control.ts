@@ -43,8 +43,8 @@ export const listboxStyles = css`
       transform: translateY(-4px);
     }
   }
-  /* tabindex="-1" in the markup: Firefox makes scrollable boxes Tab stops, and focus belongs to the
-     combobox here. The same goes for the data table, results grid and code sample tab list. */
+  /* tabindex="0" in the markup: a scrolling list of options must be keyboard scrollable, and the
+     options themselves are not focusable (the control uses aria-activedescendant). */
   .scroll {
     overflow: auto;
     max-height: 320px;
@@ -430,7 +430,7 @@ export abstract class MmListboxControl extends MmFormControl {
       @click=${this.#onPopupClick}
       @pointermove=${this.#onPopupPointerMove}
     >
-      <div class="scroll" tabindex="-1">
+      <div class="scroll" tabindex="0">
         <div
           role="listbox"
           id="listbox"
