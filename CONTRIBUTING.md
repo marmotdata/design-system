@@ -33,7 +33,6 @@ cd apps/storybook && npx tsc --noEmit -p tsconfig.json
 - Use design tokens, never raw colours. CI fails on hex or `rgb()` values in components.
 - Commit the regenerated `custom-elements.json` and `strings.json` if your change alters them. CI checks they're up to date.
 - If a change alters how something should be designed, update the guidelines and `docs/authoring.md` in the same pull request.
-- Add a changeset with `pnpm changeset` for anything that affects a published package.
 - Use small conventional commits (`feat:`, `fix:`, `docs:`).
 
 ## Licence

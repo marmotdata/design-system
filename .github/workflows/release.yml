@@ -1,24 +1,29 @@
 name: Release
 
-# Manual: Actions → Release → Run workflow. With pending changesets it opens the "Version packages"
-# PR; with none it stages any version not yet on npm, through npm trusted publishing (OIDC), so no
-# npm token is stored anywhere. A maintainer then approves each staged version on npmjs.com with 2FA.
-# Each package's trusted publisher is this repo, release.yml and the npm environment, with
-# "Allow npm publish" off.
+# Push a tag to release every package at that version, like the Marmot SDK:
+#
+#   pnpm bump 0.1.1 && git commit -am "chore: release 0.1.1" && git tag v0.1.1 && git push --follow-tags
+#
+# Packages are staged on npm through trusted publishing (OIDC), so no token is stored anywhere; a
+# maintainer then approves each staged version on npmjs.com with 2FA. Each package's trusted
+# publisher is this repo, release.yml and the npm environment, with "Allow npm publish" off.
 on:
-  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
 
 concurrency: release
 
 jobs:
-  release:
-    name: Version or publish
+  publish:
+    name: Publish to npm
     runs-on: ubuntu-24.04
-    environment: npm
-    permissions:
-      contents: write        # version commits and tags
-      pull-requests: write   # the "Version packages" PR
-      id-token: write        # npm trusted publishing and provenance (OIDC, no long-lived token)
+    environment:
+      name: npm
+      url: https://www.npmjs.com/org/marmotdata
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -27,18 +32,15 @@ jobs:
           node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      - name: Tag matches every package version
+        run: |
+          want="${GITHUB_REF_NAME#v}"
+          for f in packages/*/package.json; do
+            node -e "const p=require('./$f'); if (!p.private && p.version !== '$want') { console.error(p.name + ' is ' + p.version + ', tag is $want'); process.exit(1) }"
+          done
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo run build --filter="./packages/*"
       - name: Upgrade npm for OIDC trusted publishing
         run: npm install -g npm@latest
-      - name: Create the release PR, or publish when it merges
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          version: pnpm changeset version
-          publish: pnpm release
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: 'true'
+      - name: Stage on npm
+        run: pnpm release

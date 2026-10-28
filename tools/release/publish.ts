@@ -7,8 +7,6 @@
  *   node tools/release/publish.ts           in CI: stage with provenance, for approval on npmjs.com
  *   node tools/release/publish.ts --local   the one-off first publish of a new package from a laptop
  *                                           (`npm login` first; provenance needs CI)
- *
- * Prints "New tag: name@version" per package, which changesets/action turns into git tags and releases.
  */
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -44,5 +42,5 @@ for (const dir of readdirSync(join(root, 'packages')).sort()) {
     ? ['publish', join(out, tarball), '--access', 'public', '--provenance=false']
     : ['stage', 'publish', join(out, tarball), '--access', 'public', '--provenance'];
   execFileSync('npm', args, { stdio: 'inherit' });
-  console.log(`New tag: ${pkg.name}@${pkg.version}`);
+  console.log(`Staged ${pkg.name}@${pkg.version}`);
 }

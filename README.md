@@ -47,7 +47,18 @@ Story tests run with `pnpm --filter @marmotdata/storybook test`.
 - [apps/docs](apps/docs): the docs site. Foundations and component pages are generated from the guidelines and the component manifest, so edit those, not the generated pages
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to set up, check and propose changes
 
-The docs are published to [design.marmotdata.io](https://design.marmotdata.io), with Storybook at [/storybook](https://design.marmotdata.io/storybook/), on every push to `main`. Publishing to npm is a manual workflow.
+The docs are published to [design.marmotdata.io](https://design.marmotdata.io), with Storybook at [/storybook](https://design.marmotdata.io/storybook/), on every push to `main`.
+
+## Releasing
+
+All packages share one version. Bump it, tag it and push the tag:
+
+```sh
+pnpm bump 0.1.1
+git commit -am "chore: release 0.1.1" && git tag v0.1.1 && git push --follow-tags
+```
+
+The Release workflow stages every package on npm through trusted publishing (no token), and a maintainer approves each one on npmjs.com.
 
 ## Licence
 

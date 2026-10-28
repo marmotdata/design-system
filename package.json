@@ -14,14 +14,12 @@
     "contrast": "node tools/contrast/check.ts",
     "storybook": "pnpm --filter @marmotdata/storybook dev",
     "docs:dev": "pnpm --filter @marmotdata/docs start",
-    "changeset": "changeset",
+    "bump": "node tools/release/bump.ts",
     "release": "node tools/release/publish.ts",
     "storybook:calm": "MM_LIVE=0 pnpm --filter @marmotdata/storybook dev",
     "storybook:public": "pnpm --filter @marmotdata/storybook dev:public"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "1.0.1",
-    "@changesets/cli": "3.0.3",
     "@types/node": "^24.19.2",
     "prettier": "3.9.10",
     "turbo": "2.11.10",
