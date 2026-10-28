@@ -3,6 +3,8 @@ packages:
   - apps/*
   - tools/*
 allowBuilds:
+  # core-js (from Docusaurus) only prints a banner on install.
+  core-js: false
   esbuild: true
   rs-module-lexer: true
   workerd: true
