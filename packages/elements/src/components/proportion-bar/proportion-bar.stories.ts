@@ -150,15 +150,19 @@ async function expectNoCollisions(el: MmProportionBar) {
   await new Promise((r) => requestAnimationFrame(r));
   await el.updateComplete;
   const sr = el.shadowRoot!;
-  const labels = [...sr.querySelectorAll<SVGTextElement>('text.seg-label')].map((t) => t.getBBox());
-  const leaders = [...sr.querySelectorAll<SVGLineElement>('line.leader')].map((l) => ({ x: l.x1.baseVal.value, y1: l.y1.baseVal.value, y2: l.y2.baseVal.value }));
-  labels.forEach((a, i) => {
-    labels.forEach((b, j) => {
-      if (i < j) expect(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y).toBe(true);
-    });
-    leaders.forEach((l) => {
-      const crosses = l.x > a.x + 0.5 && l.x < a.x + a.width - 0.5 && l.y2 > a.y + 1 && l.y1 < a.y + a.height - 1;
-      expect(crosses).toBe(false);
+  // Labels are laid out again once their real widths are measured (and again when the web font
+  // arrives), so wait for the layout to settle rather than checking the first frame.
+  await waitFor(() => {
+    const labels = [...sr.querySelectorAll<SVGTextElement>('text.seg-label')].map((t) => t.getBBox());
+    const leaders = [...sr.querySelectorAll<SVGLineElement>('line.leader')].map((l) => ({ x: l.x1.baseVal.value, y1: l.y1.baseVal.value, y2: l.y2.baseVal.value }));
+    labels.forEach((a, i) => {
+      labels.forEach((b, j) => {
+        if (i < j) expect(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y).toBe(true);
+      });
+      leaders.forEach((l) => {
+        const crosses = l.x > a.x + 0.5 && l.x < a.x + a.width - 0.5 && l.y2 > a.y + 1 && l.y1 < a.y + a.height - 1;
+        expect(crosses).toBe(false);
+      });
     });
   });
 }

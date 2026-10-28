@@ -537,11 +537,13 @@ export class MmMetadataViewer extends LitElement {
         : n === 1
           ? tr('metadataOneKey', '1 key')
           : tr('metadataKeys', '{count} keys', { count: formatCount(n) });
-      // A closed object previews its keys; the count is for screen readers only.
+      // A closed object previews its keys; the count is for screen readers only. The preview is
+      // visible, so it is part of the row's name too (a visible label must be in the name).
       const preview = Array.isArray(v) ? '' : Object.keys(v).join(', ');
-      return html`<span class="visually-hidden">${count}</span>${preview
-        ? html`<span class="preview" aria-hidden="true">${this.#mark(preview.length > 80 ? `${preview.slice(0, 80)}…` : preview)}</span>`
-        : nothing}`;
+      // The count comes after the preview, so the row's name starts with exactly what is shown.
+      return html`${preview
+        ? html`<span class="preview">${this.#mark(preview.length > 80 ? `${preview.slice(0, 80)}…` : preview)}</span>`
+        : nothing}<span class="visually-hidden">${preview ? `, ${count}` : count}</span>`;
     }
     return this.#leaf(v, row.key, active);
   }

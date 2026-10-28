@@ -7,8 +7,7 @@
     "build": "storybook build -o storybook-static",
     "test": "vitest run --project=storybook",
     "build:public": "MM_PUBLIC=1 storybook build -o storybook-static",
-    "dev:public": "MM_PUBLIC=1 storybook dev -p 6006 --no-open",
-    "deploy": "wrangler deploy"
+    "dev:public": "MM_PUBLIC=1 storybook dev -p 6006 --no-open"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "10.6.4",
@@ -27,8 +26,7 @@
     "storybook-addon-pseudo-states": "10.6.4",
     "typescript": "7.0.2",
     "vite": "8.3.5",
-    "vitest": "5.0.5",
-    "wrangler": "4.153.0"
+    "vitest": "5.0.5"
   },
   "dependencies": {
     "@marmotdata/css": "workspace:*",

@@ -1090,10 +1090,10 @@ export class MmDataTable extends LitElement {
         e.preventDefault();
         if (this.selectable && c === 0) this.#toggleAll();
         else if (col?.sortable) this.#toggleSort(col);
-        else if (col && key === 'Enter') this.#focusHandle(c);
+        else if (col && key === 'Enter') this.#focusHandle(c, col);
       } else if (key === 'F2' && col) {
         e.preventDefault();
-        this.#focusHandle(c);
+        this.#focusHandle(c, col);
       }
       return;
     }
@@ -1127,9 +1127,11 @@ export class MmDataTable extends LitElement {
     }
   }
 
-  #focusHandle(c: number) {
+  #focusHandle(c: number, col?: DataTableColumn) {
     const handle = this.#cellEl(0, c)?.querySelector<HTMLElement>('.resize');
     if (!handle) return;
+    // Start from the width on screen, so the handle announces it and arrow keys step from it.
+    if (col && !this.#widths.has(col.key)) this.#setWidth(col, this.#widthOf(col));
     this.#editing = true;
     handle.focus();
   }

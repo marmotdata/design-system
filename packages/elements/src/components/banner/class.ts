@@ -77,9 +77,11 @@ export class MmBanner extends LitElement {
         min-inline-size: 0;
         overflow-wrap: anywhere;
       }
+      /* Ink, not burnt sienna: the accent drops below 4.5:1 on the soft status fills, and the
+         banner's tone already carries its meaning. The underline marks it as a link. */
       .link {
         margin-inline-start: var(--space-2);
-        color: var(--mm-primary);
+        color: var(--mm-text);
         font-weight: 600;
         text-decoration: underline;
         text-underline-offset: 2px;

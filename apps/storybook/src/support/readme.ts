@@ -30,13 +30,14 @@ const inline = (s: string) =>
     .replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
 
 /** A deliberately small Markdown subset: headings, paragraphs, lists, tables, inline code and bold. */
-export function mdToHtml(src: string): string {
+/** `top` is the heading level a `###` becomes, so a page without its own h2 keeps the outline in order. */
+export function mdToHtml(src: string, top = 3): string {
   const blocks = src.split(/\n{2,}/);
   const out = blocks.map((b) => {
     const lines = b.split('\n');
     if (/^#{3,4} /.test(lines[0]!)) {
-      const lvl = lines[0]!.startsWith('####') ? 4 : 3;
-      return `<h${lvl}>${inline(lines[0]!.replace(/^#+ /, ''))}</h${lvl}>` + (lines.length > 1 ? mdToHtml(lines.slice(1).join('\n')) : '');
+      const lvl = lines[0]!.startsWith('####') ? top + 1 : top;
+      return `<h${lvl}>${inline(lines[0]!.replace(/^#+ /, ''))}</h${lvl}>` + (lines.length > 1 ? mdToHtml(lines.slice(1).join('\n'), top) : '');
     }
     if (lines.every((l) => /^\s*(- |\d+\. )/.test(l) || /^\s{2,}/.test(l))) {
       const ordered = /^\d+\. /.test(lines[0]!);
@@ -54,8 +55,8 @@ export function mdToHtml(src: string): string {
   return out.join('\n');
 }
 
-export function md(src: string): TemplateResult {
-  return html`<div class="fd-prose">${unsafeHTML(mdToHtml(src))}</div>`;
+export function md(src: string, top = 3): TemplateResult {
+  return html`<div class="fd-prose">${unsafeHTML(mdToHtml(src, top))}</div>`;
 }
 
 export { readme };

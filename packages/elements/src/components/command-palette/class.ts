@@ -816,11 +816,28 @@ export class MmCommandPalette extends LitElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has('open') && !this.inline) this.#syncOpen();
+    this.#syncActiveDescendant();
     if (this.#scrollPending) {
       this.#scrollPending = false;
       void this.#scrollActive();
     }
   }
+
+  /**
+   * Points the input at the active option only once that option is in the DOM. A virtualised group
+   * draws its rows a moment after the update, so the reference is set again when it has.
+   */
+  #syncActiveDescendant = (tries = 0) => {
+    const input = this.#input;
+    if (!input) return;
+    const id = this.#rows.length ? this.#optId(this.#active) : '';
+    if (id && this.renderRoot.querySelector(`#${id}`)) input.setAttribute('aria-activedescendant', id);
+    else {
+      input.removeAttribute('aria-activedescendant');
+      // A few frames for the virtualiser to draw the row; a row scrolled out of view is simply not referenced.
+      if (id && tries < 3 && typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => this.#syncActiveDescendant(tries + 1));
+    }
+  };
 
   #syncOpen() {
     const dialog = this.#dialog;
@@ -986,7 +1003,7 @@ export class MmCommandPalette extends LitElement {
     const headingId = `${g.id}-h`;
     const body =
       g.rows.length > VIRTUALISE_OVER
-        ? html`<div class="vlist" id=${`${g.id}-v`} role="presentation">
+        ? html`<div class="vlist" id=${`${g.id}-v`} role="presentation" @rangeChanged=${() => this.#syncActiveDescendant()} @visibilityChanged=${() => this.#syncActiveDescendant()}>
             ${virtualize({
               items: g.rows,
               keyFunction: (r: Row) => (typeof r.item === 'string' ? r.item : r.item.id),
@@ -1022,7 +1039,6 @@ export class MmCommandPalette extends LitElement {
     const listId = `${this.#id}-list`;
     const total = this.#rows.length;
     const expanded = total > 0;
-    const activeId = expanded ? this.#optId(this.#active) : undefined;
     const label = tr('paletteLabel', 'Command palette');
     const placeholder =
       this.placeholder ||
@@ -1044,7 +1060,6 @@ export class MmCommandPalette extends LitElement {
           aria-autocomplete="list"
           aria-expanded=${expanded ? 'true' : 'false'}
           aria-controls=${listId}
-          aria-activedescendant=${ifDefined(activeId)}
           placeholder=${placeholder}
           .value=${this.query}
           @input=${this.#onInput}

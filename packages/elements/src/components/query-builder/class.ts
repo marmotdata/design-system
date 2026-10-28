@@ -41,7 +41,8 @@ export interface QueryGroupNode {
 }
 export type QueryNode = QueryConditionNode | QueryTextNode | QueryGroupNode;
 
-const quote = (v: string) => (/[\s"()[\]]/.test(v) ? `"${v.replace(/"/g, '')}"` : v);
+// Wildcards are quoted too, as Marmot's query docs write them ("*_archive*").
+const quote = (v: string) => (/[\s"()[\]*]/.test(v) ? `"${v.replace(/"/g, '')}"` : v);
 const unquote = (v: string) => v.replace(/^"|"$/g, '');
 
 function writeCondition(c: QueryConditionNode): string {

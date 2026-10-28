@@ -40,6 +40,8 @@ export function offsetOf(text: string, line: number, column: number): number {
 export const codeEditorStyles = css`
   :host {
     display: block;
+    /* Shrink inside grid and flex layouts; long lines scroll inside the editor instead of widening the page. */
+    min-width: 0;
     --mm-code-editor-height: 240px;
   }
   .frame {

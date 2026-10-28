@@ -1,0 +1,50 @@
+name: Publish docs
+
+# The docs site at design.marmotdata.io, with the public Storybook under /storybook, published to
+# GitHub Pages on every push to main. The custom domain is set in the repository's Pages settings.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One publish at a time, the newest winning.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Build packages
+        run: pnpm turbo run build --filter="./packages/*"
+      - name: Build Storybook
+        working-directory: apps/storybook
+        run: pnpm build:public
+      - name: Build docs
+        run: pnpm --filter @marmotdata/docs build
+      - name: Put Storybook under /storybook
+        run: cp -r apps/storybook/storybook-static apps/docs/build/storybook
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/docs/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

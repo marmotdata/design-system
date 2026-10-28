@@ -27,7 +27,7 @@ export const Copy: StoryObj = {
   render: () => html`<div class="fd">
     <h1>Voice and copy</h1>
     <p class="lede">The source of truth for every word in Marmot: product, docs and marketing.</p>
-    ${md(section('Copy'))}
+    ${md(section('Copy'), 2)}
     <h2>Write this, not that</h2>
     <table class="fd-table">
       <thead><tr><th>Write</th><th>Not</th><th>Why</th></tr></thead>

@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 const here = fileURLToPath(new URL('..', import.meta.url));
 const repo = join(here, '../..');
 const docs = join(here, 'docs');
-const storybook = process.env.STORYBOOK_URL ?? 'https://storybook.marmot.team';
+const storybook = process.env.STORYBOOK_URL ?? 'pathname:///storybook';
 
 /* ------------------------------------------------------------------ wordmark */
 

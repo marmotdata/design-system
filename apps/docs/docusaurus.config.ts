@@ -2,12 +2,13 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import { themes } from 'prism-react-renderer';
 
-const storybook = process.env.STORYBOOK_URL ?? 'https://storybook.marmot.team';
+// Storybook is published with the docs, under /storybook. pathname:// keeps Docusaurus from treating it as a docs route.
+const storybook = process.env.STORYBOOK_URL ?? 'pathname:///storybook';
 
 const config: Config = {
   title: 'Marmot design system',
   tagline: 'Tokens, components and guidelines for building Marmot.',
-  url: 'https://storybook.marmot.team',
+  url: 'https://design.marmotdata.io',
   baseUrl: '/',
   favicon: 'img/marmot-wordmark.svg',
   onBrokenLinks: 'throw',
@@ -34,7 +35,7 @@ const config: Config = {
         { to: '/', label: 'Components', position: 'left', activeBaseRegex: '^/(components/.*)?$' },
         { to: '/do-and-dont', label: 'Do and don’t', position: 'left' },
         { to: '/foundations/principles', label: 'Foundations', position: 'left' },
-        { href: storybook, label: 'Storybook', position: 'right' },
+        { href: `${storybook}/`, label: 'Storybook', position: 'right', target: '_self' },
         { href: 'https://github.com/marmotdata/design-system', label: 'GitHub', position: 'right' },
       ],
     },

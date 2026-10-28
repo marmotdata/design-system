@@ -300,6 +300,7 @@ export const Narrow: Story = {
     await expect(getComputedStyle(sentence).whiteSpace).toBe('nowrap');
     await waitFor(() => expect(root.querySelector('.end')!.getBoundingClientRect().top).toBeLessThan(sentence.getBoundingClientRect().bottom));
     const actor = root.querySelector('.actor') as HTMLElement;
-    await expect(actor.getClientRects().length).toBe(1);
+    // The actor stays on one line (a browser may still split it into several boxes on that line).
+    await expect(new Set([...actor.getClientRects()].map((r) => Math.round(r.top))).size).toBe(1);
   },
 };

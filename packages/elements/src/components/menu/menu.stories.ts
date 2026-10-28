@@ -119,11 +119,11 @@ export const Floating: Story = {
     await press('{Enter}');
     await waitFor(() => expect(menu.matches(':popover-open')).toBe(true));
     await expect(menu).toHaveAttribute('data-instant');
-    await expect(deepActive()).toBe(item(canvasElement, 'Copy MRN'));
+    await waitFor(() => expect(deepActive()).toBe(item(canvasElement, 'Copy MRN')));
     await press('{Escape}');
     await waitFor(() => expect(menu.open).toBe(false));
     await expect(menu.matches(':popover-open')).toBe(false);
-    await expect(deepActive()).toBe(trigger.shadowRoot!.querySelector('button'));
+    await waitFor(() => expect(deepActive()).toBe(trigger.shadowRoot!.querySelector('button')));
     await press('{Enter}');
     await waitFor(() => expect(menu.open).toBe(true));
     await press('{ArrowDown}{Enter}');

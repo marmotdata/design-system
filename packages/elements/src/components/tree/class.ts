@@ -831,6 +831,8 @@ export class MmTree extends LitElement {
     const actions = this.#actionsFor(node);
     const mono = node.secondaryMono === true;
     const domId = this.#domId(row.key);
+    // A row names itself from its content; with action buttons it points at its text instead, so the
+    // buttons' labels stay out of the row's name.
     const labelledby = [`${domId}-l`, node.secondary ? `${domId}-s` : '', node.badges?.length ? `${domId}-b` : ''].filter(Boolean).join(' ');
     return html`<div
       role="treeitem"
@@ -846,7 +848,7 @@ export class MmTree extends LitElement {
       aria-selected=${ifDefined(selectable ? String(this.#selected.has(node.id)) : undefined)}
       aria-disabled=${ifDefined(node.disabled ? 'true' : undefined)}
       aria-busy=${ifDefined(loading ? 'true' : undefined)}
-      aria-labelledby=${labelledby}
+      aria-labelledby=${ifDefined(actions.length ? labelledby : undefined)}
     >
       <span class="twisty ${row.expandable ? '' : 'leaf'}" aria-hidden="true"
         >${row.expandable ? html`<mm-icon name="chevron-right"></mm-icon>` : nothing}</span

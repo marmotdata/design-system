@@ -156,8 +156,16 @@ export abstract class MmChartBase extends LitElement {
     return this.height;
   }
 
+  /** Text measured with a fallback font is wrong once the real font arrives, so lay out again then. */
+  #onFonts = () => this.fontsChanged();
+  /** Called when web fonts finish loading. Charts that cache text measurements clear them here. */
+  protected fontsChanged(): void {
+    this.requestUpdate();
+  }
+
   override connectedCallback(): void {
     super.connectedCallback();
+    if (typeof document !== 'undefined') document.fonts?.addEventListener?.('loadingdone', this.#onFonts);
     if (typeof ResizeObserver === 'undefined') return;
     this.#ro = new ResizeObserver((entries) => {
       const width = Math.round(entries[0]?.contentRect.width ?? 0);
@@ -169,6 +177,7 @@ export abstract class MmChartBase extends LitElement {
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this.#ro?.disconnect();
+    if (typeof document !== 'undefined') document.fonts?.removeEventListener?.('loadingdone', this.#onFonts);
   }
 
   /** Nearest point to a pointer position in SVG units. Defaults to nearest by x. */

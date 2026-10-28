@@ -213,9 +213,10 @@ export const SearchAndRaw: Story = {
     const v = viewerOf(canvasElement);
     await tab();
     await press('cents');
-    await waitFor(() => expect(rowOf(v, 'metadata.depends_on.macros[1]')).not.toBeNull());
+    // Lists of plain values read inline on their own row, so the match is on the macros row itself.
+    await waitFor(() => expect(rowOf(v, 'metadata.depends_on.macros')).not.toBeNull());
     await expect(rowOf(v, 'metadata.unique_id')).toBeNull();
-    await expect(rowOf(v, 'metadata.depends_on.macros[1]')?.querySelector('mark')?.textContent).toBe('cents');
+    await expect(rowOf(v, 'metadata.depends_on.macros')?.querySelector('mark')?.textContent).toBe('cents');
     await press('{Escape}');
     await waitFor(() => expect(rowOf(v, 'metadata.unique_id')).not.toBeNull());
     await tab(); // raw toggle

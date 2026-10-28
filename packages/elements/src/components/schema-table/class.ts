@@ -339,8 +339,9 @@ export class MmSchemaTable extends LitElement {
         overflow: hidden;
       }
       .desc.none,
+      /* mm-text-2: mm-text-3 drops below 4.5:1 on a selected row. */
       .edited {
-        color: var(--mm-text-3);
+        color: var(--mm-text-2);
       }
       .edited {
         font: var(--text-caption);

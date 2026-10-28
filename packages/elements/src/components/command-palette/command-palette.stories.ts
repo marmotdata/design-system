@@ -271,7 +271,8 @@ export const Typing: Story = {
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(shadow(canvasElement).querySelector('mark')).not.toBeNull());
     const first = options(canvasElement)[0]!;
-    await expect(first.querySelector('mark')!.textContent).toBe('orders');
+    // Matching ignores case, and the highlight keeps the label's own case ("Orders 360").
+    await expect(first.querySelector('mark')!.textContent!.toLowerCase()).toBe('orders');
     await expect(getComputedStyle(first.querySelector('mark')!).fontWeight).toBe('600');
   },
 };

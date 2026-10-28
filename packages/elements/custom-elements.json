@@ -1674,6 +1674,31 @@
               }
             },
             {
+              "kind": "field",
+              "name": "#onFonts",
+              "privacy": "private",
+              "description": "Text measured with a fallback font is wrong once the real font arrives, so lay out again then.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fontsChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Called when web fonts finish loading. Charts that cache text measurements clear them here.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
               "kind": "method",
               "name": "hitTest",
               "privacy": "protected",
@@ -4289,6 +4314,31 @@
             },
             {
               "kind": "field",
+              "name": "#onFonts",
+              "privacy": "private",
+              "description": "Text measured with a fallback font is wrong once the real font arrives, so lay out again then.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fontsChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Called when web fonts finish loading. Charts that cache text measurements clear them here.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "#onKeydown",
               "privacy": "private",
               "inheritedFrom": {
@@ -5969,6 +6019,23 @@
               "description": "Drawing height; charts whose height follows their data override this."
             },
             {
+              "kind": "field",
+              "name": "#onFonts",
+              "privacy": "private",
+              "description": "Text measured with a fallback font is wrong once the real font arrives, so lay out again then."
+            },
+            {
+              "kind": "method",
+              "name": "fontsChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Called when web fonts finish loading. Charts that cache text measurements clear them here."
+            },
+            {
               "kind": "method",
               "name": "hitTest",
               "privacy": "protected",
@@ -7243,7 +7310,7 @@
         {
           "kind": "variable",
           "name": "codeEditorStyles",
-          "default": "css` :host { display: block; --mm-code-editor-height: 240px; } .frame { position: relative; height: var(--mm-code-editor-height); min-height: 96px; border-radius: var(--radius-md); background: var(--mm-code-bg); color: var(--mm-code-text); font: var(--text-mono-editor); overflow: hidden; /* A faint edge from the code palette: on Peat the code ground is close to the page paper. */ box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mm-code-text) 12%, var(--mm-code-bg)); } :host([resize='vertical']) .frame { resize: vertical; } .frame.focused, .frame:has(.fallback:focus-visible) { outline: var(--mm-focus-ring-width, 2px) solid var(--mm-text); outline-offset: var(--mm-focus-ring-offset, 2px); } /* The frame draws the ring, so the editor's own one would be clipped and doubled. */ .frame .cm-editor.cm-focused { outline: none; } :host([disabled]) .frame, :host([data-form-disabled]) .frame { opacity: 0.5; cursor: not-allowed; } /* A disabled editor cannot take focus, so it does not scroll either. */ :host([disabled]) .cm-scroller, :host([data-form-disabled]) .cm-scroller { overflow: hidden; } .host-mount { height: 100%; } .fallback { display: flex; height: 100%; overflow: auto; margin: 0; border-radius: inherit; } .fallback:focus-visible { outline: none; } .gutter { flex: none; padding: 14px 8px 14px 16px; min-width: calc(2.5ch + 24px); text-align: right; color: var(--mm-syn-comment); user-select: none; font-variant-numeric: tabular-nums; } /* Leaves room for the lint gutter CodeMirror adds, so nothing shifts when it loads. */ .gutter::after { content: ''; display: inline-block; width: calc(1.1em + 6px); } pre { margin: 0; padding: 14px 16px 14px 6px; font: inherit; white-space: pre; flex: 1 1 auto; min-width: 0; } .gutter span, pre .ln { display: block; } .placeholder { color: var(--mm-syn-comment); font-style: italic; } .k { color: var(--mm-syn-keyword); } .f { color: var(--mm-syn-function); } .s { color: var(--mm-syn-string); } .n { color: var(--mm-syn-number); } .c { color: var(--mm-syn-comment); font-style: italic; } .loading { position: absolute; inset-block-end: var(--space-2); inset-inline-end: var(--space-3); font: var(--text-caption); color: var(--mm-code-text); opacity: 0.8; } .footer { display: flex; align-items: flex-start; gap: var(--space-3); margin-block-start: var(--space-2); font: var(--text-dense); color: var(--mm-text-2); min-height: 0; } .footer[hidden] { display: none; } .messages { flex: 1 1 auto; min-width: 0; list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); } .message { display: flex; align-items: baseline; gap: var(--space-2); color: var(--mm-text); } .message mm-icon { flex: none; align-self: center; } .message.error mm-icon { color: var(--mm-danger); } .message.warning mm-icon { color: var(--mm-warning); } .message.info mm-icon { color: var(--mm-info); } .where { flex: none; font: var(--text-label); letter-spacing: var(--tracking-label, 0); color: var(--mm-text-2); font-variant-numeric: tabular-nums; } .text { min-width: 0; overflow-wrap: anywhere; } .end { display: flex; align-items: center; gap: var(--space-3); margin-inline-start: auto; flex: none; } .badge { display: inline-flex; align-items: center; gap: var(--space-1); font: var(--text-label); letter-spacing: var(--tracking-label, 0); color: var(--mm-text-2); } @media (pointer: coarse) { .frame { font-size: 16px; } } `",
+          "default": "css` :host { display: block; /* Shrink inside grid and flex layouts; long lines scroll inside the editor instead of widening the page. */ min-width: 0; --mm-code-editor-height: 240px; } .frame { position: relative; height: var(--mm-code-editor-height); min-height: 96px; border-radius: var(--radius-md); background: var(--mm-code-bg); color: var(--mm-code-text); font: var(--text-mono-editor); overflow: hidden; /* A faint edge from the code palette: on Peat the code ground is close to the page paper. */ box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mm-code-text) 12%, var(--mm-code-bg)); } :host([resize='vertical']) .frame { resize: vertical; } .frame.focused, .frame:has(.fallback:focus-visible) { outline: var(--mm-focus-ring-width, 2px) solid var(--mm-text); outline-offset: var(--mm-focus-ring-offset, 2px); } /* The frame draws the ring, so the editor's own one would be clipped and doubled. */ .frame .cm-editor.cm-focused { outline: none; } :host([disabled]) .frame, :host([data-form-disabled]) .frame { opacity: 0.5; cursor: not-allowed; } /* A disabled editor cannot take focus, so it does not scroll either. */ :host([disabled]) .cm-scroller, :host([data-form-disabled]) .cm-scroller { overflow: hidden; } .host-mount { height: 100%; } .fallback { display: flex; height: 100%; overflow: auto; margin: 0; border-radius: inherit; } .fallback:focus-visible { outline: none; } .gutter { flex: none; padding: 14px 8px 14px 16px; min-width: calc(2.5ch + 24px); text-align: right; color: var(--mm-syn-comment); user-select: none; font-variant-numeric: tabular-nums; } /* Leaves room for the lint gutter CodeMirror adds, so nothing shifts when it loads. */ .gutter::after { content: ''; display: inline-block; width: calc(1.1em + 6px); } pre { margin: 0; padding: 14px 16px 14px 6px; font: inherit; white-space: pre; flex: 1 1 auto; min-width: 0; } .gutter span, pre .ln { display: block; } .placeholder { color: var(--mm-syn-comment); font-style: italic; } .k { color: var(--mm-syn-keyword); } .f { color: var(--mm-syn-function); } .s { color: var(--mm-syn-string); } .n { color: var(--mm-syn-number); } .c { color: var(--mm-syn-comment); font-style: italic; } .loading { position: absolute; inset-block-end: var(--space-2); inset-inline-end: var(--space-3); font: var(--text-caption); color: var(--mm-code-text); opacity: 0.8; } .footer { display: flex; align-items: flex-start; gap: var(--space-3); margin-block-start: var(--space-2); font: var(--text-dense); color: var(--mm-text-2); min-height: 0; } .footer[hidden] { display: none; } .messages { flex: 1 1 auto; min-width: 0; list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); } .message { display: flex; align-items: baseline; gap: var(--space-2); color: var(--mm-text); } .message mm-icon { flex: none; align-self: center; } .message.error mm-icon { color: var(--mm-danger); } .message.warning mm-icon { color: var(--mm-warning); } .message.info mm-icon { color: var(--mm-info); } .where { flex: none; font: var(--text-label); letter-spacing: var(--tracking-label, 0); color: var(--mm-text-2); font-variant-numeric: tabular-nums; } .text { min-width: 0; overflow-wrap: anywhere; } .end { display: flex; align-items: center; gap: var(--space-3); margin-inline-start: auto; flex: none; } .badge { display: inline-flex; align-items: center; gap: var(--space-1); font: var(--text-label); letter-spacing: var(--tracking-label, 0); color: var(--mm-text-2); } @media (pointer: coarse) { .frame { font-size: 16px; } } `",
           "description": "Shared styles for the frame, fallback and footer, reused by `mm-sql-editor`."
         },
         {
@@ -9506,6 +9573,12 @@
               ]
             },
             {
+              "kind": "field",
+              "name": "#syncActiveDescendant",
+              "privacy": "private",
+              "description": "Points the input at the active option only once that option is in the DOM. A virtualised group\ndraws its rows a moment after the update, so the reference is set again when it has."
+            },
+            {
               "kind": "method",
               "name": "#syncOpen",
               "privacy": "private"
@@ -10991,6 +11064,31 @@
                 }
               },
               "description": "Drawing height; charts whose height follows their data override this.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#onFonts",
+              "privacy": "private",
+              "description": "Text measured with a fallback font is wrong once the real font arrives, so lay out again then.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fontsChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Called when web fonts finish loading. Charts that cache text measurements clear them here.",
               "inheritedFrom": {
                 "name": "MmChartBase",
                 "module": "src/components/chart-core/class.ts"
@@ -13754,6 +13852,13 @@
                   "name": "c",
                   "type": {
                     "text": "number"
+                  }
+                },
+                {
+                  "name": "col",
+                  "optional": true,
+                  "type": {
+                    "text": "DataTableColumn"
                   }
                 }
               ]
@@ -23405,6 +23510,31 @@
               }
             },
             {
+              "kind": "field",
+              "name": "#onFonts",
+              "privacy": "private",
+              "description": "Text measured with a fallback font is wrong once the real font arrives, so lay out again then.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fontsChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Called when web fonts finish loading. Charts that cache text measurements clear them here.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
               "kind": "method",
               "name": "hitTest",
               "privacy": "protected",
@@ -24308,6 +24438,31 @@
                 }
               },
               "description": "Drawing height; charts whose height follows their data override this.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#onFonts",
+              "privacy": "private",
+              "description": "Text measured with a fallback font is wrong once the real font arrives, so lay out again then.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fontsChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Called when web fonts finish loading. Charts that cache text measurements clear them here.",
               "inheritedFrom": {
                 "name": "MmChartBase",
                 "module": "src/components/chart-core/class.ts"
@@ -34409,6 +34564,21 @@
             },
             {
               "kind": "method",
+              "name": "fontsChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Called when web fonts finish loading. Charts that cache text measurements clear them here.",
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "method",
               "name": "#labelW",
               "privacy": "private",
               "return": {
@@ -34868,6 +35038,16 @@
               },
               "description": "Index of the focused or hovered data point, or -1.",
               "readonly": true,
+              "inheritedFrom": {
+                "name": "MmChartBase",
+                "module": "src/components/chart-core/class.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#onFonts",
+              "privacy": "private",
+              "description": "Text measured with a fallback font is wrong once the real font arrives, so lay out again then.",
               "inheritedFrom": {
                 "name": "MmChartBase",
                 "module": "src/components/chart-core/class.ts"

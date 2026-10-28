@@ -80,7 +80,8 @@ export function fieldFor(path: string, fields: SearchBarField[]): SearchBarField
 /** Values that read in plain words but are written as query syntax. */
 export const opSyntax = (op: SearchOperator): string => (op === 'matches' ? '=' : op);
 
-const quote = (v: string) => (/[\s"()[\]]/.test(v) ? `"${v.replace(/"/g, '')}"` : v);
+// Wildcards are quoted too, as Marmot's query docs write them ("orders_*").
+const quote = (v: string) => (/[\s"()[\]*]/.test(v) ? `"${v.replace(/"/g, '')}"` : v);
 const unquote = (v: string) => v.replace(/^"|"$/g, '');
 const COND = /^@([\w.-]+)\s*(!=|>=|<=|=|:|>|<|contains)\s*("[^"]*"|\S+)$/;
 const RANGE = /^@([\w.-]+)\s+range\s+\[\s*("[^"]*"|\S+)\s+TO\s+("[^"]*"|[^\]\s]+)\s*\]$/;

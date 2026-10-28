@@ -159,8 +159,13 @@ export const BigQuery: Story = {
   render: () => html`<mm-schema-table label="Schema of marmot-analytics.events.page_views" .columns=${bigquery}></mm-schema-table>`,
   play: async ({ canvasElement }) => {
     const t = tableOf(canvasElement);
-    const btn = [...t.shadowRoot!.querySelectorAll('mm-button')].find((b) => b.textContent?.includes('Expand all'))!;
-    await click(btn);
+    // Structs may start open, so the toggle can read "Collapse all"; collapse first, then expand everything.
+    const toggle = () => [...t.shadowRoot!.querySelectorAll('mm-button')].find((b) => /Expand all|Collapse all/.test(b.textContent ?? ''))!;
+    if (toggle().textContent!.includes('Collapse all')) {
+      await click(toggle());
+      await waitFor(() => expect(toggle().textContent).toContain('Expand all'));
+    }
+    await click(toggle());
     await waitFor(() => expect(rowOf(t, 'user.consent.ads')).not.toBeNull());
   },
 };

@@ -625,10 +625,12 @@ export const KeyboardResize: Story = {
     const handle = deepActive() as HTMLElement;
     await expect(handle).toHaveAttribute('role', 'separator');
     await expect(handle).toHaveAttribute('aria-label', 'Resize Type column');
-    await expect(handle).toHaveAttribute('aria-valuenow', '104');
+    // The handle starts at the width on screen; arrow keys step 10px from there.
+    await waitFor(() => expect(Number(handle.getAttribute('aria-valuenow'))).toBe(Math.round(handle.parentElement!.getBoundingClientRect().width)));
+    const start = Number(handle.getAttribute('aria-valuenow'));
     await press('{ArrowRight}{ArrowRight}');
-    await waitFor(() => expect(handle).toHaveAttribute('aria-valuenow', '124'));
-    await expect(onResize).toHaveBeenLastCalledWith({ key: 'type', width: 124 });
+    await waitFor(() => expect(handle).toHaveAttribute('aria-valuenow', String(start + 20)));
+    await expect(onResize).toHaveBeenLastCalledWith({ key: 'type', width: start + 20 });
     await press('{Shift>}{ArrowLeft}{/Shift}');
     await waitFor(() => expect(handle).toHaveAttribute('aria-valuenow', '80'));
     await press('{Escape}');

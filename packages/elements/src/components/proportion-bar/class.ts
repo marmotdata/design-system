@@ -29,7 +29,8 @@ interface Placed {
 }
 
 const BAR_H = 12;
-const TIER_H = 15;
+/** One label row: 13px text is about 17px tall in Geist, plus 1px clear. */
+const TIER_H = 18;
 const MAX_TIERS = 4;
 
 /** "76.5%", "13%", "0.2%". */
@@ -145,6 +146,10 @@ export class MmProportionBar extends MmChartBase {
 
   /** Label widths measured after render; estimates are used until then (and on the server). */
   #widths = new Map<string, number>();
+  protected override fontsChanged(): void {
+    this.#widths.clear();
+    super.fontsChanged();
+  }
   #labelW(text: string): number {
     return this.#widths.get(text) ?? monoWidth(text) + 4;
   }

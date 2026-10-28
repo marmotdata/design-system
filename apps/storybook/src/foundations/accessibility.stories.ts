@@ -17,7 +17,7 @@ const colors = Object.fromEntries((tokens.color.tokens as { name: string; value:
 export const Contrast: StoryObj = {
   render: () => html`<div class="fd">
     <h1>Accessibility</h1>
-    ${md(section('Accessibility'))}
+    ${md(section('Accessibility'), 2)}
     <h2>Every checked pair</h2>
     <p class="lede">The same list CI checks (<code>tools/contrast/pairs.ts</code>), computed from the tokens on every build. Allowed exceptions are uses the guidelines forbids.</p>
     <table class="fd-table">

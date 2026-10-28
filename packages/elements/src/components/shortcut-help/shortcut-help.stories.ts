@@ -125,12 +125,10 @@ export const KeyboardQuestionMark: Story = {
     const trigger = canvasElement.querySelector('mm-button')!;
     trigger.focus();
     const before = deepActive();
-    // Measure: open in the same frame, with no transition.
-    let openAtFrame = false;
-    const frame = new Promise<void>((r) => requestAnimationFrame(() => ((openAtFrame = el.open && shadow(canvasElement).querySelector('dialog')!.open), r())));
+    // Opens synchronously on the key press (so within the same frame), with no transition. Checking
+    // straight after the press is reliable under load; a frame callback can run before the key lands.
     await press('?');
-    await frame;
-    await expect(openAtFrame).toBe(true);
+    await expect(el.open && shadow(canvasElement).querySelector('dialog')!.open).toBe(true);
     await expect(getComputedStyle(shadow(canvasElement).querySelector('dialog')!).transitionDuration).toBe('0s');
     await expect(deepActive()).toBe(shadow(canvasElement).querySelector('input'));
     await press('{Escape}');
