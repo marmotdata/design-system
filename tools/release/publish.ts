@@ -1,9 +1,10 @@
 /**
  * Publishes every public package whose version is not on npm yet. Each package is packed with pnpm,
- * which turns `workspace:*` dependencies into real versions, and the tarball is published with npm,
- * whose trusted publishing (OIDC) needs no token in CI.
+ * which turns `workspace:*` dependencies into real versions, and the tarball goes to npm through
+ * trusted publishing (OIDC), so CI needs no token. In CI it is staged (`npm stage publish`): a
+ * maintainer approves each version on npmjs.com with 2FA before it goes live.
  *
- *   node tools/release/publish.ts           in CI: publish with provenance
+ *   node tools/release/publish.ts           in CI: stage with provenance, for approval on npmjs.com
  *   node tools/release/publish.ts --local   the one-off first publish of a new package from a laptop
  *                                           (`npm login` first; provenance needs CI)
  *
@@ -39,7 +40,9 @@ for (const dir of readdirSync(join(root, 'packages')).sort()) {
   const before = new Set(readdirSync(out));
   execFileSync('pnpm', ['pack', '--pack-destination', out], { cwd: join(root, 'packages', dir), stdio: 'inherit' });
   const tarball = readdirSync(out).find((f) => !before.has(f) && f.endsWith('.tgz'))!;
-  const args = ['publish', join(out, tarball), '--access', 'public', ...(local ? ['--provenance=false'] : ['--provenance'])];
+  const args = local
+    ? ['publish', join(out, tarball), '--access', 'public', '--provenance=false']
+    : ['stage', 'publish', join(out, tarball), '--access', 'public', '--provenance'];
   execFileSync('npm', args, { stdio: 'inherit' });
   console.log(`New tag: ${pkg.name}@${pkg.version}`);
 }

@@ -1,9 +1,10 @@
 name: Release
 
 # Manual: Actions → Release → Run workflow. With pending changesets it opens the "Version packages"
-# PR; with none it publishes any version not yet on npm, through npm trusted publishing (OIDC), so
-# no npm token is stored anywhere. Each package's trusted publisher is this repo, release.yml and the
-# npm environment.
+# PR; with none it stages any version not yet on npm, through npm trusted publishing (OIDC), so no
+# npm token is stored anywhere. A maintainer then approves each staged version on npmjs.com with 2FA.
+# Each package's trusted publisher is this repo, release.yml and the npm environment, with
+# "Allow npm publish" off.
 on:
   workflow_dispatch:
 
