@@ -1,4 +1,4 @@
-# marmot-ui
+# design-system
 
 Marmot's component library: design tokens, CSS and web components, with React and Svelte bindings.
 
