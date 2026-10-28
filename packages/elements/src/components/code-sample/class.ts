@@ -339,7 +339,7 @@ export class MmCodeTabs extends LitElement {
 
   override render() {
     const selected = Math.min(this.selected, Math.max(0, this.#tabs.length - 1));
-    return html`<div role="tablist" part="tablist" aria-label=${this.label || tr('codeTabs', 'Code samples')} @keydown=${this.#onKeydown}>
+    return html`<div role="tablist" part="tablist" tabindex="-1" aria-label=${this.label || tr('codeTabs', 'Code samples')} @keydown=${this.#onKeydown}>
         ${this.#tabs.map(
           (label, i) =>
             html`<button

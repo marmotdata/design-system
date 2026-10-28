@@ -963,7 +963,7 @@ export class MmResultsGrid extends LitElement {
         ? html`<pre class="text" part="text" tabindex="0" aria-label=${`${this.label || tr('queryResults', 'Query results')}, ${textView.toUpperCase()}`}>${text}</pre>`
         : nothing}
       <div class="area" ?hidden=${!!textView}>
-        <div class="scroller" part="scroller" style="--_gw:${gw}px">
+        <div class="scroller" part="scroller" tabindex="-1" style="--_gw:${gw}px">
           <div
             class="grid"
             part="grid"

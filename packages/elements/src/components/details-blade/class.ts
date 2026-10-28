@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { base } from '../../core/styles.js';
 import { emit } from '../../core/events.js';
 import { t, tr } from '../../core/strings.js';
@@ -236,6 +237,9 @@ export class MmDetailsBlade extends LitElement {
 
   @state() accessor #measured = 0;
   @state() accessor #viewport = 0;
+  /** True when the body overflows and holds nothing focusable, so it needs to be a Tab stop to scroll. */
+  @state() accessor #bodyNeedsFocus = false;
+  #bodyRo?: ResizeObserver;
   @query('.close') accessor #close!: HTMLElement | null;
   @query('.handle') accessor #handle!: HTMLElement | null;
   #id = uid('blade');
@@ -271,7 +275,17 @@ export class MmDetailsBlade extends LitElement {
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     if (typeof window !== 'undefined') window.removeEventListener('resize', this.#onWindowResize);
+    this.#bodyRo?.disconnect();
   }
+
+  /** A scrolling body with no focusable content can only be scrolled from the keyboard if it takes focus. */
+  #checkBody = () => {
+    const body = this.renderRoot.querySelector<HTMLElement>('.body');
+    if (!body) return;
+    const overflows = body.scrollHeight > body.clientHeight + 1;
+    const focusable = this.querySelector('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"]), mm-button, mm-link, mm-tag[href]');
+    this.#bodyNeedsFocus = overflows && !focusable;
+  };
 
   #onWindowResize = () => {
     this.#viewport = window.innerWidth;
@@ -286,6 +300,11 @@ export class MmDetailsBlade extends LitElement {
 
   protected override firstUpdated(): void {
     this.#measured = Math.round(this.getBoundingClientRect().width);
+    const body = this.renderRoot.querySelector<HTMLElement>('.body');
+    if (body && typeof ResizeObserver !== 'undefined') {
+      this.#bodyRo = new ResizeObserver(this.#checkBody);
+      this.#bodyRo.observe(body);
+    }
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -451,7 +470,15 @@ export class MmDetailsBlade extends LitElement {
           ></div>`
         : nothing;
     const body = html`${handle}${this.#head()}
-      <div class="body" part="body" id="${this.#id}-body" ?hidden=${this.collapsed}><slot></slot></div>
+      <div
+        class="body"
+        part="body"
+        id="${this.#id}-body"
+        ?hidden=${this.collapsed}
+        tabindex=${ifDefined(this.#bodyNeedsFocus ? '0' : undefined)}
+        role=${ifDefined(this.#bodyNeedsFocus ? 'group' : undefined)}
+        aria-label=${ifDefined(this.#bodyNeedsFocus ? this.heading || undefined : undefined)}
+      ><slot @slotchange=${this.#checkBody}></slot></div>
       <div class="footer" ?hidden=${this.collapsed}><slot name="footer"></slot></div>`;
     return overlay
       ? html`<div class="blade" part="blade" id="${this.#id}-blade" role="dialog" aria-modal="false" aria-label=${name} tabindex="-1">${body}</div>`

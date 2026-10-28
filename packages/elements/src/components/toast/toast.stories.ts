@@ -133,6 +133,8 @@ export const AutoDismiss: Story = {
     await expect(deepActive()).toBe(info!.shadowRoot!.querySelector('.close'));
     await wait(700);
     await expect(info!.isConnected).toBe(true);
+    // Hovering also pauses the timer, and the test pointer may rest over the toast (Firefox): move it away.
+    info!.shadowRoot!.querySelector('.toast')!.dispatchEvent(new PointerEvent('pointerleave'));
     (deepActive() as HTMLElement).blur();
     await waitFor(() => expect(info!.isConnected).toBe(false), { timeout: 2000 });
     await expect(canvasElement.querySelectorAll('mm-toast')).toHaveLength(1);

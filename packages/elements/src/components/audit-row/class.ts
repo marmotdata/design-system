@@ -153,11 +153,39 @@ export class MmAuditLog extends LitElement {
     this.addEventListener('focusin', this.#onFocusIn);
   }
 
+  /**
+   * The log's visible width, passed to its rows as `--mm-audit-visible` and `data-narrow`. Rows can't
+   * rely on a container query for this: WebKit doesn't resolve the log's container from inside a row's
+   * shadow tree, so expanded details stayed table-wide on narrow screens.
+   */
+  #ro?: ResizeObserver;
+  #width = 0;
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (typeof ResizeObserver === 'undefined') return;
+    this.#ro = new ResizeObserver((entries) => {
+      this.#width = Math.round(entries[0]?.contentRect.width ?? 0);
+      this.style.setProperty('--mm-audit-visible', `${this.#width}px`);
+      this.#sync();
+    });
+    this.#ro.observe(this);
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.#ro?.disconnect();
+  }
+
   #sync = (current?: MmAuditRow) => {
     const rows = this.#rows;
     this.#count = rows.length;
     const stop = current && rows.includes(current) ? current : rows[0];
-    for (const r of rows) r.tabStop = r === stop;
+    const narrow = this.#width > 0 && this.#width <= 720;
+    for (const r of rows) {
+      r.tabStop = r === stop;
+      r.toggleAttribute('data-narrow', narrow);
+    }
   };
 
   #onFocusIn = (e: FocusEvent) => {
@@ -487,17 +515,14 @@ export class MmAuditRow extends LitElement {
         gap: var(--space-2);
       }
       /* The table scrolls sideways when narrow, so the detail follows the log's visible width (its
-         scroll container), not the 66rem table or the viewport: one column, pinned to the visible area.
-         Unnamed on purpose: container names are scoped to the shadow tree that sets them, so WebKit
-         doesn't match the log's "mm-audit" from inside a row; the log is the row's nearest container. */
-      @container (max-width: 720px) {
-        .cell {
-          position: sticky;
-          inset-inline-start: 0;
-          inline-size: 100cqi;
-          grid-template-columns: minmax(0, 1fr);
-          padding-inline-start: var(--space-4);
-        }
+         scroll container, which sets data-narrow and --mm-audit-visible), not the 66rem table or the
+         viewport: one column, pinned to the visible area. */
+      :host([data-narrow]) .cell {
+        position: sticky;
+        inset-inline-start: 0;
+        inline-size: var(--mm-audit-visible, 100%);
+        grid-template-columns: minmax(0, 1fr);
+        padding-inline-start: var(--space-4);
       }
     `,
   ];

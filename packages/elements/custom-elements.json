@@ -2573,6 +2573,24 @@
             },
             {
               "kind": "field",
+              "name": "#ro",
+              "privacy": "private",
+              "type": {
+                "text": "ResizeObserver | undefined"
+              },
+              "description": "The log's visible width, passed to its rows as `--mm-audit-visible` and `data-narrow`. Rows can't\nrely on a container query for this: WebKit doesn't resolve the log's container from inside a row's\nshadow tree, so expanded details stayed table-wide on narrow screens."
+            },
+            {
+              "kind": "field",
+              "name": "#width",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
               "name": "#sync",
               "privacy": "private"
             },
@@ -16056,6 +16074,24 @@
             },
             {
               "kind": "field",
+              "name": "#bodyNeedsFocus",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "True when the body overflows and holds nothing focusable, so it needs to be a Tab stop to scroll."
+            },
+            {
+              "kind": "field",
+              "name": "#bodyRo",
+              "privacy": "private",
+              "type": {
+                "text": "ResizeObserver | undefined"
+              }
+            },
+            {
+              "kind": "field",
               "name": "#close",
               "privacy": "private",
               "type": {
@@ -16109,6 +16145,12 @@
                 "text": "number"
               },
               "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "#checkBody",
+              "privacy": "private",
+              "description": "A scrolling body with no focusable content can only be scrolled from the keyboard if it takes focus."
             },
             {
               "kind": "field",

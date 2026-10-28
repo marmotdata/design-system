@@ -34,4 +34,7 @@ jobs:
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Only for the first publish: npm trusted publishing can be set up once a package exists.
+          # Remove this and the NPM_TOKEN secret after configuring trusted publishing on each package.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'

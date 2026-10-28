@@ -1370,6 +1370,7 @@ export class MmDataTable extends LitElement {
       <div
         class="scroller"
         part="scroller"
+        tabindex="-1"
         style="--_cols:${tracks};--_minw:${min}px;--_head-h:${this.#headH}px;--_sticky-w:${this.#stickyWidth(cols)}px"
       >
         <div

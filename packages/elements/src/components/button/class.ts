@@ -99,13 +99,11 @@ export class MmButton extends LitElement {
         background: var(--mm-danger-fill);
         color: var(--mm-on-primary);
       }
-      /* docs/open-items.md, item 4: no mm-danger-hover token yet, so darken toward ink with tokens only. */
+      /* docs/open-items.md, item 4: no mm-danger-hover token yet. Darken toward the code ground, which
+         is near-black in both themes; mixing with mm-text lightened the fill in Peat to 4.48:1. */
       .danger:hover,
       .danger:active {
-        background: color-mix(in oklab, var(--mm-danger-fill), var(--mm-text) 14%);
-      }
-      :host([data-theme-dark]) .danger:hover {
-        background: color-mix(in oklab, var(--mm-danger-fill), var(--mm-paper) 18%);
+        background: color-mix(in oklab, var(--mm-danger-fill), var(--mm-code-bg) 14%);
       }
       .btn[aria-disabled='true'] {
         opacity: 0.5;

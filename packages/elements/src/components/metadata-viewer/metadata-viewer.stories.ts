@@ -203,6 +203,8 @@ export const KeyboardNavigation: Story = {
     await expect((deepActive()!.getRootNode() as ShadowRoot).host.getAttribute('label')).toBe('Copy path');
     await press('{Enter}');
     await waitFor(() => expect(onCopy).toHaveBeenCalledWith('path', 'metadata.unique_id'));
+    // Let the "Copied" confirmations clear (1.5s) before the accessibility check runs on the row.
+    await new Promise((r) => setTimeout(r, 1800));
   },
 };
 

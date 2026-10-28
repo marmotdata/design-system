@@ -80,8 +80,10 @@ export const KeyboardFocusAndEscape: Story = {
     await waitFor(() => expect(visible(tip)).toBe(true));
     await press('{Escape}');
     await waitFor(() => expect(visible(tip)).toBe(false));
+    // Come back with Shift+Tab from the link after it: from the first stop, Firefox's Shift+Tab leaves the frame.
+    canvasElement.querySelector<HTMLElement>('a[href="#owners"]')!.focus();
     await tab(true);
-    await tab();
+    await expect(deepActive()).toBe(canvasElement.querySelector('#orders-updated-k'));
     await waitFor(() => expect(visible(tip)).toBe(true));
     await tab();
     await waitFor(() => expect(visible(tip)).toBe(false));
