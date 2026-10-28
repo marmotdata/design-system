@@ -1,0 +1,1 @@
+{"name":"@marmotdata/visual","private":true,"type":"module","scripts":{"shoot":"node shoot.ts"},"devDependencies":{"@types/pngjs":"^6.0.5","pixelmatch":"^8.0.0","pngjs":"^7.0.0"}}

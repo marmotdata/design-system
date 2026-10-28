@@ -1,0 +1,25 @@
+{
+  "name": "@marmotdata/tokens",
+  "version": "0.1.0",
+  "description": "Marmot design tokens: CSS custom properties, TypeScript constants, Tailwind v3 preset and v4 theme, and self-hosted fonts.",
+  "license": "MIT",
+  "type": "module",
+  "repository": { "type": "git", "url": "git+https://github.com/marmotdata/design-system.git", "directory": "packages/tokens" },
+  "files": ["dist"],
+  "sideEffects": ["*.css"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./index.css": "./dist/index.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./fonts.css": "./dist/fonts.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./tailwind.css": "./dist/tailwind.css",
+    "./tailwind-preset": "./dist/tailwind-preset.cjs",
+    "./fonts/*": "./dist/fonts/*",
+    "./logos/*": "./dist/logos/*"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts && tsc -p tsconfig.json"
+  },
+  "publishConfig": { "access": "public", "provenance": true }
+}

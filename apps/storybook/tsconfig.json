@@ -1,0 +1,63 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
+    "types": [
+      "vite/client"
+    ],
+    "paths": {
+      "@marmotdata/react": [
+        "../../packages/react/src/index.ts"
+      ],
+      "@marmotdata/elements": [
+        "../../packages/elements/src/index.ts"
+      ],
+      "@marmotdata/elements/custom-elements.json": [
+        "../../packages/elements/custom-elements.json"
+      ],
+      "@marmotdata/elements/core/*.js": [
+        "../../packages/elements/src/core/*.ts"
+      ],
+      "@marmotdata/elements/classes/*.js": [
+        "../../packages/elements/src/components/*/class.ts"
+      ],
+      "@marmotdata/elements/*.js": [
+        "../../packages/elements/src/components/*/define.ts"
+      ],
+      "@marmotdata/icons": [
+        "../../packages/icons/src/index.ts"
+      ],
+      "@marmotdata/icons/*.js": [
+        "../../packages/icons/src/*.ts"
+      ],
+      "vitest/browser": [
+        "./node_modules/vitest/browser.d.ts"
+      ],
+      "@storybook/web-components-vite": [
+        "./node_modules/@storybook/web-components-vite/dist/index.d.ts"
+      ],
+      "storybook/test": [
+        "./node_modules/storybook/dist/test/index.d.ts"
+      ],
+      "lit": [
+        "./node_modules/lit/index.d.ts"
+      ],
+      "lit/*": [
+        "./node_modules/lit/*"
+      ],
+      "@marmotdata/elements/classes/*": [
+        "../../packages/elements/src/components/*/class.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    ".storybook",
+    "../../packages/*/src/**/*.stories.ts"
+  ]
+}

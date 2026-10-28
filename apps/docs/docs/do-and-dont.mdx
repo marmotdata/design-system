@@ -1,0 +1,95 @@
+---
+title: Do and don’t
+description: The mistakes that are easiest to make, side by side.
+sidebar_position: 2
+---
+
+Each pair uses real Marmot components. The full rules are in [Principles](./foundations/principles), [Easy to get wrong](./foundations/easy-to-get-wrong) and [Copy](./foundations/copy).
+
+## Sentence case
+
+<DoDont>
+  <Do html={`<mm-page-header heading="orders_daily" caption="1,284 rows · Updated 5 hours ago"></mm-page-header>`}>
+    Put facts that appear nowhere else on the page in a quiet caption.
+  </Do>
+  <Dont html={`<mm-heading level="3" variant="display-section">orders_daily</mm-heading><span style="font:var(--text-mono-dense);letter-spacing:0.06em;color:var(--mm-text-2)">TABLE · 9 COLS · UPDATED 04:04 UTC</span>`}>
+    Uppercase strips are slow to read, and this one repeats the kind the breadcrumbs already give.
+  </Dont>
+</DoDont>
+
+## One primary action
+
+<DoDont>
+  <Do html={`<div style="display:flex;gap:var(--space-2)"><mm-button variant="secondary">Cancel</mm-button><mm-button variant="primary">Save rule</mm-button></div>`}>
+    Use one primary button and put it last. Other actions are secondary or go in a More menu.
+  </Do>
+  <Dont html={`<div style="display:flex;gap:var(--space-2);flex-wrap:wrap"><mm-button variant="primary">Run</mm-button><mm-button variant="primary">Save</mm-button><mm-button variant="primary">Share</mm-button></div>`}>
+    With several primary buttons, people have to stop and work out which one matters.
+  </Dont>
+</DoDont>
+
+## Buttons say what they do
+
+<DoDont>
+  <Do html={`<mm-button variant="danger" icon="delete">Delete asset</mm-button>`}>
+    Name the action and the thing it acts on. Destructive buttons also get an icon.
+  </Do>
+  <Dont html={`<mm-button variant="danger">OK</mm-button>`}>
+    A label like “OK” makes people reread the dialog to find out what will happen.
+  </Dont>
+</DoDont>
+
+## Status has an icon and a word
+
+<DoDont>
+  <Do html={`<mm-status-pill state="failed"></mm-status-pill>`}>
+    The word carries the meaning, and the colour backs it up.
+  </Do>
+  <Dont html={`<span style="display:inline-flex;align-items:center;gap:var(--space-2);font:var(--text-dense)"><span style="width:8px;height:8px;border-radius:50%;background:var(--mm-danger)"></span>snowflake-finance</span>`}>
+    A red dot on its own means nothing to people who can’t see red, or to a screen reader.
+  </Dont>
+</DoDont>
+
+## Lists, not walls of cards
+
+<DoDont>
+  <Do html={`<mm-list><mm-list-item href="#" secondary="Table · Snowflake · Updated 5 hours ago">orders_daily</mm-list-item><mm-list-item href="#" secondary="Table · Snowflake · Updated yesterday">customers_dim</mm-list-item><mm-list-item href="#" secondary="Topic · Kafka · Updated 4 minutes ago">shop.orders.v2</mm-list-item></mm-list>`}>
+    Rows separated by thin rules are quick to scan and still work with hundreds of items.
+  </Do>
+  <Dont html={`<div style="display:grid;gap:var(--space-2)"><mm-panel heading="orders_daily">Table · Snowflake</mm-panel><mm-panel heading="customers_dim">Table · Snowflake</mm-panel></div>`}>
+    A box around every item adds clutter and fits fewer items on screen.
+  </Dont>
+</DoDont>
+
+## Empty states say what to do next
+
+<DoDont>
+  <Do html={`<mm-empty-state compact heading="No pipelines yet" description="Add a plugin to start cataloguing a source."><mm-button slot="action" variant="primary" icon="add">Add plugin</mm-button></mm-empty-state>`}>
+    Say what’s missing and offer the action that fixes it.
+  </Do>
+  <Dont html={`<p style="font:var(--text-dense);color:var(--mm-text-3);margin:0">No data</p>`}>
+    This tells people something is missing but not what to do about it.
+  </Dont>
+</DoDont>
+
+## Times read like people talk
+
+<DoDont>
+  <Do html={`<mm-list-item secondary="Updated 5 hours ago">orders_daily</mm-list-item>`}>
+    Use relative times in lists and rows, and save exact times for details.
+  </Do>
+  <Dont html={`<mm-list-item><span>orders_daily</span><span slot="secondary" style="font:var(--text-mono-dense)">2026-10-27T04:04:00Z</span></mm-list-item>`}>
+    People have to work out how long ago a machine timestamp was.
+  </Dont>
+</DoDont>
+
+## Plain words for any employee
+
+<DoDont>
+  <Do html={`<mm-heading level="3" variant="heading">Who can query this table</mm-heading>`}>
+    Write so that anyone in the company understands it.
+  </Do>
+  <Dont html={`<mm-heading level="3" variant="heading">ACL policy bindings</mm-heading>`}>
+    Internal terms make people learn how the system works before they can use it.
+  </Dont>
+</DoDont>

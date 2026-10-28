@@ -1,0 +1,40 @@
+{
+  "name": "@marmotdata/svelte",
+  "version": "0.1.0",
+  "description": "Svelte 5 types for every Marmot element, generated from the Custom Elements Manifest, plus small helpers.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marmotdata/design-system.git",
+    "directory": "packages/svelte"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "@marmotdata/elements": "workspace:^",
+    "custom-element-svelte-integration": "1.2.0",
+    "svelte": "5.57.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/theme.js"
+    },
+    "./elements": {
+      "types": "./dist/elements.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/generate.ts && tsc -p tsconfig.check.json"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0",
+    "@marmotdata/elements": "workspace:^"
+  }
+}

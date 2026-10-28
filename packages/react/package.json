@@ -1,0 +1,44 @@
+{
+  "name": "@marmotdata/react",
+  "version": "0.1.0",
+  "description": "Typed React 18 and 19 wrappers for every Marmot element, generated from the Custom Elements Manifest with @lit/react.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marmotdata/design-system.git",
+    "directory": "packages/react"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/generate.ts && tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@lit/react": "1.0.8",
+    "@marmotdata/elements": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "react": "19.3.1"
+  }
+}

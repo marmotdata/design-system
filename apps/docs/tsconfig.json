@@ -1,0 +1,19 @@
+{
+  // @docusaurus/tsconfig sets baseUrl, which TypeScript 7 no longer accepts, so its options are inlined.
+  "compilerOptions": {
+    "allowJs": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "noEmit": true,
+    "strict": true,
+    "paths": { "@site/*": ["./*"] },
+    "types": ["node", "@docusaurus/module-type-aliases"],
+    "skipLibCheck": true
+  },
+  "include": ["src", "scripts", "*.ts"],
+  "exclude": [".docusaurus", "build"]
+}

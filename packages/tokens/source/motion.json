@@ -1,0 +1,6 @@
+{
+  "mm-ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+  "mm-dur-press": "140ms",
+  "mm-dur-menu": "180ms",
+  "mm-dur-dialog": "220ms"
+}

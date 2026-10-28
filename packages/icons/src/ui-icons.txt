@@ -1,0 +1,33 @@
+# Material Symbols used by the library and the Marmot surfaces. One name per line.
+# Outlined is preferred: the build resolves "name" to "name-outline" when that exists.
+# Never add a sparkle (auto-awesome, magic-button): the guidelines forbid sparkles.
+search close check add remove edit delete more-horiz more-vert expand-more expand-less
+chevron-right chevron-left arrow-back arrow-forward arrow-upward arrow-downward unfold-more
+content-copy download upload open-in-new link filter-list sort tune settings home explore
+travel-explore database table table-view view-column schema account-tree hub lan bolt
+play-arrow stop pause refresh sync schedule history event calendar-month person group groups
+smart-toy badge key vpn-key lock lock-open shield verified verified-user policy gavel info
+warning error check-circle cancel help notifications notifications-off mail star bookmark
+visibility visibility-off code terminal data-object description article menu-book book-2
+folder folder-open draft insights bar-chart show-chart query-stats monitoring extension power
+cable dns storage cloud cloud-upload logout login account-circle dark-mode light-mode keyboard
+keyboard-command-key drag-indicator drag-handle fullscreen fullscreen-exit zoom-in zoom-out
+center-focus-strong fit-screen layers label sell category inventory-2 package-2 widgets
+dashboard grid-view view-list list checklist rule flowchart conversion-path timeline pending
+hourglass-empty done-all block report flag push-pin attach-file image translate language public
+apartment domain workspaces swap-horiz credit-card receipt-long payments speed data-usage
+admin-panel-settings manage-accounts person-add group-add how-to-reg approval fact-check
+assignment task-alt input output merge call-split difference compare-arrows menu first-page
+last-page keyboard-return keyboard-arrow-up keyboard-arrow-down subdirectory-arrow-right dataset
+stream webhook api functions model-training psychology robot-2 chat forum comment alternate-email
+archive unarchive restart-alt construction build science left-panel-close left-panel-open
+right-panel-close right-panel-open table-rows view-sidebar splitscreen-right close-fullscreen
+open-in-full more add-circle do-not-disturb-on radio-button-unchecked radio-button-checked
+check-box check-box-outline-blank indeterminate-check-box circle north-east south-east
+trending-flat contract edit-note note-add upload-file folder-zip cloud-done cloud-off wifi-off
+error-circle-rounded-outline
+arrow-upward-alt arrow-downward-alt timer
+support-agent monitor-heart space-dashboard
+123 match-case toggle-on data-array calendar-clock
+unfold-less density-small
+notifications-active

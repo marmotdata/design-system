@@ -1,0 +1,9 @@
+/* Storybook canvas: the page itself is paper, as in the product. */
+html, body {
+  background: var(--mm-paper);
+  color: var(--mm-text);
+  font: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+.sb-show-main.sb-main-padded { padding: var(--space-8); }
+.sbdocs, .sbdocs-wrapper { background: var(--mm-paper) !important; }

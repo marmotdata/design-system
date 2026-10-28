@@ -1,0 +1,1 @@
+{"name":"@marmotdata/size","private":true,"type":"module","scripts":{"size":"node measure.ts"},"devDependencies":{"esbuild":"0.28.2"}}

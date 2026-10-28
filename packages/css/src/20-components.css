@@ -1,0 +1,201 @@
+@layer mm-components {
+  /* Buttons */
+  .mm-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    height: var(--mm-control); padding: 0 14px;
+    font: var(--text-button); line-height: 1; white-space: nowrap; text-decoration: none;
+    border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer;
+    transition: background-color var(--mm-dur-press) var(--mm-ease), border-color var(--mm-dur-press) var(--mm-ease), color var(--mm-dur-press) var(--mm-ease);
+  }
+  .mm-btn svg { width: 16px; height: 16px; flex: none; fill: currentColor; }
+  .mm-btn--primary { background: var(--mm-primary-fill); color: var(--mm-on-primary); }
+  .mm-btn--primary:hover, .mm-btn--primary:active { background: var(--mm-primary-hover); }
+  .mm-btn--secondary { background: var(--mm-surface); color: var(--mm-text); border-color: var(--mm-control-border); }
+  .mm-btn--secondary:hover, .mm-btn--secondary:active { border-color: var(--mm-text); }
+  .mm-btn--ghost { background: transparent; color: var(--mm-text-2); }
+  .mm-btn--ghost:hover, .mm-btn--ghost:active { color: var(--mm-text); background: var(--mm-sunken); }
+  .mm-btn--danger { background: var(--mm-danger-fill); color: var(--mm-on-primary); }
+  .mm-btn--danger:hover, .mm-btn--danger:active { background: color-mix(in oklab, var(--mm-danger-fill), var(--mm-text) 14%); }
+  .mm-btn--sm { height: var(--control-h-sm); padding: 0 10px; }
+  .mm-btn[disabled], .mm-btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+  /* Fields */
+  .mm-field { display: grid; gap: 6px; }
+  .mm-label { font: var(--text-label); color: var(--mm-text-2); }
+  .mm-input {
+    display: flex; align-items: center; gap: var(--space-2);
+    height: var(--mm-control); padding: 0 10px;
+    background: var(--mm-surface); color: var(--mm-text);
+    border: 1px solid var(--mm-control-border); border-radius: var(--radius-sm);
+    font: var(--text-dense);
+    transition: border-color var(--mm-dur-press) var(--mm-ease);
+  }
+  input.mm-input { width: 100%; box-sizing: border-box; }
+  .mm-input input { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
+  .mm-input input::placeholder, input.mm-input::placeholder { color: var(--mm-text-3); }
+  .mm-input:focus-within, input.mm-input:focus-visible { border-color: var(--mm-text); outline: var(--mm-focus-ring-width) solid var(--mm-text); outline-offset: var(--mm-focus-ring-offset); }
+  .mm-input--error { border-color: var(--mm-danger); }
+  .mm-input svg { width: 16px; height: 16px; color: var(--mm-text-3); flex: none; fill: currentColor; }
+  .mm-help { font: var(--text-caption); color: var(--mm-text-2); }
+  .mm-help--error { color: var(--mm-danger); display: flex; gap: 6px; align-items: center; }
+  @media (pointer: coarse) { .mm-input, input.mm-input { font-size: 16px; } }
+
+  /* Tabs */
+  .mm-tabs { display: flex; gap: var(--space-5); border-bottom: 1px solid var(--mm-rule); }
+  .mm-tab {
+    position: relative; display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 2px; font: var(--text-button); color: var(--mm-text-2);
+    background: none; border: 0; cursor: pointer; text-decoration: none;
+  }
+  .mm-tab svg { width: 16px; height: 16px; fill: currentColor; }
+  .mm-tab:hover { color: var(--mm-text); }
+  .mm-tab[aria-selected="true"], .mm-tab[aria-current="page"] { color: var(--mm-text); }
+  .mm-tab[aria-selected="true"]::after, .mm-tab[aria-current="page"]::after {
+    content: ""; position: absolute; inset-inline: 2px; bottom: -1px; height: 2px; background: var(--mm-primary);
+  }
+  .mm-count, .mm-tab__count { font: 400 11px/1 var(--font-text); color: var(--mm-text-3); font-variant-numeric: tabular-nums; }
+
+  /* Segmented control */
+  .mm-seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--mm-surface); border: 1px solid var(--mm-control-border); border-radius: var(--radius-md); }
+  .mm-seg button, .mm-seg a { height: 26px; padding: 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--mm-text-2); font: 600 12px/26px var(--font-text); cursor: pointer; text-decoration: none; }
+  .mm-seg [aria-pressed="true"], .mm-seg [aria-current="page"] { background: var(--mm-text); color: var(--mm-on-inverse); }
+
+  /* Filter pills */
+  .mm-filter {
+    display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px;
+    border-radius: var(--radius-full); border: 1px solid var(--mm-rule);
+    background: var(--mm-surface); color: var(--mm-text); font: 600 12px/1 var(--font-text); cursor: pointer; text-decoration: none;
+  }
+  .mm-filter:hover { border-color: var(--mm-control-border); }
+  .mm-filter[aria-pressed="true"] { background: var(--mm-text); color: var(--mm-on-inverse); border-color: var(--mm-text); }
+  .mm-filter__n { font: 400 11px/1 var(--font-text); font-variant-numeric: tabular-nums; }
+
+  /* Status pills: colour plus a word, always */
+  .mm-status { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: var(--radius-full); font: 600 12px/1 var(--font-text); white-space: nowrap; }
+  .mm-status svg { width: 14px; height: 14px; fill: currentColor; }
+  .mm-status--dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .mm-status--success { background: var(--mm-success-soft); color: var(--mm-success); }
+  .mm-status--warning { background: var(--mm-warning-soft); color: var(--mm-warning-text); }
+  .mm-status--info { background: var(--mm-info-soft); color: var(--mm-info); }
+  .mm-status--danger { background: var(--mm-danger-soft); color: var(--mm-danger); }
+  .mm-status--neutral { background: var(--mm-sunken); color: var(--mm-text-2); }
+  .mm-status--live::before { animation: mm-pulse 1.6s var(--mm-ease) infinite; }
+  @keyframes mm-pulse { 50% { opacity: 0.35; } }
+
+  /* Tags */
+  .mm-tag { display: inline-flex; align-items: center; gap: var(--space-1); height: 22px; padding: 0 7px; border-radius: var(--radius-sm); background: var(--mm-sunken); color: var(--mm-text-2); font: 400 12px/1 var(--font-text); text-decoration: none; }
+  .mm-tag svg { width: 14px; height: 14px; fill: currentColor; }
+  .mm-tag--pii { background: var(--mm-danger-soft); color: var(--mm-danger); font-weight: 600; }
+  .mm-tag--certified { background: var(--mm-success-soft); color: var(--mm-success); font-weight: 600; }
+  .mm-tag--generated { font: var(--text-caption); line-height: 1; background: transparent; border: 1px solid var(--mm-rule); height: 18px; padding: 0 5px; }
+
+  /* Callouts and admonitions: soft fill, icon, no stripe, no border */
+  .mm-callout { display: grid; grid-template-columns: 16px 1fr; gap: 2px 10px; padding: 12px 14px; border-radius: var(--radius-md); font: var(--text-dense); }
+  .mm-callout > svg { width: 16px; height: 16px; margin-top: 1px; fill: currentColor; }
+  .mm-callout__title { font-weight: 700; color: var(--mm-text); margin: 0; }
+  .mm-callout__body { grid-column: 2; color: var(--mm-text-2); margin: 0; }
+  .mm-callout__body > * + * { margin-block-start: var(--space-2); }
+  .mm-callout--info { background: var(--mm-info-soft); } .mm-callout--info > svg { color: var(--mm-info); }
+  .mm-callout--success { background: var(--mm-success-soft); } .mm-callout--success > svg { color: var(--mm-success); }
+  .mm-callout--warning { background: var(--mm-warning-soft); } .mm-callout--warning > svg { color: var(--mm-warning); }
+  .mm-callout--danger { background: var(--mm-danger-soft); } .mm-callout--danger > svg { color: var(--mm-danger); }
+
+  /* Panels and lists */
+  .mm-panel { background: var(--mm-surface); border: 1px solid var(--mm-rule); border-radius: var(--radius-md); }
+  .mm-panel__head { display: flex; align-items: center; gap: var(--space-2); padding: 12px var(--space-4); border-bottom: 1px solid var(--mm-rule); }
+  .mm-panel__head svg { width: 16px; height: 16px; color: var(--mm-text-3); fill: currentColor; }
+  .mm-panel__title { font: var(--text-panel-title); margin: 0; flex: 1; }
+  /* Links in panel heads, lists, tables, rows and cards are ink, underlined on hover and focus. */
+  .mm-panel__link { font: 600 12px/1.45 var(--font-text); color: var(--mm-text); text-decoration: none; }
+  .mm-panel__link:hover, .mm-panel__link:focus-visible { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  .mm-link--quiet { color: var(--mm-text); text-decoration: none; }
+  .mm-link--quiet:hover, .mm-link--quiet:focus-visible { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  /* Zero specificity, so buttons and tags that are anchors keep their own styles. */
+  :where(.mm-list, .mm-table) a { color: var(--mm-text); text-decoration: none; }
+  :where(.mm-list, .mm-table) a:where(:hover, :focus-visible) { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  .mm-panel__body { padding: var(--space-4) var(--space-5); }
+  .mm-list { list-style: none; margin: 0; padding: 0; }
+  .mm-list > li { display: flex; align-items: center; gap: var(--space-3); padding: 10px var(--space-4); font: var(--text-dense); border-top: 1px solid var(--mm-rule); }
+  .mm-list > li:first-child { border-top: 0; }
+
+  /* Tables */
+  .mm-table-wrap { border: 1px solid var(--mm-rule); border-radius: var(--radius-md); overflow: auto; background: var(--mm-surface); }
+  .mm-table { width: 100%; border-collapse: collapse; font: var(--text-dense); }
+  .mm-table th { position: sticky; top: 0; z-index: 1; background: var(--mm-sunken); color: var(--mm-text-2); font: var(--text-label); text-align: start; height: var(--mm-table-head-h); padding: 0 var(--space-3); border-bottom: 1px solid var(--mm-rule); white-space: nowrap; }
+  .mm-table td { height: var(--mm-row); padding: 0 var(--space-3); border-bottom: 1px solid var(--mm-rule); }
+  .mm-table tr:last-child td { border-bottom: 0; }
+  .mm-table tbody tr:hover { background: var(--mm-sunken); }
+  .mm-table tbody tr[aria-selected="true"] { background: var(--mm-selected); }
+  .mm-table .num { text-align: end; font-variant-numeric: tabular-nums; }
+  .mm-table .mono { font: var(--text-mono-dense); color: var(--mm-text-2); } /* ID and key columns only */
+  .mm-table--compact td { height: var(--row-compact); }
+
+  /* Description list */
+  .mm-dl { display: grid; grid-template-columns: 120px 1fr; gap: 8px var(--space-4); margin: 0; font: var(--text-dense); }
+  .mm-dl dt { font: var(--text-label); color: var(--mm-text-2); }
+  .mm-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+  /* KPI */
+  .mm-kpi { padding: var(--space-4) var(--space-5); }
+  .mm-kpi__label { font: var(--text-label); color: var(--mm-text-2); }
+  .mm-kpi__value { font: var(--text-display-kpi); letter-spacing: var(--tracking-display-kpi); font-variant-numeric: tabular-nums; }
+  .mm-kpi__ctx { font: var(--text-caption); color: var(--mm-text-2); }
+
+  /* Code: warm near-black in both themes, no window dots, no language badge */
+  .mm-code { position: relative; background: var(--mm-code-bg); color: var(--mm-code-text); border-radius: var(--radius-md); }
+  .mm-code pre { margin: 0; padding: 14px 16px; overflow: auto; font: var(--text-mono-editor); }
+  .mm-code__copy {
+    position: absolute; top: 8px; inset-inline-end: 8px; height: 24px; padding: 0 8px;
+    font: 600 12px/1 var(--font-text); color: var(--mm-code-text);
+    background: transparent; border: 1px solid var(--mm-syn-comment); border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .mm-code .k { color: var(--mm-syn-keyword); }
+  .mm-code .f { color: var(--mm-syn-function); }
+  .mm-code .s { color: var(--mm-syn-string); }
+  .mm-code .n { color: var(--mm-syn-number); }
+  .mm-code .c { color: var(--mm-syn-comment); font-style: italic; }
+
+  /* Empty state */
+  .mm-empty { display: grid; justify-items: center; text-align: center; gap: var(--space-3); padding: var(--space-12) var(--space-6); }
+
+  /*
+   * Topography: the zero-JS version of mm-topography. An abstract background field, never an icon or
+   * an illustration, at most one per view. Put the class on the container: it becomes positioned and
+   * isolated, and its ::before draws one fixed sheet (generated from the element's field, seed 1)
+   * behind the content. The sheet is only a mask shape (currentColor strokes, no colour of its own);
+   * the line colour comes from tokens via background-color, so it follows Light and Peat. Index
+   * lines are slightly wider rather than darker, because a mask carries one colour. The container's
+   * own ::before is used, so do not combine it with another ::before decoration. For a different
+   * seed or density, use the element.
+   */
+  .mm-topography {
+    --mm-topography-sheet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice' fill='none' stroke='currentColor'%3E%3Cpath stroke-width='1' d='M1086 880Q1120 831 1140 805Q1160 779 1180 755Q1200 731 1220 707Q1240 684 1242 682L1244 680M1040 871Q1080 819 1100 795Q1120 770 1140 745Q1160 720 1176 700Q1193 680 1208 660Q1224 640 1238 620L1253 600M1000 865Q1040 816 1060 792Q1080 767 1099 744Q1118 720 1134 700Q1149 680 1163 660Q1178 640 1190 620Q1203 600 1221 566Q1240 532 1243 526L1247 520M960 865Q1000 818 1020 794Q1040 770 1060 745Q1080 720 1095 700Q1111 680 1124 660Q1138 640 1149 620Q1161 600 1179 560Q1197 520 1205 500Q1212 480 1226 441Q1240 403 1241 401L1241 400M880 879Q920 833 940 810Q960 787 980 763Q1000 738 1020 711Q1040 685 1055 662Q1069 640 1080 620Q1091 600 1105 561Q1120 523 1126 501Q1131 480 1138 440Q1145 400 1152 362Q1160 324 1170 302Q1179 280 1195 260Q1211 240 1245 223L1280 206M880 845Q919 800 936 780Q953 760 969 740Q985 720 999 700Q1014 680 1027 658Q1040 637 1058 598Q1076 560 1083 540Q1089 520 1097 480Q1104 440 1109 400Q1113 360 1117 339Q1120 317 1134 279Q1149 240 1165 220Q1180 200 1210 182Q1240 163 1247 162L1253 160M840 858Q880 813 900 790Q920 766 938 743Q956 720 971 700Q985 680 997 660Q1010 640 1025 608Q1040 576 1050 548Q1059 520 1066 480Q1073 440 1076 400Q1080 360 1082 340Q1084 320 1095 280Q1105 240 1115 220Q1125 200 1142 179Q1160 157 1192 139Q1224 120 1252 114L1280 108M800 872Q840 828 860 805Q880 782 900 757Q920 732 939 706Q958 680 970 660Q982 640 993 620Q1003 600 1017 560Q1031 520 1035 494Q1040 468 1043 434Q1047 400 1050 360Q1053 320 1061 280Q1068 240 1075 220Q1083 200 1101 171Q1120 142 1140 124Q1160 105 1183 93Q1207 80 1243 72L1280 64M760 857Q800 813 820 790Q840 767 859 743Q877 720 891 700Q905 680 917 660Q930 640 945 607Q960 574 969 547Q977 520 983 480Q990 440 992 400Q994 360 996 320Q999 280 1002 260Q1005 240 1017 200Q1029 160 1040 140Q1051 120 1065 100Q1080 79 1100 60Q1120 40 1153 20Q1185 0 1212 -10Q1240 -20 1260 -23L1280 -25M720 869Q760 827 780 805Q800 783 820 758Q840 734 860 707Q879 680 891 660Q903 640 914 620Q924 600 937 560Q951 520 956 495Q960 471 963 435Q966 400 967 360Q968 320 972 280Q975 240 985 200Q995 160 1004 140Q1013 120 1027 98Q1040 75 1060 51Q1080 27 1100 9Q1120 -9 1145 -24Q1169 -40 1185 -48L1200 -56M680 878Q720 840 740 818Q760 797 780 774Q800 751 820 724Q840 698 859 669Q877 640 887 620Q897 600 909 569Q920 537 926 509Q933 480 936 440Q939 400 940 360Q941 320 943 280Q946 240 953 205Q960 170 969 145Q977 120 989 98Q1000 75 1020 46Q1040 17 1060 -5Q1080 -27 1100 -44L1120 -62M680 847Q720 808 740 786Q760 765 778 742Q796 720 811 700Q825 680 837 660Q850 640 865 608Q880 576 889 548Q898 520 904 480Q910 440 911 400Q913 360 913 320Q913 280 917 243Q920 206 924 183Q929 160 943 120Q958 80 968 60Q979 40 992 20Q1005 0 1022 -23L1040 -45M600 844Q640 812 660 794Q680 776 700 755Q720 734 740 709Q760 684 774 662Q788 640 799 620Q810 600 825 560Q839 520 843 500Q847 480 849 440Q852 400 851 360Q850 320 849 280Q847 240 849 200Q851 160 858 120Q865 80 873 57Q880 33 894 -3Q907 -40 914 -55L920 -70M-74 120Q0 89 40 91Q80 93 102 106Q125 120 142 147Q160 174 172 207Q184 240 192 265Q200 290 210 325Q221 360 229 400Q238 440 239 460Q240 480 238 500Q236 520 221 560Q205 600 191 620Q176 640 156 660Q136 680 111 700Q87 720 63 737Q40 754 20 768Q0 783 -20 797Q-40 811 -60 825L-80 839M-80 40Q-2 0 19 -6Q40 -12 80 -15Q120 -19 160 -12Q200 -6 220 2Q240 10 266 25Q292 40 307 60Q323 80 329 120Q335 160 336 200Q337 240 341 280Q346 320 352 360Q358 400 361 420Q363 440 363 480Q362 520 359 540Q355 560 340 600Q324 640 312 660Q301 680 288 700Q276 720 265 760Q253 800 273 820Q292 840 306 845L320 850M520 845Q560 824 580 812Q600 800 624 780Q648 760 668 740Q689 720 706 700Q723 680 741 652Q760 624 775 592Q790 560 797 540Q803 520 809 480Q815 440 814 400Q814 360 810 320Q807 280 803 241Q800 201 798 181Q797 160 794 120Q792 80 785 40Q778 0 766 -20Q754 -40 738 -60L721 -80'/%3E%3Cpath stroke-width='1.5' d='M920 870Q960 824 980 801Q1000 777 1020 752Q1040 728 1058 704Q1076 680 1089 660Q1102 640 1113 620Q1124 600 1140 560Q1157 520 1163 500Q1168 480 1178 440Q1187 400 1194 377Q1200 355 1220 323Q1240 292 1249 286L1257 280M800 843Q838 800 855 780Q872 760 887 740Q903 720 917 700Q931 680 946 656Q960 631 976 596Q992 560 998 540Q1004 520 1010 480Q1016 440 1019 400Q1021 360 1025 320Q1028 280 1034 251Q1040 223 1053 191Q1066 160 1079 140Q1092 120 1111 100Q1131 80 1163 60Q1195 40 1218 33Q1240 25 1260 23L1280 20M640 850Q680 814 700 794Q720 773 740 751Q760 728 778 704Q796 680 808 660Q820 640 831 620Q842 600 856 560Q870 520 875 490Q880 460 882 430Q884 400 883 360Q883 320 883 280Q884 240 888 200Q892 160 904 120Q915 80 924 60Q932 40 946 14Q960 -12 980 -43L1000 -75M-80 250Q0 253 20 272Q40 292 57 326Q75 360 81 380Q87 400 92 440Q96 480 88 512Q80 544 65 572Q49 600 33 620Q16 640 -3 660Q-23 680 -44 700L-66 720'/%3E%3C/svg%3E");
+    --mm-topography-fade: none;
+    position: relative; isolation: isolate;
+  }
+  /* One mask, on its own layer, so scrolling never repaints it (two composited masks stalled Firefox). */
+  .mm-topography::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; will-change: transform;
+    background-color: var(--mm-topography-line, color-mix(in oklab, var(--mm-rule) 80%, transparent));
+    mask-image: var(--mm-topography-sheet); mask-size: cover; mask-position: center; mask-repeat: no-repeat;
+  }
+  /* The fade is a plain gradient in the ground colour laid over the lines. */
+  .mm-topography::after {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: var(--mm-topography-fade);
+  }
+  .mm-topography--fade-edges { --mm-topography-fade: radial-gradient(ellipse 75% 80% at 50% 50%, transparent 30%, var(--mm-topography-ground, var(--mm-paper)) 100%); }
+  .mm-topography--fade-start { --mm-topography-fade: linear-gradient(to right, var(--mm-topography-ground, var(--mm-paper)), transparent 65%); }
+  .mm-topography--fade-end { --mm-topography-fade: linear-gradient(to left, var(--mm-topography-ground, var(--mm-paper)), transparent 65%); }
+  .mm-topography--fade-start:dir(rtl) { --mm-topography-fade: linear-gradient(to left, var(--mm-topography-ground, var(--mm-paper)), transparent 65%); }
+  .mm-topography--fade-end:dir(rtl) { --mm-topography-fade: linear-gradient(to right, var(--mm-topography-ground, var(--mm-paper)), transparent 65%); }
+  .mm-empty__title { font: var(--text-heading); letter-spacing: var(--tracking-heading); margin: 0; }
+  .mm-empty__text { font: var(--text-body); color: var(--mm-text-2); margin: 0; max-width: 46ch; }
+
+  /* Progress */
+  .mm-progress { width: 240px; height: 4px; background: var(--mm-sunken); border-radius: 2px; overflow: hidden; }
+  .mm-progress > span { display: block; height: 100%; background: var(--mm-text-2); }
+
+  /* Tooltip (static, e.g. for documentation) */
+  .mm-tooltip { display: inline-grid; grid-template-columns: auto auto; gap: 2px 12px; padding: 8px 10px; background: var(--mm-text); color: var(--mm-on-inverse); border-radius: 0; font: 400 12px/1.4 var(--font-text); font-variant-numeric: tabular-nums; }
+}

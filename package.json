@@ -1,0 +1,29 @@
+{
+  "name": "marmot-ui",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "contrast": "node tools/contrast/check.ts",
+    "storybook": "pnpm --filter @marmotdata/storybook dev",
+    "docs:dev": "pnpm --filter @marmotdata/docs start",
+    "changeset": "changeset",
+    "storybook:calm": "MM_LIVE=0 pnpm --filter @marmotdata/storybook dev",
+    "storybook:public": "pnpm --filter @marmotdata/storybook dev:public"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.3",
+    "@types/node": "^24.19.2",
+    "prettier": "3.9.10",
+    "turbo": "2.11.10",
+    "typescript": "7.0.2"
+  }
+}

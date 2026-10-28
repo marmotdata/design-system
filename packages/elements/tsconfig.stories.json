@@ -1,0 +1,5 @@
+{
+  "extends": "../../apps/storybook/tsconfig.json",
+  "compilerOptions": { "noEmit": true, "types": [], "typeRoots": ["../../apps/storybook/node_modules"] },
+  "include": ["src/**/*.stories.ts", "../../apps/storybook/src/**/*.ts"]
+}

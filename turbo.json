@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "build": { "dependsOn": ["^build"], "outputs": ["dist/**", "custom-elements.json", "storybook-static/**"] },
+    "test": { "dependsOn": ["^build"] },
+    "lint": {},
+    "size": { "dependsOn": ["build"] }
+  }
+}

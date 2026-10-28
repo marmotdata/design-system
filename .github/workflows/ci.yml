@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, typecheck, contrast and size
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Build packages
+        run: pnpm turbo run build --filter="./packages/*"
+      - name: Generated files are committed (strings catalogue, manifest)
+        run: git diff --exit-code packages/elements/strings.json packages/elements/custom-elements.json
+      - name: Typecheck stories
+        run: |
+          pnpm exec tsc -p packages/elements/tsconfig.stories.json
+          pnpm exec tsc -p apps/storybook/tsconfig.json --noEmit
+      - name: Docs site builds (broken links fail)
+        run: |
+          pnpm exec tsc -p apps/docs/tsconfig.json
+          pnpm --filter @marmotdata/docs build
+      - name: Contrast (fails on any undocumented WCAG 2.2 regression)
+        run: node tools/contrast/check.ts
+      - name: Bundle-size budgets (fails when an element grows past its budget)
+        run: node tools/size/measure.ts
+      - name: No raw colours or transition all in component styles
+        run: |
+          if grep -rnE "#[0-9a-fA-F]{3,8}\b|rgba?\(|transition:\s*all" packages/elements/src/components --include=class.ts \
+            | grep -vE "artwork\.ts|generated|// allow-raw" ; then
+            echo "Raw colour or transition: all found. Use tokens."; exit 1; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            tools/contrast/REPORT.md
+            tools/size/REPORT.md
+            packages/elements/custom-elements.json
+
+  stories:
+    name: Stories (${{ matrix.browser }})
+    needs: build
+    runs-on: ubuntu-24.04
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter="./packages/*"
+      - name: Interaction tests and axe on every story (a11y violations fail the run)
+        working-directory: apps/storybook
+        env:
+          MM_BROWSERS: ${{ matrix.browser }}
+        run: pnpm exec vitest run --project=storybook
+
+  visual:
+    name: Visual regression
+    needs: build
+    runs-on: ubuntu-24.04
+    # Rendering is deterministic only with identical fonts and browser builds: always this image.
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    steps:
+      - uses: actions/checkout@v7
+        with: { lfs: true }
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter="./packages/*"
+      - name: Build Storybook
+        working-directory: apps/storybook
+        run: pnpm exec storybook build -o storybook-static --quiet
+      - name: Screenshot every story in Light and Peat and compare with the baselines
+        working-directory: tools/visual
+        run: node shoot.ts --static ../../apps/storybook/storybook-static --out ./current --compare ./baselines
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: tools/visual/diffs

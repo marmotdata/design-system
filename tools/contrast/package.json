@@ -1,0 +1,7 @@
+{
+  "name": "@marmotdata/contrast",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./lib.ts", "./pairs": "./pairs.ts" },
+  "scripts": { "test": "node check.ts" }
+}

@@ -1,0 +1,179 @@
+/* The docs follow the design system: Marmot tokens, Geist, burnt sienna only for links and the
+   primary action, a light sidebar, sentence case and no uppercase anywhere. Docusaurus sets
+   data-theme on <html>, which the tokens already switch on. */
+@import '@marmotdata/tokens/index.css';
+
+:root,
+[data-theme='dark'] {
+  --ifm-color-primary: var(--mm-primary);
+  --ifm-color-primary-dark: var(--mm-primary-hover);
+  --ifm-color-primary-darker: var(--mm-primary-hover);
+  --ifm-color-primary-darkest: var(--mm-primary-hover);
+  --ifm-color-primary-light: var(--mm-primary);
+  --ifm-color-primary-lighter: var(--mm-primary);
+  --ifm-color-primary-lightest: var(--mm-primary);
+  --ifm-background-color: var(--mm-paper);
+  --ifm-background-surface-color: var(--mm-paper);
+  --ifm-font-color-base: var(--mm-text);
+  --ifm-color-content: var(--mm-text);
+  --ifm-color-content-secondary: var(--mm-text-2);
+  --ifm-heading-color: var(--mm-text);
+  --ifm-font-family-base: var(--font-text);
+  --ifm-heading-font-family: var(--font-text);
+  --ifm-font-family-monospace: var(--font-mono);
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.55;
+  --ifm-heading-font-weight: 700;
+  --ifm-code-font-size: 92%;
+  --ifm-code-background: var(--mm-sunken);
+  --ifm-code-border-radius: var(--radius-sm);
+  --ifm-toc-border-color: var(--mm-rule);
+  --ifm-hr-background-color: var(--mm-rule);
+  --ifm-table-border-color: var(--mm-rule);
+  --ifm-table-stripe-background: transparent;
+  --ifm-table-head-background: transparent;
+  --ifm-navbar-background-color: var(--mm-paper);
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-link-color: var(--mm-text-2);
+  --ifm-navbar-link-hover-color: var(--mm-text);
+  --ifm-menu-color: var(--mm-text-2);
+  --ifm-menu-color-active: var(--mm-text);
+  --ifm-menu-color-background-active: var(--mm-selected);
+  --ifm-menu-color-background-hover: var(--mm-sunken);
+  --ifm-footer-background-color: var(--mm-paper);
+  --ifm-footer-color: var(--mm-text-2);
+  --ifm-link-hover-decoration: underline;
+  --ifm-global-radius: var(--radius-md);
+  --ifm-global-shadow-lw: none;
+  --docusaurus-highlighted-code-line-bg: var(--mm-selected);
+}
+
+body {
+  background: var(--mm-paper);
+  color: var(--mm-text);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--mm-selected);
+  color: var(--mm-text);
+}
+
+/* No uppercase text anywhere, including Docusaurus defaults. */
+* {
+  text-transform: none !important;
+}
+
+.navbar {
+  border-block-end: 1px solid var(--mm-rule);
+}
+.navbar__logo {
+  height: 1.5rem;
+}
+
+/* One display title per page: the doc title. Section headings use the text face. */
+.markdown h1,
+article header h1 {
+  font: var(--text-display-title);
+  letter-spacing: var(--tracking-display-title);
+}
+.markdown h2 {
+  font: var(--text-heading);
+  margin-block-start: var(--space-8);
+}
+.markdown h3 {
+  font: var(--text-heading-sm);
+}
+.markdown > p:first-of-type {
+  font-size: 18px;
+  color: var(--mm-text-2);
+}
+
+.menu__link,
+.table-of-contents__link {
+  font: var(--text-dense);
+}
+.menu__list-item-collapsible:hover {
+  background: var(--mm-sunken);
+}
+.theme-doc-sidebar-container {
+  border-inline-end: 1px solid var(--mm-rule) !important;
+}
+
+.markdown table {
+  display: table;
+  width: 100%;
+  font: var(--text-dense);
+}
+.markdown table th {
+  font: var(--text-label);
+  color: var(--mm-text-2);
+  text-align: start;
+}
+.markdown table tr {
+  border-block-start: 1px solid var(--mm-rule);
+}
+.markdown table td,
+.markdown table th {
+  border: 0;
+  border-block-end: 1px solid var(--mm-rule);
+  padding: var(--space-2) var(--space-3);
+  vertical-align: top;
+}
+
+.footer {
+  border-block-start: 1px solid var(--mm-rule);
+  font: var(--text-caption);
+}
+
+/* Admonitions follow the callout: a soft fill, an icon and a word, no heavy side bar. */
+.alert {
+  border: 1px solid var(--mm-rule);
+  border-inline-start-width: 1px;
+  box-shadow: none;
+  background: var(--mm-surface);
+  color: var(--mm-text);
+}
+
+/* Folded rules read as a calm list: one row per rule, hairlines between, no boxes. */
+.markdown details,
+.markdown .rule {
+  --ifm-alert-background-color: transparent;
+  --ifm-alert-background-color-highlight: transparent;
+  --ifm-alert-border-color: transparent;
+  --ifm-alert-foreground-color: var(--mm-text);
+  margin: 0;
+  padding: var(--space-3) 0;
+  border: 0;
+  border-block-end: 1px solid var(--mm-rule);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--mm-text);
+}
+.markdown .rule {
+  padding-inline-start: 1.375rem;
+}
+.markdown details > summary {
+  cursor: pointer;
+}
+.markdown details > summary strong,
+.markdown .rule strong {
+  font-weight: 600;
+}
+.markdown details > div > div {
+  margin-block-start: var(--space-2);
+  padding-block-start: 0;
+  border: 0;
+  color: var(--mm-text-2);
+}
+.markdown details + p,
+.markdown .rule + p {
+  margin-block-start: var(--space-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

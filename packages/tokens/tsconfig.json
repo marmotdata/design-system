@@ -1,0 +1,1 @@
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "rootDir": "src-gen", "outDir": "dist", "sourceMap": false, "declarationMap": false }, "include": ["src-gen/index.ts"] }

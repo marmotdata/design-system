@@ -1,0 +1,646 @@
+{
+  "agent": {
+    "name": "Agent",
+    "icon": "material-symbols:smart-toy-outline",
+    "generic": true
+  },
+  "airbyte": {
+    "name": "Airbyte",
+    "icon": "simple-icons:airbyte"
+  },
+  "airflow": {
+    "name": "Airflow",
+    "icon": "logos:airflow-icon"
+  },
+  "alloydb": {
+    "name": "AlloyDB",
+    "icon": "logos:postgresql"
+  },
+  "amqp": {
+    "name": "AMQP",
+    "icon": "devicon:rabbitmq"
+  },
+  "amundsen": {
+    "name": "Amundsen",
+    "icon": "material-symbols:menu-book-outline",
+    "generic": true
+  },
+  "anypointmq": {
+    "name": "Anypoint MQ",
+    "icon": "material-symbols:send-outline",
+    "color": "ink",
+    "generic": true
+  },
+  "asyncapi": {
+    "name": "AsyncAPI",
+    "icon": "logos:async-api-icon"
+  },
+  "athena": {
+    "name": "Athena",
+    "icon": "logos:aws-athena"
+  },
+  "auth0": {
+    "name": "Auth0",
+    "icon": "logos:auth0-icon"
+  },
+  "aws-glue": {
+    "name": "AWS Glue",
+    "icon": "logos:aws-glue"
+  },
+  "azure-blob": {
+    "name": "Azure Blob Storage",
+    "icon": "logos:microsoft-azure"
+  },
+  "azure-data-factory": {
+    "name": "Azure Data Factory",
+    "icon": "logos:microsoft-azure"
+  },
+  "azure-synapse": {
+    "name": "Azure Synapse",
+    "icon": "logos:microsoft-azure"
+  },
+  "azureblob": {
+    "name": "Azure Blob Storage",
+    "icon": "logos:microsoft-azure"
+  },
+  "bigquery": {
+    "name": "BigQuery",
+    "icon": "logos:google-cloud"
+  },
+  "bigtable": {
+    "name": "Bigtable",
+    "icon": "simple-icons:googlebigtable"
+  },
+  "cassandra": {
+    "name": "Cassandra",
+    "icon": "logos:cassandra"
+  },
+  "clickhouse": {
+    "name": "ClickHouse",
+    "icon": "devicon:clickhouse"
+  },
+  "cloud-run": {
+    "name": "Cloud Run",
+    "icon": "logos:google-cloud-run"
+  },
+  "cloudrun": {
+    "name": "Cloud Run",
+    "icon": "logos:google-cloud-run"
+  },
+  "cockroachdb": {
+    "name": "CockroachDB",
+    "icon": "simple-icons:cockroachlabs"
+  },
+  "confluent": {
+    "name": "Confluent",
+    "icon": "material-symbols:stream",
+    "generic": true
+  },
+  "couchbase": {
+    "name": "Couchbase",
+    "icon": "logos:couchbase"
+  },
+  "customdashboard": {
+    "name": "Custom Dashboard",
+    "icon": "material-symbols:dashboard-outline",
+    "generic": true
+  },
+  "customdatabase": {
+    "name": "Custom Database",
+    "icon": "material-symbols:database-outline",
+    "generic": true
+  },
+  "custommessaging": {
+    "name": "Custom Messaging",
+    "icon": "material-symbols:chat-outline",
+    "generic": true
+  },
+  "custommlmodel": {
+    "name": "Custom ML Model",
+    "icon": "material-symbols:modeling-outline-rounded",
+    "generic": true
+  },
+  "custompipeline": {
+    "name": "Custom Pipeline",
+    "icon": "material-symbols:graph-4",
+    "generic": true
+  },
+  "customsearch": {
+    "name": "Custom Search",
+    "icon": "material-symbols:manage-search-rounded",
+    "generic": true
+  },
+  "customstorage": {
+    "name": "Custom Storage",
+    "icon": "material-symbols:storage",
+    "generic": true
+  },
+  "dagster": {
+    "name": "Dagster",
+    "icon": "material-symbols:account-tree-outline",
+    "generic": true
+  },
+  "databricks": {
+    "name": "Databricks",
+    "icon": "simple-icons:databricks"
+  },
+  "db2": {
+    "name": "Db2",
+    "icon": "logos:ibm"
+  },
+  "dbt": {
+    "name": "dbt",
+    "icon": "logos:dbt-icon"
+  },
+  "deltalake": {
+    "name": "Delta Lake",
+    "icon": "material-symbols:change-history-outline",
+    "generic": true
+  },
+  "doris": {
+    "name": "Doris",
+    "icon": "simple-icons:apachedoris"
+  },
+  "dremio": {
+    "name": "Dremio",
+    "icon": "material-symbols:database-outline",
+    "color": "ink",
+    "generic": true
+  },
+  "druid": {
+    "name": "Druid",
+    "icon": "simple-icons:apachedruid"
+  },
+  "duckdb": {
+    "name": "DuckDB",
+    "icon": "devicon:duckdb"
+  },
+  "dynamodb": {
+    "name": "DynamoDB",
+    "icon": "logos:aws-dynamodb"
+  },
+  "eks": {
+    "name": "Amazon EKS",
+    "icon": "logos:aws-eks"
+  },
+  "elasticsearch": {
+    "name": "Elasticsearch",
+    "icon": "logos:elasticsearch"
+  },
+  "fabric": {
+    "name": "Microsoft Fabric",
+    "icon": "logos:microsoft-azure"
+  },
+  "firebase": {
+    "name": "Firebase",
+    "icon": "logos:firebase-icon"
+  },
+  "firehose": {
+    "name": "Firehose",
+    "icon": "material-symbols:graph-4",
+    "generic": true
+  },
+  "flink": {
+    "name": "Flink",
+    "icon": "logos:apache-flink-icon"
+  },
+  "gcs": {
+    "name": "Google Cloud Storage",
+    "icon": "logos:google-cloud"
+  },
+  "github": {
+    "name": "GitHub",
+    "icon": "logos:github-icon"
+  },
+  "gitlab": {
+    "name": "GitLab",
+    "icon": "logos:gitlab-icon"
+  },
+  "gke": {
+    "name": "Google GKE",
+    "icon": "logos:google-icon"
+  },
+  "glue": {
+    "name": "AWS Glue",
+    "icon": "logos:aws-glue"
+  },
+  "gluepipeline": {
+    "name": "AWS Glue pipeline",
+    "icon": "logos:aws-glue"
+  },
+  "google": {
+    "name": "Google",
+    "icon": "logos:google-icon"
+  },
+  "google-cloud-storage": {
+    "name": "Google Cloud Storage",
+    "icon": "logos:google-cloud"
+  },
+  "google-drive": {
+    "name": "Google Drive",
+    "icon": "logos:google-drive"
+  },
+  "google-pubsub": {
+    "name": "Google Pub/Sub",
+    "icon": "logos:google-cloud"
+  },
+  "googledrive": {
+    "name": "Google Drive",
+    "icon": "logos:google-drive"
+  },
+  "googlepubsub": {
+    "name": "Google Pub/Sub",
+    "icon": "logos:google-cloud"
+  },
+  "grafana": {
+    "name": "Grafana",
+    "icon": "logos:grafana"
+  },
+  "hex": {
+    "name": "Hex",
+    "icon": "material-symbols:dashboard-outline",
+    "generic": true
+  },
+  "hive": {
+    "name": "Hive",
+    "icon": "simple-icons:apachehive"
+  },
+  "http": {
+    "name": "HTTP",
+    "icon": "material-symbols:webhook",
+    "color": "ink",
+    "generic": true
+  },
+  "ibmmq": {
+    "name": "IBM MQ",
+    "icon": "material-symbols:memory",
+    "color": "ink",
+    "generic": true
+  },
+  "iceberg": {
+    "name": "Iceberg",
+    "icon": "material-symbols:ac-unit",
+    "generic": true
+  },
+  "impala": {
+    "name": "Impala",
+    "icon": "logos:impala"
+  },
+  "jms": {
+    "name": "JMS",
+    "icon": "material-symbols:memory",
+    "color": "ink",
+    "generic": true
+  },
+  "kafka": {
+    "name": "Kafka",
+    "icon": "devicon:apachekafka"
+  },
+  "kafkaconnect": {
+    "name": "Kafka Connect",
+    "icon": "devicon:apachekafka"
+  },
+  "keycloak": {
+    "name": "Keycloak",
+    "icon": "simple-icons:keycloak"
+  },
+  "kinesis": {
+    "name": "Kinesis",
+    "icon": "logos:aws-kinesis"
+  },
+  "kubernetes": {
+    "name": "Kubernetes",
+    "icon": "logos:kubernetes"
+  },
+  "lambda": {
+    "name": "Lambda",
+    "icon": "logos:aws-lambda"
+  },
+  "langchain": {
+    "name": "LangChain",
+    "icon": "simple-icons:langchain"
+  },
+  "looker": {
+    "name": "Looker",
+    "icon": "logos:looker-icon"
+  },
+  "mariadb": {
+    "name": "MariaDB",
+    "icon": "logos:mariadb-icon"
+  },
+  "materialize": {
+    "name": "Materialize",
+    "icon": "material-symbols:database-outline",
+    "color": "ink",
+    "generic": true
+  },
+  "matillion": {
+    "name": "Matillion",
+    "icon": "simple-icons:matillion"
+  },
+  "metabase": {
+    "name": "Metabase",
+    "icon": "logos:metabase"
+  },
+  "microsoft": {
+    "name": "Microsoft Entra ID",
+    "icon": "logos:microsoft-icon"
+  },
+  "microsoft-fabric": {
+    "name": "Microsoft Fabric",
+    "icon": "logos:microsoft-azure"
+  },
+  "mlflow": {
+    "name": "MLflow",
+    "icon": "simple-icons:mlflow"
+  },
+  "mongodb": {
+    "name": "MongoDB",
+    "icon": "logos:mongodb-icon"
+  },
+  "mqtt": {
+    "name": "MQTT",
+    "icon": "material-symbols:wifi",
+    "color": "ink",
+    "generic": true
+  },
+  "mssql": {
+    "name": "SQL Server",
+    "icon": "devicon:microsoftsqlserver"
+  },
+  "mulesoft": {
+    "name": "MuleSoft",
+    "icon": "material-symbols:graph-4",
+    "generic": true
+  },
+  "mysql": {
+    "name": "MySQL",
+    "icon": "logos:mysql-icon"
+  },
+  "nats": {
+    "name": "NATS",
+    "icon": "devicon:nats"
+  },
+  "netezza": {
+    "name": "Netezza",
+    "icon": "material-symbols:database-outline",
+    "color": "ink",
+    "generic": true
+  },
+  "nifi": {
+    "name": "NiFi",
+    "icon": "simple-icons:apachenifi"
+  },
+  "oidc": {
+    "name": "OpenID Connect",
+    "icon": "simple-icons:openid"
+  },
+  "okta": {
+    "name": "Okta",
+    "icon": "logos:okta-icon"
+  },
+  "onedrive": {
+    "name": "OneDrive",
+    "icon": "logos:microsoft-onedrive"
+  },
+  "openapi": {
+    "name": "OpenAPI",
+    "icon": "logos:openapi-icon"
+  },
+  "openlineage": {
+    "name": "OpenLineage",
+    "icon": "material-symbols:flowchart-outline-sharp",
+    "color": "ink",
+    "generic": true
+  },
+  "openmetadata": {
+    "name": "OpenMetadata",
+    "icon": "material-symbols:book-2-outline",
+    "color": "ink",
+    "generic": true
+  },
+  "opensearch": {
+    "name": "OpenSearch",
+    "icon": "logos:opensearch-icon"
+  },
+  "oracle": {
+    "name": "Oracle",
+    "icon": "devicon:oracle"
+  },
+  "pinot": {
+    "name": "Pinot",
+    "icon": "material-symbols:database-outline",
+    "generic": true
+  },
+  "postgres": {
+    "name": "Postgres",
+    "icon": "logos:postgresql"
+  },
+  "postgresql": {
+    "name": "PostgreSQL",
+    "icon": "logos:postgresql"
+  },
+  "powerbi": {
+    "name": "Power BI",
+    "icon": "logos:microsoft-power-bi"
+  },
+  "prefect": {
+    "name": "Prefect",
+    "icon": "simple-icons:prefect"
+  },
+  "presto": {
+    "name": "Presto",
+    "icon": "logos:presto-icon"
+  },
+  "pubsub": {
+    "name": "Pub/Sub",
+    "icon": "simple-icons:googlepubsub"
+  },
+  "pulsar": {
+    "name": "Pulsar",
+    "icon": "devicon:pulsar"
+  },
+  "qlik": {
+    "name": "Qlik",
+    "icon": "simple-icons:qlik"
+  },
+  "questdb": {
+    "name": "QuestDB",
+    "icon": "material-symbols:database-outline",
+    "generic": true
+  },
+  "quicksight": {
+    "name": "QuickSight",
+    "icon": "logos:aws-quicksight"
+  },
+  "rabbitmq": {
+    "name": "RabbitMQ",
+    "icon": "devicon:rabbitmq"
+  },
+  "redash": {
+    "name": "Redash",
+    "icon": "simple-icons:redash"
+  },
+  "redis": {
+    "name": "Redis",
+    "icon": "logos:redis"
+  },
+  "redpanda": {
+    "name": "Redpanda",
+    "icon": "material-symbols:stream",
+    "generic": true
+  },
+  "redshift": {
+    "name": "Redshift",
+    "icon": "logos:aws-redshift"
+  },
+  "s3": {
+    "name": "S3",
+    "icon": "logos:aws-s3"
+  },
+  "sagemaker": {
+    "name": "SageMaker",
+    "icon": "material-symbols:robot-2-outline",
+    "color": "ink",
+    "generic": true
+  },
+  "salesforce": {
+    "name": "Salesforce",
+    "icon": "devicon:salesforce"
+  },
+  "sap": {
+    "name": "SAP",
+    "icon": "logos:sap"
+  },
+  "sftp": {
+    "name": "SFTP",
+    "icon": "material-symbols:storage",
+    "generic": true
+  },
+  "sharepoint": {
+    "name": "SharePoint",
+    "icon": "simple-icons:microsoftsharepoint"
+  },
+  "singlestore": {
+    "name": "SingleStore",
+    "icon": "logos:singlestore-icon"
+  },
+  "slack": {
+    "name": "Slack",
+    "icon": "logos:slack-icon"
+  },
+  "snowflake": {
+    "name": "Snowflake",
+    "icon": "logos:snowflake-icon"
+  },
+  "snowplow": {
+    "name": "Snowplow",
+    "icon": "material-symbols:graph-4",
+    "generic": true
+  },
+  "sns": {
+    "name": "SNS",
+    "icon": "logos:aws-sns"
+  },
+  "solace": {
+    "name": "Solace",
+    "icon": "material-symbols:cloud-sync-outline",
+    "color": "ink",
+    "generic": true
+  },
+  "spark": {
+    "name": "Spark",
+    "icon": "devicon:apachespark"
+  },
+  "spline": {
+    "name": "Spline",
+    "icon": "material-symbols:flowchart-outline",
+    "generic": true
+  },
+  "sql-server": {
+    "name": "SQL Server",
+    "icon": "simple-icons:microsoftsqlserver"
+  },
+  "sqlite": {
+    "name": "SQLite",
+    "icon": "devicon:sqlite"
+  },
+  "sqlserver": {
+    "name": "SQL Server",
+    "icon": "simple-icons:microsoftsqlserver"
+  },
+  "sqs": {
+    "name": "SQS",
+    "icon": "logos:aws-sqs"
+  },
+  "ssis": {
+    "name": "SSIS",
+    "icon": "simple-icons:microsoft"
+  },
+  "starburst": {
+    "name": "Starburst",
+    "icon": "simple-icons:trino"
+  },
+  "starrocks": {
+    "name": "StarRocks",
+    "icon": "material-symbols:database-outline",
+    "generic": true
+  },
+  "stitch": {
+    "name": "Stitch",
+    "icon": "material-symbols:graph-4",
+    "generic": true
+  },
+  "superset": {
+    "name": "Superset",
+    "icon": "logos:apache-superset-icon"
+  },
+  "synapse": {
+    "name": "Azure Synapse",
+    "icon": "logos:microsoft-azure"
+  },
+  "tableau": {
+    "name": "Tableau",
+    "icon": "simple-icons:tableau"
+  },
+  "teradata": {
+    "name": "Teradata",
+    "icon": "simple-icons:teradata"
+  },
+  "thoughtspot": {
+    "name": "ThoughtSpot",
+    "icon": "material-symbols:dashboard-outline",
+    "generic": true
+  },
+  "timescale": {
+    "name": "Timescale",
+    "icon": "simple-icons:timescale"
+  },
+  "trino": {
+    "name": "Trino",
+    "icon": "simple-icons:trino"
+  },
+  "unitycatalog": {
+    "name": "Unity Catalog",
+    "icon": "simple-icons:databricks"
+  },
+  "vertex-ai": {
+    "name": "Vertex AI",
+    "icon": "logos:google-cloud"
+  },
+  "vertexai": {
+    "name": "Vertex AI",
+    "icon": "logos:google-cloud"
+  },
+  "websocket": {
+    "name": "WebSocket",
+    "icon": "material-symbols:link",
+    "color": "ink",
+    "generic": true
+  },
+  "wherescape": {
+    "name": "WhereScape",
+    "icon": "material-symbols:graph-4",
+    "generic": true
+  }
+}

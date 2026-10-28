@@ -1,0 +1,35 @@
+@layer mm-layouts {
+  /* Page gutter: space-8 on desktop, space-4 on mobile (guidelines). */
+  /* Page wrappers are query containers, so layouts respond to the space they get (a blade or a
+     narrow pane shrinks it) rather than to the viewport. .mm-cq makes any element a container. */
+  .mm-page, .mm-container, .mm-cq { container-type: inline-size; }
+  .mm-page { padding: var(--space-6) var(--space-8) var(--space-12); max-width: 1600px; }
+  @media (max-width: 720px) { .mm-page { padding-inline: var(--space-4); } }
+  .mm-container { max-width: 1200px; margin-inline: auto; padding-inline: var(--space-8); }
+  @media (max-width: 720px) { .mm-container { padding-inline: var(--space-4); } }
+
+  /* Vertical rhythm. --mm-gap sets the gap; defaults to space-6 (between panels). */
+  .mm-stack { display: flex; flex-direction: column; gap: var(--mm-gap, var(--space-6)); }
+  .mm-stack--tight { --mm-gap: var(--space-2); }
+  .mm-stack--loose { --mm-gap: var(--space-12); }
+
+  /* Horizontal groups that wrap: toolbars, tag rows, button rows. */
+  .mm-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mm-gap, var(--space-2)); }
+  .mm-cluster--between { justify-content: space-between; }
+  .mm-cluster > .mm-push { margin-inline-start: auto; }
+
+  /* Asymmetric two-column layouts. Never equal-card grids. */
+  .mm-split { display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+  .mm-split--sidebar { grid-template-columns: 15rem minmax(0, 1fr); }
+  .mm-split--even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  @media (max-width: 960px) { .mm-split, .mm-split--sidebar, .mm-split--even { grid-template-columns: minmax(0, 1fr); } }
+  @container (max-width: 880px) { .mm-split, .mm-split--sidebar, .mm-split--even { grid-template-columns: minmax(0, 1fr); } }
+
+  /* Columns of panels on dashboards (Home). Panels keep their natural heights. */
+  .mm-columns { columns: 2 28rem; column-gap: var(--space-6); }
+  .mm-columns > * { break-inside: avoid; margin-block-end: var(--space-6); }
+  @container (max-width: 880px) { .mm-columns { columns: 1; } }
+
+  .mm-rule { border: 0; border-top: 1px solid var(--mm-rule); margin: 0; }
+  .mm-measure { max-width: 70ch; }
+}

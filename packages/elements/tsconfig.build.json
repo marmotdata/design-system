@@ -1,0 +1,1 @@
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "rootDir": "src", "outDir": "dist", "importHelpers": true }, "include": ["src/**/*.ts"], "exclude": ["src/**/*.test.ts", "src/**/*.stories.ts"] }

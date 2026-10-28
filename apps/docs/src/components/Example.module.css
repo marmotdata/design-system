@@ -1,0 +1,23 @@
+.example {
+  margin: var(--space-5) 0;
+  border: 1px solid var(--mm-rule);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.stage {
+  padding: var(--space-6);
+  background: var(--mm-paper);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.stage > * {
+  max-width: 100%;
+}
+.example :global(.theme-code-block) {
+  margin: 0;
+  border-radius: 0;
+  border-block-start: 1px solid var(--mm-rule);
+  box-shadow: none;
+}

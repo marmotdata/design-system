@@ -1,0 +1,23 @@
+/* Layout helpers for the Foundations pages only. Values come from tokens. */
+.fd { max-width: 1120px; color: var(--mm-text); }
+.fd h1 { font: var(--text-display-title); letter-spacing: var(--tracking-display-title); margin: 0 0 var(--space-2); }
+.fd h2 { font: var(--text-display-section); letter-spacing: var(--tracking-display-section); margin: var(--space-12) 0 var(--space-4); }
+.fd .lede { font: var(--text-body); color: var(--mm-text-2); max-width: 68ch; margin: 0 0 var(--space-8); }
+.fd-prose { font: var(--text-body); max-width: 72ch; }
+.fd-prose h3 { font: var(--text-heading); margin: var(--space-8) 0 var(--space-2); }
+.fd-prose h4 { font: var(--text-heading-sm); margin: var(--space-6) 0 var(--space-2); }
+.fd-prose p { margin: 0 0 var(--space-4); }
+.fd-prose ul, .fd-prose ol { margin: 0 0 var(--space-4); padding-inline-start: var(--space-5); }
+.fd-prose li { margin: 0 0 var(--space-1); }
+.fd-prose code, .fd code { font-family: var(--font-mono); font-size: calc(1em - 1px); background: var(--mm-sunken); border-radius: var(--radius-sm); padding: 1px 4px; }
+.fd-table { width: 100%; border-collapse: collapse; font: var(--text-dense); margin: 0 0 var(--space-6); background: var(--mm-surface); border: 1px solid var(--mm-rule); border-radius: var(--radius-md); }
+.fd-table th { font: var(--text-label); color: var(--mm-text-2); text-align: start; background: var(--mm-sunken); height: 32px; padding: 0 var(--space-3); border-bottom: 1px solid var(--mm-rule); }
+.fd-table td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--mm-rule); vertical-align: top; }
+.fd-table tr:last-child td { border-bottom: 0; }
+.fd-table .num { text-align: end; font-variant-numeric: tabular-nums; }
+.fd-table .mono { font-family: var(--font-mono); font-size: 12px; color: var(--mm-text-2); }
+.fd-caption { font: var(--text-caption); color: var(--mm-text-2); }
+.fd-grid { display: grid; gap: var(--space-4); }
+/* Contrast samples draw their text with generated content so the page can show documented failures without failing its own audit. */
+.fd-sample { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font: var(--text-dense); border: 1px solid var(--mm-rule); }
+.fd-sample::before { content: "Aa 1,284"; }

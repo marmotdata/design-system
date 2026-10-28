@@ -1,0 +1,41 @@
+@layer mm-base {
+  .mm-display-hero { font: var(--text-display-hero); letter-spacing: var(--tracking-display-hero); margin: 0; }
+  .mm-display-title, .mm-title { font: var(--text-display-title); letter-spacing: var(--tracking-display-title); margin: 0; }
+  .mm-display-kpi { font: var(--text-display-kpi); letter-spacing: var(--tracking-display-kpi); font-variant-numeric: tabular-nums; }
+  /* Display is for the page title, KPI values and marketing heroes only. Section headings use .mm-heading. */
+  .mm-display-section { font: var(--text-display-section); letter-spacing: var(--tracking-display-section); margin: 0; }
+  .mm-heading { font: var(--text-heading); margin: 0; }
+  .mm-heading-sm { font: var(--text-heading-sm); margin: 0; }
+  .mm-body { font: var(--text-body); }
+  .mm-dense { font: var(--text-dense); }
+  .mm-label { font: var(--text-label); color: var(--mm-text-2); }
+  .mm-caption { font: var(--text-caption); color: var(--mm-text-2); }
+  /* Metadata strips are sentence-case captions. There is no uppercase text. */
+  .mm-readout { font: var(--text-caption); color: var(--mm-text-2); font-variant-numeric: tabular-nums; }
+  .mm-kbd {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding: 0 5px;
+    font: var(--text-keycap); color: var(--mm-text-2);
+    background: var(--mm-surface); border: 1px solid var(--mm-rule); border-bottom-width: 2px; border-radius: var(--radius-sm);
+  }
+  /* Prose: rendered Markdown and documentation. 60 to 75 character measure. */
+  .mm-prose { font: var(--text-body); color: var(--mm-text); max-width: 72ch; }
+  .mm-prose > * + * { margin-block-start: var(--space-4); }
+  .mm-prose h1 { font: var(--text-display-title); letter-spacing: var(--tracking-display-title); margin-block: 0 var(--space-4); }
+  .mm-prose h2 { font: var(--text-heading); margin-block-start: var(--space-8); }
+  .mm-prose h3 { font: var(--text-heading-sm); margin-block-start: var(--space-6); }
+  .mm-prose h4 { font: var(--text-panel-title); margin-block-start: var(--space-5); }
+  .mm-prose p, .mm-prose ul, .mm-prose ol { margin-block-end: 0; }
+  .mm-prose ul, .mm-prose ol { padding-inline-start: var(--space-5); }
+  .mm-prose li + li { margin-block-start: var(--space-1); }
+  .mm-prose a { color: var(--mm-primary); text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  .mm-prose a:hover { text-decoration-thickness: 2px; }
+  .mm-prose blockquote { margin-inline: 0; padding-inline-start: var(--space-4); color: var(--mm-text-2); border-inline-start: 1px solid var(--mm-control-border); }
+  .mm-prose hr { border: 0; border-top: 1px solid var(--mm-rule); margin-block: var(--space-8); }
+  .mm-prose table { width: 100%; border-collapse: collapse; font: var(--text-dense); }
+  .mm-prose th { font: var(--text-label); color: var(--mm-text-2); text-align: start; background: var(--mm-sunken); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--mm-rule); }
+  .mm-prose td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--mm-rule); }
+  .mm-prose pre { background: var(--mm-code-bg); color: var(--mm-code-text); font: var(--text-mono-editor); border-radius: var(--radius-md); padding: 14px 16px; overflow: auto; }
+  .mm-prose pre code { background: none; padding: 0; font: inherit; color: inherit; }
+  .mm-prose img { max-width: 100%; border-radius: var(--radius-md); border: 1px solid var(--mm-rule); }
+}

@@ -1,0 +1,10 @@
+packages:
+  - packages/*
+  - apps/*
+  - tools/*
+allowBuilds:
+  esbuild: true
+  rs-module-lexer: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - svelte@5.57.3

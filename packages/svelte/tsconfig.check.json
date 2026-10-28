@@ -1,0 +1,1 @@
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "noEmit": true, "types": ["svelte"], "skipLibCheck": false }, "files": ["dist/elements.d.ts"] }

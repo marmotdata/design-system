@@ -1,0 +1,41 @@
+{
+  "name": "@marmotdata/storybook",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "storybook dev -p 6006 --no-open",
+    "build": "storybook build -o storybook-static",
+    "test": "vitest run --project=storybook",
+    "build:public": "MM_PUBLIC=1 storybook build -o storybook-static",
+    "dev:public": "MM_PUBLIC=1 storybook dev -p 6006 --no-open",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "10.6.4",
+    "@storybook/addon-docs": "10.6.4",
+    "@storybook/addon-vitest": "10.6.4",
+    "@storybook/web-components-vite": "10.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitest/browser-playwright": "5.0.5",
+    "@wc-toolkit/storybook-helpers": "10.7.7",
+    "esbuild": "^0.28.2",
+    "playwright": "1.64.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "storybook": "10.6.4",
+    "storybook-addon-pseudo-states": "10.6.4",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "wrangler": "4.153.0"
+  },
+  "dependencies": {
+    "@marmotdata/css": "workspace:*",
+    "@marmotdata/elements": "workspace:*",
+    "@marmotdata/icons": "workspace:*",
+    "@marmotdata/react": "workspace:*",
+    "@marmotdata/tokens": "workspace:*",
+    "lit": "3.3.3"
+  }
+}
