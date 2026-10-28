@@ -1,6 +1,6 @@
 {
   "name": "@marmotdata/tokens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Marmot design tokens: CSS custom properties, TypeScript constants, Tailwind v3 preset and v4 theme, and self-hosted fonts.",
   "license": "MIT",
   "type": "module",

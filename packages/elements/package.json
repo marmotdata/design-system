@@ -1,6 +1,6 @@
 {
   "name": "@marmotdata/elements",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The Marmot component library as standards-based web components (Lit). Every tag is prefixed mm-.",
   "license": "MIT",
   "type": "module",

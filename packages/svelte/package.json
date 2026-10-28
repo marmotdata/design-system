@@ -1,6 +1,6 @@
 {
   "name": "@marmotdata/svelte",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Svelte 5 types for every Marmot element, generated from the Custom Elements Manifest, plus small helpers.",
   "license": "MIT",
   "type": "module",

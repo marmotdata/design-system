@@ -1,6 +1,6 @@
 {
   "name": "@marmotdata/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Typed React 18 and 19 wrappers for every Marmot element, generated from the Custom Elements Manifest with @lit/react.",
   "license": "MIT",
   "type": "module",
