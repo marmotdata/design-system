@@ -17,6 +17,9 @@
   .mm-btn--danger { background: var(--mm-danger-fill); color: var(--mm-on-primary); }
   .mm-btn--danger:hover, .mm-btn--danger:active { background: color-mix(in oklab, var(--mm-danger-fill), var(--mm-text) 14%); }
   .mm-btn--sm { height: var(--control-h-sm); padding: 0 10px; }
+  /* Icon-only: square, and named with aria-label since there is no visible text. */
+  .mm-btn--icon { width: var(--mm-control); padding: 0; }
+  .mm-btn--icon.mm-btn--sm { width: var(--control-h-sm); }
   .mm-btn[disabled], .mm-btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
   /* Fields */
@@ -195,6 +198,15 @@
   /* Progress */
   .mm-progress { width: 240px; height: 4px; background: var(--mm-sunken); border-radius: 2px; overflow: hidden; }
   .mm-progress > span { display: block; height: 100%; background: var(--mm-text-2); }
+
+  /*
+   * Wordmark: the zero-JS version of mm-logo. Inline the artwork from @marmotdata/tokens/logos
+   * (marmot-wordmark.svg, which has no fill of its own) inside it: it takes ink, so it follows
+   * Light and Peat. Fixed artwork: never mirrored, recoloured beyond ink, tiled or set on a gradient.
+   * Name it with role="img" and aria-label="Marmot", or hide it beside a visible name.
+   */
+  .mm-wordmark { display: inline-flex; flex: none; line-height: 0; color: var(--mm-text); direction: ltr; }
+  .mm-wordmark svg { display: block; height: var(--mm-wordmark-size, 24px); width: auto; fill: currentColor; }
 
   /* Tooltip (static, e.g. for documentation) */
   .mm-tooltip { display: inline-grid; grid-template-columns: auto auto; gap: 2px 12px; padding: 8px 10px; background: var(--mm-text); color: var(--mm-on-inverse); border-radius: 0; font: 400 12px/1.4 var(--font-text); font-variant-numeric: tabular-nums; }

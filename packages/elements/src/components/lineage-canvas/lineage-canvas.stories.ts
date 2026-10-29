@@ -253,6 +253,24 @@ export const OrdersPipeline: Story = { name: 'Orders pipeline' };
 export const ObservedOff: Story = { name: 'Observed off (product default)', args: { showObserved: false } };
 export const StructureOff: Story = { name: 'Structure off', args: { hideStructure: true } };
 export const EdgeLabels: Story = { name: 'Edge labels', args: { showEdgeLabels: true } };
+export const ModifierZoom: Story = {
+  name: 'Embedded in a scrolling page',
+  render: () => html`<mm-lineage-canvas .graph=${ordersGraph} modifier-zoom layout-module-url=${dagreUrl} style="--mm-lineage-height:420px"></mm-lineage-canvas>`,
+  play: async ({ canvasElement }) => {
+    const el = canvasElement.querySelector<MmLineageCanvas>('mm-lineage-canvas')!;
+    await el.layoutComplete;
+    const vp = el.shadowRoot!.querySelector<HTMLElement>('[part="viewport"]')!;
+    const wheel = (ctrlKey: boolean) => {
+      const e = new WheelEvent('wheel', { deltaY: -200, ctrlKey, bubbles: true, cancelable: true, clientX: 200, clientY: 200 });
+      vp.dispatchEvent(e);
+      return e;
+    };
+    // A plain wheel belongs to the page: the canvas leaves it alone, so the page scrolls.
+    await expect(wheel(false).defaultPrevented).toBe(false);
+    // With Ctrl (and a trackpad pinch, which browsers send as Ctrl and wheel) the canvas zooms.
+    await expect(wheel(true).defaultPrevented).toBe(true);
+  },
+};
 export const Cycle: Story = { render: () => canvas(cycleGraph, { labels: true }) };
 export const OpenLineageStubs: Story = { name: 'OpenLineage stubs', render: () => canvas(stubGraph) };
 export const FailedNode: Story = { name: 'Failed node', render: () => canvas(failedGraph) };

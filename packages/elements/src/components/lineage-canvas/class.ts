@@ -92,7 +92,8 @@ const MAX_SCALE = 2;
  * The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG
  * edges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout
  * is dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.
- * Pan and zoom use d3-zoom: drag, wheel and pinch.
+ * Pan and zoom use d3-zoom: drag, wheel and pinch. Embedded in a page that scrolls (a docs or
+ * marketing page), set `modifier-zoom` so the wheel scrolls the page and zooms only with Ctrl or ⌘.
  *
  * Edges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,
  * mixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a "Returns to"
@@ -501,6 +502,11 @@ export class MmLineageCanvas extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: 'show-edge-labels' }) accessor showEdgeLabels = false;
   /** In-page full screen. Escape leaves it. */
   @property({ type: Boolean, reflect: true }) accessor fullscreen = false;
+  /**
+   * The wheel zooms only while Ctrl or ⌘ is held, so a canvas inside a scrolling page never traps
+   * the scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).
+   */
+  @property({ type: Boolean, reflect: true, attribute: 'modifier-zoom' }) accessor modifierZoom = false;
   /** Offers "Add upstream", "Add downstream" and edge deletion. */
   @property({ type: Boolean, reflect: true }) accessor editable = false;
   /** Shows the topographic loading field (after 200ms, for at least 400ms). */
@@ -619,7 +625,7 @@ export class MmLineageCanvas extends LitElement {
     this.#zoom = d3zoom<HTMLDivElement, unknown>()
       .scaleExtent([0.05, MAX_SCALE])
       .filter((e: Event) => {
-        if (e.type === 'wheel') return true;
+        if (e.type === 'wheel') return !this.modifierZoom || (e as WheelEvent).ctrlKey || (e as WheelEvent).metaKey;
         const t = e.target as Element | null;
         if (t?.closest?.('button, .chip')) return false;
         return !(e as MouseEvent).button;

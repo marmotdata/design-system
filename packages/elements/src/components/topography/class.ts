@@ -1,5 +1,5 @@
 import { LitElement, css, html, nothing, svg } from 'lit';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { base } from '../../core/styles.js';
 import { FIELD_H, FIELD_W, topographyLines, type TopographyDensity } from './field.js';
 
@@ -19,8 +19,10 @@ export type TopographyFade = 'none' | 'edges' | 'start' | 'end';
  * The element is absolutely positioned to fill its containing block and sits at `z-index: -1`, so
  * give the container `position: relative; isolation: isolate` and put the field first. It is
  * decorative (`aria-hidden`, `pointer-events: none`) and deterministic from `seed`, so it
- * server-renders and never measures. For a zero-JS page use the `.mm-topography` class from
- * `@marmotdata/css`, which draws one fixed sheet.
+ * server-renders the standard sheet. In the browser it watches its own aspect: a box wider than the
+ * sheet (an ultrawide hero) gets a wider sheet with the same line spacing rather than a stretched
+ * one, and lines stay hairlines at any size. For a zero-JS page use the `.mm-topography` class
+ * from `@marmotdata/css`, which draws one fixed sheet.
  *
  * @tagname mm-topography
  * @summary Abstract topographic background field.
@@ -58,6 +60,10 @@ export class MmTopography extends LitElement {
       .index {
         color: var(--mm-topography-index, var(--mm-rule));
       }
+      /* Hairlines at any size: the sheet scales to cover its box, the strokes do not. */
+      path {
+        vector-effect: non-scaling-stroke;
+      }
     `,
   ];
 
@@ -69,15 +75,34 @@ export class MmTopography extends LitElement {
   @property({ reflect: true }) accessor fade: TopographyFade = 'none';
 
   #rtl = false;
+  /** Width of the sheet in user units: the standard 1200, or more for a box wider than 3:2. */
+  @state() accessor #width = FIELD_W;
+  #resize: ResizeObserver | undefined;
 
   override connectedCallback(): void {
     super.connectedCallback();
     this.setAttribute('aria-hidden', 'true');
+    if (typeof ResizeObserver !== 'undefined') {
+      this.#resize ??= new ResizeObserver(([entry]) => {
+        const box = entry?.contentRect;
+        if (!box || !box.height) return;
+        // Steps of 400 units keep the number of distinct sheets (and re-renders) small.
+        const wanted = (FIELD_H * box.width) / box.height;
+        const width = wanted > FIELD_W ? Math.ceil(wanted / 400) * 400 : FIELD_W;
+        if (width !== this.#width) this.#width = width;
+      });
+      this.#resize.observe(this);
+    }
     const rtl = typeof getComputedStyle !== 'undefined' && getComputedStyle(this).direction === 'rtl';
     if (rtl !== this.#rtl) {
       this.#rtl = rtl;
       this.requestUpdate();
     }
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.#resize?.disconnect();
   }
 
   /**
@@ -86,6 +111,7 @@ export class MmTopography extends LitElement {
    */
   #paint(kind: 'line' | 'index') {
     const id = `${kind}-fade`;
+    const FIELD_W = this.#width;
     const stops = (from: number, to: number) => svg`<stop offset=${from} stop-color="currentColor" stop-opacity="0"></stop><stop offset=${to} stop-color="currentColor" stop-opacity="1"></stop>`;
     const fade = this.fade;
     if (fade === 'edges')
@@ -99,11 +125,11 @@ export class MmTopography extends LitElement {
   }
 
   override render() {
-    const lines = topographyLines(this.seed, this.density === 'sparse' ? 'sparse' : 'normal');
+    const lines = topographyLines(this.seed, this.density === 'sparse' ? 'sparse' : 'normal', this.#width);
     const line = this.#paint('line');
     const index = this.#paint('index');
     const stroke = (p: { id: string }) => (p.id ? `url(#${p.id})` : 'currentColor');
-    return html`<svg part="field" viewBox="0 0 ${FIELD_W} ${FIELD_H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    return html`<svg part="field" viewBox="0 0 ${this.#width} ${FIELD_H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
       <defs>${line.def}${index.def}</defs>
       <g class="line" stroke=${stroke(line)} stroke-width="1.2">${lines.filter((l) => !l.index).map((l) => svg`<path d=${l.d}></path>`)}</g>
       <g class="index" stroke=${stroke(index)} stroke-width="1.5">${lines.filter((l) => l.index).map((l) => svg`<path d=${l.d}></path>`)}</g>

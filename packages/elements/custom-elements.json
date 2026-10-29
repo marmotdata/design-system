@@ -24927,7 +24927,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused\nasset's edges (Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
+          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch. Embedded in a page that scrolls (a docs or\nmarketing page), set `modifier-zoom` so the wheel scrolls the page and zooms only with Ctrl or ⌘.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused\nasset's edges (Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
           "name": "MmLineageCanvas",
           "cssProperties": [
             {
@@ -25036,6 +25036,17 @@
               "default": "false",
               "description": "In-page full screen. Escape leaves it.",
               "attribute": "fullscreen",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "modifierZoom",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "The wheel zooms only while Ctrl or ⌘ is held, so a canvas inside a scrolling page never traps\nthe scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).",
+              "attribute": "modifier-zoom",
               "reflects": true
             },
             {
@@ -26360,6 +26371,15 @@
               "default": "false",
               "description": "In-page full screen. Escape leaves it.",
               "fieldName": "fullscreen"
+            },
+            {
+              "name": "modifier-zoom",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "The wheel zooms only while Ctrl or ⌘ is held, so a canvas inside a scrolling page never traps\nthe scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).",
+              "fieldName": "modifierZoom"
             },
             {
               "name": "editable",
@@ -54954,7 +54974,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "Topography is a background field, never an icon or an illustration. It is an unbounded survey\nsheet: hairline isolines that run off every edge, cropped by the box they sit in, with no closed\nisland, frame, tile or plate. The lines are mixed from `--mm-rule`, every fifth (index) line only a\ntouch stronger, so text over the field keeps its full contrast in Light and Peat. Use at most one\nper view, behind a moment that has room for it: an empty or error state, sign-in, a marketing hero\nor closing band.\n\nThe element is absolutely positioned to fill its containing block and sits at `z-index: -1`, so\ngive the container `position: relative; isolation: isolate` and put the field first. It is\ndecorative (`aria-hidden`, `pointer-events: none`) and deterministic from `seed`, so it\nserver-renders and never measures. For a zero-JS page use the `.mm-topography` class from\n`@marmotdata/css`, which draws one fixed sheet.",
+          "description": "Topography is a background field, never an icon or an illustration. It is an unbounded survey\nsheet: hairline isolines that run off every edge, cropped by the box they sit in, with no closed\nisland, frame, tile or plate. The lines are mixed from `--mm-rule`, every fifth (index) line only a\ntouch stronger, so text over the field keeps its full contrast in Light and Peat. Use at most one\nper view, behind a moment that has room for it: an empty or error state, sign-in, a marketing hero\nor closing band.\n\nThe element is absolutely positioned to fill its containing block and sits at `z-index: -1`, so\ngive the container `position: relative; isolation: isolate` and put the field first. It is\ndecorative (`aria-hidden`, `pointer-events: none`) and deterministic from `seed`, so it\nserver-renders the standard sheet. In the browser it watches its own aspect: a box wider than the\nsheet (an ultrawide hero) gets a wider sheet with the same line spacing rather than a stretched\none, and lines stay hairlines at any size. For a zero-JS page use the `.mm-topography` class\nfrom `@marmotdata/css`, which draws one fixed sheet.",
           "name": "MmTopography",
           "cssProperties": [
             {
@@ -55015,6 +55035,21 @@
               "default": "false"
             },
             {
+              "kind": "field",
+              "name": "#width",
+              "privacy": "private",
+              "default": "FIELD_W",
+              "description": "Width of the sheet in user units: the standard 1200, or more for a box wider than 3:2."
+            },
+            {
+              "kind": "field",
+              "name": "#resize",
+              "privacy": "private",
+              "type": {
+                "text": "ResizeObserver | undefined"
+              }
+            },
+            {
               "kind": "method",
               "name": "#paint",
               "privacy": "private",
@@ -55065,6 +55100,10 @@
           "tagName": "mm-topography",
           "customElement": true,
           "summary": "Abstract topographic background field."
+        },
+        {
+          "kind": "variable",
+          "name": "FIELD_W"
         }
       ],
       "exports": [
