@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/web-components-vite';
 import { html } from 'lit';
-import { expect } from 'storybook/test';
+import { expect, waitFor } from 'storybook/test';
 import { themes } from '../../../../../apps/storybook/src/support/themes.ts';
 import '@marmotdata/elements/topography.js';
 import '@marmotdata/elements/button.js';
@@ -94,6 +94,20 @@ export const ZeroJs: Story = {
   render: () => html`<section class="mm-topography mm-topography--fade-edges" style="min-height:360px;padding:var(--space-12) var(--space-8)">
     <div style="max-width:46ch">${copy}</div>
   </section>`,
+};
+
+export const Ultrawide: Story = {
+  name: 'Ultrawide box',
+  render: () => html`<div style="width:3440px">${stage(html`<mm-topography seed="3" fade="start"></mm-topography>`, copy, 'min-height:600px')}</div>`,
+  play: async ({ canvasElement }) => {
+    const el = canvasElement.querySelector('mm-topography')!;
+    // A box far wider than 3:2 gets a wider sheet, not the standard one stretched.
+    await waitFor(() => expect(Number(el.shadowRoot!.querySelector('svg')!.getAttribute('viewBox')!.split(' ')[2])).toBeGreaterThan(2400));
+    // Strokes stay hairlines however far the sheet is scaled.
+    await expect(getComputedStyle(el.shadowRoot!.querySelector('path')!).vectorEffect).toBe('non-scaling-stroke');
+    // The standard sheet is unchanged by the width option.
+    await expect(topographyLines(1, 'normal', 1200)).toEqual(topographyLines(1));
+  },
 };
 
 export const RightToLeft: Story = { parameters: { dir: 'rtl' }, args: { fade: 'start', seed: 11 } };

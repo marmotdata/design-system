@@ -61,6 +61,17 @@ Each pair uses real Marmot components. The full rules are in [Principles](./foun
   </Dont>
 </DoDont>
 
+## Places to go are a link list
+
+<DoDont>
+  <Do html={`<mm-link-list aria-label="Next steps"><mm-link-list-item href="#" icon="extension" description="Catalog tables, topics and dashboards from your sources.">Add a plugin</mm-link-list-item><mm-link-list-item href="#" icon="database" description="Run SQL against connected sources, checked by policy.">Query data</mm-link-list-item><mm-link-list-item href="#" external icon="forum" description="Ask questions and share what you built.">Community discussions</mm-link-list-item></mm-link-list>`}>
+    Each row is one link with a title, one line and a chevron, so it reads as somewhere to go without relying on colour.
+  </Do>
+  <Dont html={`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(8rem,1fr));gap:var(--space-3)"><div style="display:grid;justify-items:center;gap:var(--space-2);padding:var(--space-5) var(--space-3);border:1px solid var(--mm-rule);border-radius:var(--radius-md);background:var(--mm-surface);text-align:center"><span style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--mm-primary-tint);color:var(--mm-primary)"><mm-icon name="extension" size="20"></mm-icon></span><span style="font:var(--text-label)">Plugins</span><span style="font:var(--text-caption);color:var(--mm-text-2)">Learn more</span></div><div style="display:grid;justify-items:center;gap:var(--space-2);padding:var(--space-5) var(--space-3);border:1px solid var(--mm-rule);border-radius:var(--radius-md);background:var(--mm-surface);text-align:center"><span style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--mm-primary-tint);color:var(--mm-primary)"><mm-icon name="database" size="20"></mm-icon></span><span style="font:var(--text-label)">Queries</span><span style="font:var(--text-caption);color:var(--mm-text-2)">Learn more</span></div><div style="display:grid;justify-items:center;gap:var(--space-2);padding:var(--space-5) var(--space-3);border:1px solid var(--mm-rule);border-radius:var(--radius-md);background:var(--mm-surface);text-align:center"><span style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--mm-primary-tint);color:var(--mm-primary)"><mm-icon name="forum" size="20"></mm-icon></span><span style="font:var(--text-label)">Community</span><span style="font:var(--text-caption);color:var(--mm-text-2)">Learn more</span></div></div>`}>
+    Identical icon cards in tinted circles look like every template, say nothing about where each one goes and give no sign they are links.
+  </Dont>
+</DoDont>
+
 ## Empty states say what to do next
 
 <DoDont>

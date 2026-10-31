@@ -24927,7 +24927,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused\nasset's edges (Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
+          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch. Embedded in a page that scrolls (a docs or\nmarketing page), set `modifier-zoom` so the wheel scrolls the page and zooms only with Ctrl or ⌘.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused\nasset's edges (Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
           "name": "MmLineageCanvas",
           "cssProperties": [
             {
@@ -25036,6 +25036,17 @@
               "default": "false",
               "description": "In-page full screen. Escape leaves it.",
               "attribute": "fullscreen",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "modifierZoom",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "The wheel zooms only while Ctrl or ⌘ is held, so a canvas inside a scrolling page never traps\nthe scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).",
+              "attribute": "modifier-zoom",
               "reflects": true
             },
             {
@@ -26362,6 +26373,15 @@
               "fieldName": "fullscreen"
             },
             {
+              "name": "modifier-zoom",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "The wheel zooms only while Ctrl or ⌘ is held, so a canvas inside a scrolling page never traps\nthe scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).",
+              "fieldName": "modifierZoom"
+            },
+            {
               "name": "editable",
               "type": {
                 "text": "boolean"
@@ -27105,6 +27125,228 @@
           "declaration": {
             "name": "MmLineageNode",
             "module": "src/components/lineage-node/class.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/link-list/class.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A set of places to go: documentation pages, runbooks, external resources. Each item is a title\nand one quiet line saying what is there, separated by hairlines. Use it instead of a grid of icon\ncards. With `columns=\"2\"` the items sit in two columns once the list is at least 40rem wide and\nfall back to one column when it is narrower; rows in a pair share a height, so the hairlines run\nstraight across both columns.\n\nThis is a plain list of links, not a composite widget: Tab moves from link to link. Static and\nserver-rendered pages can use the zero-JS `.mm-link-list` classes from `@marmotdata/css`, which\ndraw the same thing.\n\nFollows the WAI-ARIA link pattern: https://www.w3.org/WAI/ARIA/apg/patterns/link/",
+          "name": "MmLinkList",
+          "cssParts": [
+            {
+              "description": "The wrapper that lays out the items.",
+              "name": "list"
+            }
+          ],
+          "slots": [
+            {
+              "description": "`mm-link-list-item` elements.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "columns",
+              "type": {
+                "text": "'1' | '2'"
+              },
+              "default": "'1'",
+              "description": "`2` puts the items in two columns when the list is at least 40rem wide.",
+              "attribute": "columns",
+              "reflects": true
+            }
+          ],
+          "attributes": [
+            {
+              "name": "columns",
+              "type": {
+                "text": "'1' | '2'"
+              },
+              "default": "'1'",
+              "description": "`2` puts the items in two columns when the list is at least 40rem wide.",
+              "fieldName": "columns"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "mm-link-list",
+          "customElement": true,
+          "summary": "Hairline-separated links, each a title and one line, in one or two columns."
+        },
+        {
+          "kind": "class",
+          "description": "One place to go in an `mm-link-list`. The whole row is a single link: an optional 16px icon in\n`mm-text-2`, the title in ink, one line of description in `mm-text-2` and a trailing chevron in\n`mm-text-3`. External links open a new tab, swap the chevron for open-in-new and say so to screen\nreaders. On hover and focus the row turns `mm-sunken`, the title underlines and the indicator goes\nto ink, so it reads as a link without relying on colour.\n\nThe link is named by the title; the description is attached as its accessible description, so it\nis read once. Without `href` the item is plain text with no indicator.",
+          "name": "MmLinkListItem",
+          "cssParts": [
+            {
+              "description": "The link, or the text wrapper without `href`.",
+              "name": "item"
+            },
+            {
+              "description": "The leading icon wrapper.",
+              "name": "icon"
+            },
+            {
+              "description": "The title.",
+              "name": "title"
+            },
+            {
+              "description": "The description.",
+              "name": "description"
+            },
+            {
+              "description": "The chevron, or open-in-new on external links.",
+              "name": "indicator"
+            }
+          ],
+          "slots": [
+            {
+              "description": "The title.",
+              "name": ""
+            },
+            {
+              "description": "A leading icon or provider logo (`mm-provider-logo decorative`), if you need more than the `icon` attribute.",
+              "name": "icon"
+            },
+            {
+              "description": "The description, if it needs markup. Otherwise use `description`.",
+              "name": "description"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "ShadowRootInit"
+              },
+              "static": true,
+              "default": "{ ...LitElement.shadowRootOptions, delegatesFocus: true }"
+            },
+            {
+              "kind": "field",
+              "name": "href",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Destination URL. Without it the item is plain text.",
+              "attribute": "href",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "external",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Opens in a new tab with `rel=\"noopener noreferrer\"`, shows open-in-new instead of the chevron and announces it.",
+              "attribute": "external",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "description",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "One line saying what is there.",
+              "attribute": "description"
+            },
+            {
+              "kind": "field",
+              "name": "icon",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "A Material Symbols name for the leading icon, e.g. `dns`, `menu-book`.",
+              "attribute": "icon"
+            },
+            {
+              "kind": "field",
+              "name": "#slotted",
+              "privacy": "private",
+              "default": "new Set<string>()"
+            },
+            {
+              "kind": "field",
+              "name": "#onSlot",
+              "privacy": "private"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "href",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Destination URL. Without it the item is plain text.",
+              "fieldName": "href"
+            },
+            {
+              "name": "external",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Opens in a new tab with `rel=\"noopener noreferrer\"`, shows open-in-new instead of the chevron and announces it.",
+              "fieldName": "external"
+            },
+            {
+              "name": "description",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "One line saying what is there.",
+              "fieldName": "description"
+            },
+            {
+              "name": "icon",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "A Material Symbols name for the leading icon, e.g. `dns`, `menu-book`.",
+              "fieldName": "icon"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "mm-link-list-item",
+          "customElement": true,
+          "summary": "A whole-row link with an icon, title, one line of description and an indicator."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "MmLinkList",
+          "declaration": {
+            "name": "MmLinkList",
+            "module": "src/components/link-list/class.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "MmLinkListItem",
+          "declaration": {
+            "name": "MmLinkListItem",
+            "module": "src/components/link-list/class.ts"
           }
         }
       ]
@@ -54954,7 +55196,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "Topography is a background field, never an icon or an illustration. It is an unbounded survey\nsheet: hairline isolines that run off every edge, cropped by the box they sit in, with no closed\nisland, frame, tile or plate. The lines are mixed from `--mm-rule`, every fifth (index) line only a\ntouch stronger, so text over the field keeps its full contrast in Light and Peat. Use at most one\nper view, behind a moment that has room for it: an empty or error state, sign-in, a marketing hero\nor closing band.\n\nThe element is absolutely positioned to fill its containing block and sits at `z-index: -1`, so\ngive the container `position: relative; isolation: isolate` and put the field first. It is\ndecorative (`aria-hidden`, `pointer-events: none`) and deterministic from `seed`, so it\nserver-renders and never measures. For a zero-JS page use the `.mm-topography` class from\n`@marmotdata/css`, which draws one fixed sheet.",
+          "description": "Topography is a background field, never an icon or an illustration. It is an unbounded survey\nsheet: hairline isolines that run off every edge, cropped by the box they sit in, with no closed\nisland, frame, tile or plate. The lines are mixed from `--mm-rule`, every fifth (index) line only a\ntouch stronger, so text over the field keeps its full contrast in Light and Peat. Use at most one\nper view, behind a moment that has room for it: an empty or error state, sign-in, a marketing hero\nor closing band.\n\nThe element is absolutely positioned to fill its containing block and sits at `z-index: -1`, so\ngive the container `position: relative; isolation: isolate` and put the field first. It is\ndecorative (`aria-hidden`, `pointer-events: none`) and deterministic from `seed`, so it\nserver-renders the standard sheet. In the browser it watches its own aspect: a box wider than the\nsheet (an ultrawide hero) gets a wider sheet with the same line spacing rather than a stretched\none, and lines stay hairlines at any size. For a zero-JS page use the `.mm-topography` class\nfrom `@marmotdata/css`, which draws one fixed sheet.",
           "name": "MmTopography",
           "cssProperties": [
             {
@@ -55015,6 +55257,21 @@
               "default": "false"
             },
             {
+              "kind": "field",
+              "name": "#width",
+              "privacy": "private",
+              "default": "FIELD_W",
+              "description": "Width of the sheet in user units: the standard 1200, or more for a box wider than 3:2."
+            },
+            {
+              "kind": "field",
+              "name": "#resize",
+              "privacy": "private",
+              "type": {
+                "text": "ResizeObserver | undefined"
+              }
+            },
+            {
               "kind": "method",
               "name": "#paint",
               "privacy": "private",
@@ -55065,6 +55322,10 @@
           "tagName": "mm-topography",
           "customElement": true,
           "summary": "Abstract topographic background field."
+        },
+        {
+          "kind": "variable",
+          "name": "FIELD_W"
         }
       ],
       "exports": [

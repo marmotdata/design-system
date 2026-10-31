@@ -11,7 +11,7 @@ export interface TopographyLine {
 /** How many isolines the field carries. */
 export type TopographyDensity = 'sparse' | 'normal';
 
-/** Width of the field's user space. The SVG slices it to cover any box. */
+/** Width of the standard sheet's user space. The SVG slices it to cover any box. */
 export const FIELD_W = 1200;
 /** Height of the field's user space. */
 export const FIELD_H = 800;
@@ -49,16 +49,22 @@ const cache = new Map<string, TopographyLine[]>();
 /**
  * Generates an unbounded topographic field: a deterministic, low-frequency height field (a tilted
  * plane with a few broad, warped swells) contoured with d3-contour on a coarse grid that extends past
- * the visible 1200 by 800 sheet. Each ring is cut where it leaves the sheet, so every line runs off
- * an edge; rings that would close entirely inside the sheet (islands) are dropped. The result is a
- * few hundred path points. Pure and SSR-safe; results are memoised per seed and density.
+ * the visible sheet. Each ring is cut where it leaves the sheet, so every line runs off an edge;
+ * rings that would close entirely inside the sheet (islands) are dropped. The result is a few hundred
+ * path points. Pure and SSR-safe; results are memoised per seed, density and width.
+ *
+ * `width` widens the sheet for wide boxes (an ultrawide hero) so it is never stretched. The extra
+ * ground is added equally on both sides and the line spacing is taken from the central 1200 units,
+ * so the middle of a wide sheet is the standard sheet, line for line.
  */
-export function topographyLines(seed = 1, density: TopographyDensity = 'normal'): TopographyLine[] {
-  const key = `${seed}:${density}`;
+export function topographyLines(seed = 1, density: TopographyDensity = 'normal', width = FIELD_W): TopographyLine[] {
+  const W = Math.max(FIELD_W, Math.round(width / CELL) * CELL);
+  const key = `${seed}:${density}:${W}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const rand = mulberry32(seed);
-  const gw = FIELD_W / CELL + PAD * 2 + 1;
+  const shift = (W - FIELD_W) / 2;
+  const gw = W / CELL + PAD * 2 + 1;
   const gh = FIELD_H / CELL + PAD * 2 + 1;
   const theta = rand() * Math.PI * 2;
   const tilt = 0.8 + rand() * 0.4;
@@ -75,14 +81,16 @@ export function topographyLines(seed = 1, density: TopographyDensity = 'normal')
   for (let j = 0; j < gh; j++) {
     for (let i = 0; i < gw; i++) {
       // In units of the sheet height, so features are the same size whatever the aspect.
-      const u0 = ((i - PAD) * CELL) / FIELD_H;
+      const u0 = ((i - PAD) * CELL - shift) / FIELD_H;
       const v0 = ((j - PAD) * CELL) / FIELD_H;
       const u = u0 + warp.a * Math.sin(2 * Math.PI * warp.f * v0 + warp.p);
       const v = v0 + warp.a * Math.sin(2 * Math.PI * warp.f * u0 + warp.p * 1.7);
       let z = tilt * (u * Math.cos(theta) + v * Math.sin(theta));
       for (const w of waves) z += w.a * Math.sin(2 * Math.PI * w.f * (u * Math.cos(w.phi) + v * Math.sin(w.phi)) + w.p);
       values[j * gw + i] = z;
-      const inside = i >= PAD && i <= gw - PAD - 1 && j >= PAD && j <= gh - PAD - 1;
+      // The range, and so the spacing, comes from the standard sheet's own window.
+      const x = (i - PAD) * CELL - shift;
+      const inside = x >= 0 && x <= FIELD_W && j >= PAD && j <= gh - PAD - 1;
       if (inside) {
         if (z < lo) lo = z;
         if (z > hi) hi = z;
@@ -92,16 +100,30 @@ export function topographyLines(seed = 1, density: TopographyDensity = 'normal')
   const count = density === 'sparse' ? 10 : 18;
   const step = (hi - lo) / (count + 1);
   const thresholds = Array.from({ length: count }, (_, k) => lo + step * (k + 1));
+  // A wider sheet's ground keeps rising or falling past the standard window: carry the same step on
+  // out, so lines keep their spacing to the edges.
+  if (W > FIELD_W) {
+    let zmin = Infinity;
+    let zmax = -Infinity;
+    for (const z of values) {
+      if (z < zmin) zmin = z;
+      if (z > zmax) zmax = z;
+    }
+    for (let t = lo; t > zmin; t -= step) thresholds.unshift(t);
+    for (let t = lo + step * (count + 1); t < zmax; t += step) thresholds.push(t);
+  }
   // d3-contour puts value i at x = i + 0.5; map that back to sheet units.
   const toWorld = (p: number[]) => [(p[0]! - 0.5 - PAD) * CELL, (p[1]! - 0.5 - PAD) * CELL];
   const m = CELL;
-  const inSheet = (p: number[]) => p[0]! >= -m && p[0]! <= FIELD_W + m && p[1]! >= -m && p[1]! <= FIELD_H + m;
+  const inSheet = (p: number[]) => p[0]! >= -m && p[0]! <= W + m && p[1]! >= -m && p[1]! <= FIELD_H + m;
   const out: TopographyLine[] = [];
   contours()
     .size([gw, gh])
     .thresholds(thresholds)(values)
-    .forEach((mp, li) => {
-      const index = (li + 1) % 5 === 0;
+    .forEach((mp) => {
+      // Every fifth step from the standard sheet's lowest line, so index lines agree at any width.
+      const k = Math.round((mp.value - lo) / step);
+      const index = k % 5 === 0;
       for (const polygon of mp.coordinates) {
         for (const raw of polygon) {
           const ring = raw.slice(0, -1).map(toWorld);
