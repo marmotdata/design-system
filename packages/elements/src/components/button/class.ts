@@ -181,7 +181,7 @@ export class MmButton extends LitElement {
   /** Shows a spinner, keeps the label, and blocks activation. */
   @property({ type: Boolean, reflect: true }) accessor loading = false;
   /** `button` (default), `submit` or `reset`. Submit and reset work with the closest form. */
-  @property() accessor type: 'button' | 'submit' | 'reset' = 'button';
+  @property({ reflect: true }) accessor type: 'button' | 'submit' | 'reset' = 'button';
   /** Renders a link styled as a button. */
   @property() accessor href = '';
   @property() accessor target = '';

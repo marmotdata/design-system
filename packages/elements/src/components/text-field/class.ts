@@ -109,7 +109,7 @@ export class MmTextField extends MmFieldControl {
     this.emitChange<MmValueDetail>({ value: this.value });
   };
   #onKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.isComposing) this.implicitSubmit();
+    if (e.key === 'Enter' && !e.isComposing && !e.defaultPrevented) this.implicitSubmit();
   };
   #clear = () => {
     this.value = '';

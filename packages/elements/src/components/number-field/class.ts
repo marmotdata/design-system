@@ -200,7 +200,7 @@ export class MmNumberField extends MmFieldControl {
     } else if (e.key === 'End' && this.max !== undefined) {
       e.preventDefault();
       this.#commit(String(this.max));
-    } else if (e.key === 'Enter' && !e.isComposing) {
+    } else if (e.key === 'Enter' && !e.isComposing && !e.defaultPrevented) {
       this.implicitSubmit();
     }
   };

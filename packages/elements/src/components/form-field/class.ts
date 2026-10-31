@@ -299,7 +299,10 @@ export abstract class MmFieldControl extends MmFormControl {
   protected implicitSubmit(): void {
     const form = this.form;
     if (!form) return;
-    const hasSubmit = form.querySelector('button:not([type]), button[type="submit"], input[type="submit"], input[type="image"], mm-button[type="submit"]');
+    // mm-button's type is checked as a property too, because frameworks such as Svelte set it without the attribute.
+    const hasSubmit =
+      form.querySelector('button:not([type]), button[type="submit"], input[type="submit"], input[type="image"]') ||
+      Array.from(form.querySelectorAll('mm-button')).some((b) => (b as HTMLElement & { type?: string }).type === 'submit');
     const fields = Array.from(form.elements).filter((el) => !(el instanceof HTMLButtonElement) && !(el instanceof HTMLFieldSetElement) && !(el as HTMLElement).hidden);
     if (hasSubmit || fields.length === 1) form.requestSubmit();
   }
