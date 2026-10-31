@@ -17,7 +17,7 @@ export interface MmTabChangeDetail {
 }
 
 /**
- * One tab in an `mm-tabs` strip: a 13px label with an optional 16px icon and a mono count. Inactive
+ * One tab in an `mm-tabs` strip: a 13px label with an optional 16px icon and a count. Inactive
  * tabs are `mm-text-2`; the selected tab is ink with the 2px burnt-sienna underline.
  *
  * Without `href` the tab is an ARIA tab (`role="tab"`) that shows the `mm-tab-panel` with the same
@@ -112,7 +112,7 @@ export class MmTab extends LitElement {
   @property({ reflect: true }) accessor value = '';
   /** Leading Material Symbols icon, such as `description`, `schema`, `account-tree` or `history`. */
   @property() accessor icon = '';
-  /** A count shown in mono after the label, such as the number of columns or runs. */
+  /** A count shown after the label (text face, tabular figures), such as the number of columns or runs. */
   @property({ type: Number }) accessor count: number | undefined;
   @property({ type: Boolean, reflect: true }) accessor disabled = false;
   /** Makes the tab a link. The strip then becomes navigation rather than an ARIA tablist. */
@@ -211,8 +211,8 @@ export class MmTabPanel extends LitElement {
 /**
  * Tabs switch between views of one object, such as an asset's documentation, metadata, schema,
  * lineage and run history. Labels are 13px with a 16px icon, `mm-text-2` when inactive; the active
- * tab is ink with a 2px burnt-sienna underline inset from its edges. Counts sit in mono, muted and
- * tabular. Switching is instant: there is no sliding indicator.
+ * tab is ink with a 2px burnt-sienna underline inset from its edges. Counts sit in the text face, muted
+ * and tabular. Switching is instant: there is no sliding indicator.
  *
  * Keyboard follows the WAI-ARIA tabs pattern (https://www.w3.org/WAI/ARIA/apg/patterns/tabs/): the
  * strip is one tab stop; Left and Right move between tabs (flipped in right-to-left), Home and End go

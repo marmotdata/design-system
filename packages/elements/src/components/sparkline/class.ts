@@ -7,7 +7,7 @@ import { fmtNum } from '../chart-core/format.js';
 /**
  * Sparklines are word-sized trend lines, 64×16, that sit beside a number in a KPI tile, a table
  * cell or a sentence. The line is grey; only the last point is marked, with a 3px dot in the key
- * colour, and its value is printed in mono beside it. There are no axes, gridlines or tooltips: a
+ * colour, and its value is printed beside it in the text face with tabular figures. There are no axes, gridlines or tooltips: a
  * sparkline shows a shape, and the exact values belong to the table or chart it summarises.
  *
  * It is one image to assistive technology, named by a sentence giving the low, high and latest

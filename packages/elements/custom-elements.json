@@ -5229,7 +5229,8 @@
               },
               "default": "'button'",
               "description": "`button` (default), `submit` or `reset`. Submit and reset work with the closest form.",
-              "attribute": "type"
+              "attribute": "type",
+              "reflects": true
             },
             {
               "kind": "field",
@@ -18854,7 +18855,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "One group of filters in the Discover filter column: Type, Provider, Tags or Owner. The heading is\na disclosure button that collapses the group. Options are checkboxes with an optional icon or\nprovider logo and a mono, tabular count aligned to the end. Past `limit` options a \"Show 8 more\"\nbutton reveals the rest (selected options always stay visible); past `filter-threshold` options an\ninline field filters the list. \"Clear\" resets the group.\n\nCheckboxes are native, drawn like `mm-checkbox` (ink fill, never burnt sienna), so Space toggles them\nand Tab moves between them (https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/). The heading\nbutton follows the disclosure pattern (https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/):\nEnter or Space toggles, and `aria-expanded` reports the state.",
+          "description": "One group of filters in the Discover filter column: Type, Provider, Tags or Owner. The heading is\na disclosure button that collapses the group. Options are checkboxes with an optional icon or\nprovider logo and a count aligned to the end, in the text face with tabular figures. Past `limit` options a \"Show 8 more\"\nbutton reveals the rest (selected options always stay visible); past `filter-threshold` options an\ninline field filters the list. \"Clear\" resets the group.\n\nCheckboxes are native, drawn like `mm-checkbox` (ink fill, never burnt sienna), so Space toggles them\nand Tab moves between them (https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/). The heading\nbutton follows the disclosure pattern (https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/):\nEnter or Space toggles, and `aria-expanded` reports the state.",
           "name": "MmFacet",
           "cssParts": [
             {
@@ -20803,7 +20804,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "Filter pills toggle facets in Discover and list views, such as a provider or a tag. They are round,\n`mm-surface` with an `mm-rule` border that darkens on hover; a pressed pill is inverted ink. The\noptional count sits in mono with tabular figures. With `removable`, the pill shows an applied filter\n(“Provider: Snowflake”) with a remove button, for active-filter rows above results; move focus to\nthe next pill or the search field when you remove it.\n\nKeyboard follows the WAI-ARIA toggle button pattern (https://www.w3.org/WAI/ARIA/apg/patterns/button/):\nEnter and Space toggle.",
+          "description": "Filter pills toggle facets in Discover and list views, such as a provider or a tag. They are round,\n`mm-surface` with an `mm-rule` border that darkens on hover; a pressed pill is inverted ink. The\noptional count sits in the text face with tabular figures. With `removable`, the pill shows an applied filter\n(“Provider: Snowflake”) with a remove button, for active-filter rows above results; move focus to\nthe next pill or the search field when you remove it.\n\nKeyboard follows the WAI-ARIA toggle button pattern (https://www.w3.org/WAI/ARIA/apg/patterns/button/):\nEnter and Space toggle.",
           "name": "MmFilterPill",
           "cssParts": [
             {
@@ -20856,7 +20857,7 @@
               "type": {
                 "text": "number | undefined"
               },
-              "description": "Number of matching results, shown in mono.",
+              "description": "Number of matching results, shown with tabular figures.",
               "attribute": "count"
             },
             {
@@ -20963,7 +20964,7 @@
               "type": {
                 "text": "number | undefined"
               },
-              "description": "Number of matching results, shown in mono.",
+              "description": "Number of matching results, shown with tabular figures.",
               "fieldName": "count"
             },
             {
@@ -34659,7 +34660,7 @@
           },
           "tagName": "mm-progress",
           "customElement": true,
-          "summary": "Bar plus a mono count for long operations."
+          "summary": "Bar plus a count for long operations."
         }
       ],
       "exports": [
@@ -44785,6 +44786,538 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/components/site-header/class.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "defaultSiteNavItems",
+          "return": {
+            "type": {
+              "text": "SiteNavItem[]"
+            }
+          },
+          "description": "The public sites' navigation, with absolute URLs so the same list works on every site."
+        },
+        {
+          "kind": "class",
+          "description": "The header shared by Marmot's public sites: marmotdata.io and its docs, the plugin directory and\nMarmot Cloud's signed-out pages. It is the public counterpart of `mm-top-bar`, so it is chrome and\nstays quiet: `mm-chrome` with a hairline below, `mm-text-2` links that turn ink on hover, and one\nprimary button at the end. The wordmark links home; the current section (`current`) is ink with the\nactive tab's 2px burnt-sienna rule, sitting flush on the header's bottom hairline.\n\nLayout is the same on every site: the header spans the full width and its content starts at the\npage gutter (`space-8`, `space-4` under 720px, as `.mm-container` does) with no centred maximum\nwidth, so the wordmark never drifts inwards on a wide screen. It is sticky and 57px tall (a 56px\nbar and the hairline); give the page `scroll-padding-top: 57px` so anchors and focused elements are\nnever hidden under it.\n\nUnder 880px, or whenever the full row does not fit (a wide search, a long translation), the links,\nGitHub and Sign in move into a menu: a disclosure button at the end opens a\npanel under the bar (https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/). Escape closes it and\nreturns focus to the button. A site with its own narrow-screen navigation (Docusaurus's sidebar)\ncancels `mm-menu-toggle` and sets `nav-expanded` instead. Under 440px the wordmark crops to its \"M\".\n\nThe theme button switches between Light and Peat the way `setTheme` from `@marmotdata/svelte` does:\nit sets `data-theme` on the document element and stores the choice under `mm-theme`. It fires\n`mm-theme-change` first; cancel it to apply the theme yourself (Docusaurus's colour mode). The\nbutton follows `data-theme` however it changes.\n\nSigned out, the end shows Sign in and Start for free; with `signed-in`, Open console. Internal link\nclicks fire a cancelable `mm-navigate` so a single-page app can route instead of loading a page.",
+          "name": "MmSiteHeader",
+          "cssParts": [
+            {
+              "description": "The bar.",
+              "name": "bar"
+            },
+            {
+              "description": "The wordmark link.",
+              "name": "brand"
+            },
+            {
+              "description": "The navigation in the bar.",
+              "name": "nav"
+            },
+            {
+              "description": "Each navigation link, in the bar and in the menu panel.",
+              "name": "link"
+            },
+            {
+              "description": "The GitHub button.",
+              "name": "github"
+            },
+            {
+              "description": "The theme button.",
+              "name": "theme"
+            },
+            {
+              "description": "The Sign in button.",
+              "name": "sign-in"
+            },
+            {
+              "description": "Start for free, or Open console when signed in.",
+              "name": "primary"
+            },
+            {
+              "description": "The narrow-screen menu button.",
+              "name": "menu-button"
+            },
+            {
+              "description": "The narrow-screen menu panel.",
+              "name": "panel"
+            }
+          ],
+          "slots": [
+            {
+              "description": "The site's search, such as Docusaurus's search bar. Stays in the bar at every width.",
+              "name": "search"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "items",
+              "type": {
+                "text": "SiteNavItem[] | undefined"
+              },
+              "description": "The navigation links, as `{ label, href, external? }`. Defaults to Docs, Plugins, Pricing, Resources, Blog and Community on marmotdata.io."
+            },
+            {
+              "kind": "field",
+              "name": "current",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The current section, by its label (case-insensitive) or href, such as `Plugins`. Marked with `aria-current=\"page\"`.",
+              "attribute": "current",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "signedIn",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows Open console in place of Sign in and Start for free.",
+              "attribute": "signed-in",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "noCta",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Hides the primary action (Start for free or Open console), where the page's own hero carries it.",
+              "attribute": "no-cta",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "homeHref",
+              "default": "'https://marmotdata.io'",
+              "description": "Where the wordmark goes.",
+              "attribute": "home-href",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "signInHref",
+              "default": "`${CLOUD}/login`",
+              "description": "Where Sign in goes.",
+              "attribute": "sign-in-href"
+            },
+            {
+              "kind": "field",
+              "name": "signUpHref",
+              "default": "`${CLOUD}/signup`",
+              "description": "Where Start for free goes.",
+              "attribute": "sign-up-href"
+            },
+            {
+              "kind": "field",
+              "name": "consoleHref",
+              "default": "`${CLOUD}/console`",
+              "description": "Where Open console goes.",
+              "attribute": "console-href"
+            },
+            {
+              "kind": "field",
+              "name": "githubHref",
+              "type": {
+                "text": "string"
+              },
+              "default": "'https://github.com/marmotdata/marmot'",
+              "description": "The GitHub repository.",
+              "attribute": "github-href"
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Accessible name of the navigation. Defaults to \"Main\".",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "menuOpen",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Whether the built-in menu panel is open (narrow screens).",
+              "attribute": "menu-open",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "navExpanded",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Whether your own narrow-screen navigation is open, for the menu button's `aria-expanded`. Set it when you cancel `mm-menu-toggle`.",
+              "attribute": "nav-expanded",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "#dark",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#hasSearch",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#narrow",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#menuButton",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLButtonElement | null"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#bar",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLElement | null"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#observer",
+              "privacy": "private",
+              "type": {
+                "text": "MutationObserver | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#media",
+              "privacy": "private",
+              "type": {
+                "text": "MediaQueryList | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#narrowMedia",
+              "privacy": "private",
+              "type": {
+                "text": "MediaQueryList | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#resize",
+              "privacy": "private",
+              "type": {
+                "text": "ResizeObserver | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#needed",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The width the full row needs, measured whenever it is shown."
+            },
+            {
+              "kind": "field",
+              "name": "menuButton",
+              "type": {
+                "text": "HTMLButtonElement | null"
+              },
+              "description": "The menu button, for returning focus after closing your own narrow-screen navigation.",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "setTheme",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "theme",
+                  "type": {
+                    "text": "'light' | 'dark'"
+                  }
+                }
+              ],
+              "description": "Switches to the given theme as the theme button does."
+            },
+            {
+              "kind": "method",
+              "name": "closeMenu",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "returnFocus",
+                  "default": "false"
+                }
+              ],
+              "description": "Closes the menu panel, returning focus to the menu button when asked."
+            },
+            {
+              "kind": "field",
+              "name": "#measure",
+              "privacy": "private",
+              "description": "Collapses into the menu under 880px or when the full row is wider than the bar. The row is only measured while it is shown, so the two states cannot flip back and forth."
+            },
+            {
+              "kind": "field",
+              "name": "#syncTheme",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#onKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#onWindowKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#toggleMenu",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#onLinkClick",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "MouseEvent"
+                  }
+                },
+                {
+                  "name": "href",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "label",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#isCurrent",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": {
+                    "text": "SiteNavItem"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#link",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": {
+                    "text": "SiteNavItem"
+                  }
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "description": "The theme button was activated. Cancel it to stop the document's `data-theme` and the stored `mm-theme` changing.",
+              "name": "mm-theme-change",
+              "type": {
+                "text": "CustomEvent<ThemeChangeDetail>"
+              }
+            },
+            {
+              "description": "The menu button was activated. Cancel it to open your own narrow-screen navigation instead of the panel.",
+              "name": "mm-menu-toggle",
+              "type": {
+                "text": "CustomEvent<SiteMenuToggleDetail>"
+              }
+            },
+            {
+              "description": "An internal link or the wordmark was clicked without a modifier key. Cancel it to route in a single-page app.",
+              "name": "mm-navigate",
+              "type": {
+                "text": "CustomEvent<SiteNavigateDetail>"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "current",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The current section, by its label (case-insensitive) or href, such as `Plugins`. Marked with `aria-current=\"page\"`.",
+              "fieldName": "current"
+            },
+            {
+              "name": "signed-in",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows Open console in place of Sign in and Start for free.",
+              "fieldName": "signedIn"
+            },
+            {
+              "name": "no-cta",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Hides the primary action (Start for free or Open console), where the page's own hero carries it.",
+              "fieldName": "noCta"
+            },
+            {
+              "name": "home-href",
+              "default": "SITE",
+              "description": "Where the wordmark goes.",
+              "fieldName": "homeHref"
+            },
+            {
+              "name": "sign-in-href",
+              "default": "`${CLOUD}/login`",
+              "description": "Where Sign in goes.",
+              "fieldName": "signInHref"
+            },
+            {
+              "name": "sign-up-href",
+              "default": "`${CLOUD}/signup`",
+              "description": "Where Start for free goes.",
+              "fieldName": "signUpHref"
+            },
+            {
+              "name": "console-href",
+              "default": "`${CLOUD}/console`",
+              "description": "Where Open console goes.",
+              "fieldName": "consoleHref"
+            },
+            {
+              "name": "github-href",
+              "type": {
+                "text": "string"
+              },
+              "default": "'https://github.com/marmotdata/marmot'",
+              "description": "The GitHub repository.",
+              "fieldName": "githubHref"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Accessible name of the navigation. Defaults to \"Main\".",
+              "fieldName": "label"
+            },
+            {
+              "name": "menu-open",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Whether the built-in menu panel is open (narrow screens).",
+              "fieldName": "menuOpen"
+            },
+            {
+              "name": "nav-expanded",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Whether your own narrow-screen navigation is open, for the menu button's `aria-expanded`. Set it when you cancel `mm-menu-toggle`.",
+              "fieldName": "navExpanded"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "mm-site-header",
+          "customElement": true,
+          "summary": "The public sites' header: wordmark, sections, search, GitHub, theme and sign-in actions."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "defaultSiteNavItems",
+          "declaration": {
+            "name": "defaultSiteNavItems",
+            "module": "src/components/site-header/class.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "MmSiteHeader",
+          "declaration": {
+            "name": "MmSiteHeader",
+            "module": "src/components/site-header/class.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/components/skeleton/class.ts",
       "declarations": [
         {
@@ -46203,7 +46736,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "Sparklines are word-sized trend lines, 64×16, that sit beside a number in a KPI tile, a table\ncell or a sentence. The line is grey; only the last point is marked, with a 3px dot in the key\ncolour, and its value is printed in mono beside it. There are no axes, gridlines or tooltips: a\nsparkline shows a shape, and the exact values belong to the table or chart it summarises.\n\nIt is one image to assistive technology, named by a sentence giving the low, high and latest\nvalues, with every value listed after it for screen readers.",
+          "description": "Sparklines are word-sized trend lines, 64×16, that sit beside a number in a KPI tile, a table\ncell or a sentence. The line is grey; only the last point is marked, with a 3px dot in the key\ncolour, and its value is printed beside it in the text face with tabular figures. There are no axes, gridlines or tooltips: a\nsparkline shows a shape, and the exact values belong to the table or chart it summarises.\n\nIt is one image to assistive technology, named by a sentence giving the low, high and latest\nvalues, with every value listed after it for screen readers.",
           "name": "MmSparkline",
           "cssProperties": [
             {
@@ -50082,7 +50615,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "One tab in an `mm-tabs` strip: a 13px label with an optional 16px icon and a mono count. Inactive\ntabs are `mm-text-2`; the selected tab is ink with the 2px burnt-sienna underline.\n\nWithout `href` the tab is an ARIA tab (`role=\"tab\"`) that shows the `mm-tab-panel` with the same\n`value`. With `href` it renders a link and the strip becomes navigation: see `mm-tabs`.",
+          "description": "One tab in an `mm-tabs` strip: a 13px label with an optional 16px icon and a count. Inactive\ntabs are `mm-text-2`; the selected tab is ink with the 2px burnt-sienna underline.\n\nWithout `href` the tab is an ARIA tab (`role=\"tab\"`) that shows the `mm-tab-panel` with the same\n`value`. With `href` it renders a link and the strip becomes navigation: see `mm-tabs`.",
           "name": "MmTab",
           "cssParts": [
             {
@@ -50136,7 +50669,7 @@
               "type": {
                 "text": "number | undefined"
               },
-              "description": "A count shown in mono after the label, such as the number of columns or runs.",
+              "description": "A count shown after the label (text face, tabular figures), such as the number of columns or runs.",
               "attribute": "count"
             },
             {
@@ -50222,7 +50755,7 @@
               "type": {
                 "text": "number | undefined"
               },
-              "description": "A count shown in mono after the label, such as the number of columns or runs.",
+              "description": "A count shown after the label (text face, tabular figures), such as the number of columns or runs.",
               "fieldName": "count"
             },
             {
@@ -50324,7 +50857,7 @@
         },
         {
           "kind": "class",
-          "description": "Tabs switch between views of one object, such as an asset's documentation, metadata, schema,\nlineage and run history. Labels are 13px with a 16px icon, `mm-text-2` when inactive; the active\ntab is ink with a 2px burnt-sienna underline inset from its edges. Counts sit in mono, muted and\ntabular. Switching is instant: there is no sliding indicator.\n\nKeyboard follows the WAI-ARIA tabs pattern (https://www.w3.org/WAI/ARIA/apg/patterns/tabs/): the\nstrip is one tab stop; Left and Right move between tabs (flipped in right-to-left), Home and End go\nto the first and last. With `activation=\"auto\"` (default) moving focus selects the tab. With\n`activation=\"manual\"` focus moves without selecting, and Enter or Space selects: use it for heavy\npanels such as lineage, so arrowing past them does not render them.\n\nOverflow: when there are more than `max-visible` tabs (default 6), or the tabs do not fit the\nwidth, the rest move into a \"More\" menu button at the end of the strip. Choosing one selects it\nand swaps it into the strip, so the selected tab is always visible. The More button is its own tab\nstop after the tablist, outside the tablist so the tablist only contains tabs.\n\nLink tabs: give each `mm-tab` an `href` for URL-driven tabs (for example `/assets/orders_daily/schema`).\nThe strip then renders as a `nav` of links with `aria-current=\"page\"` on the selected one, not as an\nARIA tablist. This is a deliberate trade-off: link tabs are navigation. Each link is a tab stop,\narrow keys do nothing, the page changes on activation, and screen readers announce links rather\nthan \"tab 3 of 9\". Use them when each view needs its own URL; use ARIA tabs for in-page views.\nSet `value` from the current route so the right link is marked.",
+          "description": "Tabs switch between views of one object, such as an asset's documentation, metadata, schema,\nlineage and run history. Labels are 13px with a 16px icon, `mm-text-2` when inactive; the active\ntab is ink with a 2px burnt-sienna underline inset from its edges. Counts sit in the text face, muted\nand tabular. Switching is instant: there is no sliding indicator.\n\nKeyboard follows the WAI-ARIA tabs pattern (https://www.w3.org/WAI/ARIA/apg/patterns/tabs/): the\nstrip is one tab stop; Left and Right move between tabs (flipped in right-to-left), Home and End go\nto the first and last. With `activation=\"auto\"` (default) moving focus selects the tab. With\n`activation=\"manual\"` focus moves without selecting, and Enter or Space selects: use it for heavy\npanels such as lineage, so arrowing past them does not render them.\n\nOverflow: when there are more than `max-visible` tabs (default 6), or the tabs do not fit the\nwidth, the rest move into a \"More\" menu button at the end of the strip. Choosing one selects it\nand swaps it into the strip, so the selected tab is always visible. The More button is its own tab\nstop after the tablist, outside the tablist so the tablist only contains tabs.\n\nLink tabs: give each `mm-tab` an `href` for URL-driven tabs (for example `/assets/orders_daily/schema`).\nThe strip then renders as a `nav` of links with `aria-current=\"page\"` on the selected one, not as an\nARIA tablist. This is a deliberate trade-off: link tabs are navigation. Each link is a tab stop,\narrow keys do nothing, the page changes on activation, and screen readers announce links rather\nthan \"tab 3 of 9\". Use them when each view needs its own URL; use ARIA tabs for in-page views.\nSet `value` from the current route so the right link is marked.",
           "name": "MmTabs",
           "cssParts": [
             {
@@ -53386,7 +53919,7 @@
         },
         {
           "kind": "class",
-          "description": "One step on an `mm-timeline`: a state marker, a title, the time in mono, the actor and an\noptional body. Set `state-label` to say the state in the step's own words (\"Approved\",\n\"Requested\", \"Denied\"); the marker shape still follows `state`.",
+          "description": "One step on an `mm-timeline`: a state marker, a title, the time, the actor and an\noptional body. Set `state-label` to say the state in the step's own words (\"Approved\",\n\"Requested\", \"Denied\"); the marker shape still follows `state`.",
           "name": "MmTimelineItem",
           "cssParts": [
             {
@@ -53460,7 +53993,7 @@
                 "text": "string"
               },
               "default": "''",
-              "description": "When it happened, as an ISO timestamp. Shown in UTC mono.",
+              "description": "When it happened, as an ISO timestamp. Shown in UTC, in the text face.",
               "attribute": "time",
               "reflects": true
             },
@@ -53588,7 +54121,7 @@
                 "text": "string"
               },
               "default": "''",
-              "description": "When it happened, as an ISO timestamp. Shown in UTC mono.",
+              "description": "When it happened, as an ISO timestamp. Shown in UTC, in the text face.",
               "fieldName": "time"
             },
             {

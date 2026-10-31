@@ -14,7 +14,7 @@ import { t } from '../../core/strings.js';
  * The bar is a `progressbar` named by `label`, with `aria-valuetext` matching the readout.
  *
  * @tagname mm-progress
- * @summary Bar plus a mono count for long operations.
+ * @summary Bar plus a count for long operations.
  * @csspart label - The visible label.
  * @csspart readout - The count or percentage (text face, tabular figures).
  * @csspart track - The bar track (the progressbar).

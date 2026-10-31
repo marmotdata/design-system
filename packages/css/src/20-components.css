@@ -265,4 +265,12 @@
 
   /* Tooltip (static, e.g. for documentation) */
   .mm-tooltip { display: inline-grid; grid-template-columns: auto auto; gap: 2px 12px; padding: 8px 10px; background: var(--mm-text); color: var(--mm-on-inverse); border-radius: 0; font: 400 12px/1.4 var(--font-text); font-variant-numeric: tabular-nums; }
+
+  /* mm-site-header before it is defined: hold the bar's space and colour so server-rendered pages don't jump when the element upgrades. */
+  mm-site-header:not(:defined) {
+    display: block; position: sticky; inset-block-start: 0; z-index: var(--mm-z-sticky); box-sizing: border-box;
+    block-size: calc(var(--space-12) + var(--space-2) + 1px);
+    background: var(--mm-chrome); border-block-end: 1px solid var(--mm-rule);
+  }
+  mm-site-header:not(:defined) > * { display: none; }
 }

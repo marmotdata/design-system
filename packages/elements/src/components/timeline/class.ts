@@ -90,7 +90,7 @@ export class MmTimeline extends LitElement {
 }
 
 /**
- * One step on an `mm-timeline`: a state marker, a title, the time in mono, the actor and an
+ * One step on an `mm-timeline`: a state marker, a title, the time, the actor and an
  * optional body. Set `state-label` to say the state in the step's own words ("Approved",
  * "Requested", "Denied"); the marker shape still follows `state`.
  *
@@ -292,7 +292,7 @@ export class MmTimelineItem extends LitElement {
   @property({ attribute: 'state-label' }) accessor stateLabel = '';
   /** The title ("Access requested", "Extracting"). */
   @property({ reflect: true }) accessor heading = '';
-  /** When it happened, as an ISO timestamp. Shown in UTC mono. */
+  /** When it happened, as an ISO timestamp. Shown in UTC, in the text face. */
   @property({ reflect: true }) accessor time = '';
   /** Who did it. */
   @property() accessor actor = '';

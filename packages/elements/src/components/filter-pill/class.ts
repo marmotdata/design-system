@@ -9,7 +9,7 @@ import '@marmotdata/icons/define.js';
 /**
  * Filter pills toggle facets in Discover and list views, such as a provider or a tag. They are round,
  * `mm-surface` with an `mm-rule` border that darkens on hover; a pressed pill is inverted ink. The
- * optional count sits in mono with tabular figures. With `removable`, the pill shows an applied filter
+ * optional count sits in the text face with tabular figures. With `removable`, the pill shows an applied filter
  * (“Provider: Snowflake”) with a remove button, for active-filter rows above results; move focus to
  * the next pill or the search field when you remove it.
  *
@@ -130,7 +130,7 @@ export class MmFilterPill extends LitElement {
 
   /** Whether the facet is applied (toggle mode). */
   @property({ type: Boolean, reflect: true }) accessor pressed = false;
-  /** Number of matching results, shown in mono. */
+  /** Number of matching results, shown with tabular figures. */
   @property({ type: Number }) accessor count: number | undefined;
   /** Facet name shown before the value in a removable pill, such as “Provider”. */
   @property() accessor facet = '';

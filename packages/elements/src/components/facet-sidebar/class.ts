@@ -42,7 +42,7 @@ const hostStrings = (host: LitElement) => {
 /**
  * One group of filters in the Discover filter column: Type, Provider, Tags or Owner. The heading is
  * a disclosure button that collapses the group. Options are checkboxes with an optional icon or
- * provider logo and a mono, tabular count aligned to the end. Past `limit` options a "Show 8 more"
+ * provider logo and a count aligned to the end, in the text face with tabular figures. Past `limit` options a "Show 8 more"
  * button reveals the rest (selected options always stay visible); past `filter-threshold` options an
  * inline field filters the list. "Clear" resets the group.
  *
@@ -224,9 +224,9 @@ export class MmFacet extends LitElement {
         flex: none;
         margin-inline-start: auto;
         text-align: end;
-        /* The mm-count style (13px, regular), inline so the count is part of the checkbox's name. */
-        font: var(--text-keycap);
-        font-weight: 400;
+        /* The mm-count style (the text face at 13px, tabular figures), inline so the count is part of the checkbox's name. Counts are never mono. */
+        font: var(--text-caption);
+        font-size: 13px;
         font-variant-numeric: tabular-nums;
         color: var(--mm-text-2);
       }

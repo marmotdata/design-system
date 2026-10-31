@@ -83,6 +83,7 @@ export * from './components/segmented-control/define.js';
 export * from './components/select/define.js';
 export * from './components/shortcut-help/define.js';
 export * from './components/sidebar-nav/define.js';
+export * from './components/site-header/define.js';
 export * from './components/skeleton/define.js';
 export * from './components/slider/define.js';
 export * from './components/small-multiples/define.js';
