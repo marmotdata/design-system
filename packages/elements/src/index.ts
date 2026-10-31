@@ -47,6 +47,7 @@ export * from './components/lineage-canvas/define.js';
 export * from './components/lineage-legend/define.js';
 export * from './components/lineage-node/define.js';
 export * from './components/link/define.js';
+export * from './components/link-list/define.js';
 export * from './components/list/define.js';
 export * from './components/loading/define.js';
 export * from './components/logo/define.js';

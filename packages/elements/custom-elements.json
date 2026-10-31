@@ -27131,6 +27131,228 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/components/link-list/class.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A set of places to go: documentation pages, runbooks, external resources. Each item is a title\nand one quiet line saying what is there, separated by hairlines. Use it instead of a grid of icon\ncards. With `columns=\"2\"` the items sit in two columns once the list is at least 40rem wide and\nfall back to one column when it is narrower; rows in a pair share a height, so the hairlines run\nstraight across both columns.\n\nThis is a plain list of links, not a composite widget: Tab moves from link to link. Static and\nserver-rendered pages can use the zero-JS `.mm-link-list` classes from `@marmotdata/css`, which\ndraw the same thing.\n\nFollows the WAI-ARIA link pattern: https://www.w3.org/WAI/ARIA/apg/patterns/link/",
+          "name": "MmLinkList",
+          "cssParts": [
+            {
+              "description": "The wrapper that lays out the items.",
+              "name": "list"
+            }
+          ],
+          "slots": [
+            {
+              "description": "`mm-link-list-item` elements.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "columns",
+              "type": {
+                "text": "'1' | '2'"
+              },
+              "default": "'1'",
+              "description": "`2` puts the items in two columns when the list is at least 40rem wide.",
+              "attribute": "columns",
+              "reflects": true
+            }
+          ],
+          "attributes": [
+            {
+              "name": "columns",
+              "type": {
+                "text": "'1' | '2'"
+              },
+              "default": "'1'",
+              "description": "`2` puts the items in two columns when the list is at least 40rem wide.",
+              "fieldName": "columns"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "mm-link-list",
+          "customElement": true,
+          "summary": "Hairline-separated links, each a title and one line, in one or two columns."
+        },
+        {
+          "kind": "class",
+          "description": "One place to go in an `mm-link-list`. The whole row is a single link: an optional 16px icon in\n`mm-text-2`, the title in ink, one line of description in `mm-text-2` and a trailing chevron in\n`mm-text-3`. External links open a new tab, swap the chevron for open-in-new and say so to screen\nreaders. On hover and focus the row turns `mm-sunken`, the title underlines and the indicator goes\nto ink, so it reads as a link without relying on colour.\n\nThe link is named by the title; the description is attached as its accessible description, so it\nis read once. Without `href` the item is plain text with no indicator.",
+          "name": "MmLinkListItem",
+          "cssParts": [
+            {
+              "description": "The link, or the text wrapper without `href`.",
+              "name": "item"
+            },
+            {
+              "description": "The leading icon wrapper.",
+              "name": "icon"
+            },
+            {
+              "description": "The title.",
+              "name": "title"
+            },
+            {
+              "description": "The description.",
+              "name": "description"
+            },
+            {
+              "description": "The chevron, or open-in-new on external links.",
+              "name": "indicator"
+            }
+          ],
+          "slots": [
+            {
+              "description": "The title.",
+              "name": ""
+            },
+            {
+              "description": "A leading icon or provider logo (`mm-provider-logo decorative`), if you need more than the `icon` attribute.",
+              "name": "icon"
+            },
+            {
+              "description": "The description, if it needs markup. Otherwise use `description`.",
+              "name": "description"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "ShadowRootInit"
+              },
+              "static": true,
+              "default": "{ ...LitElement.shadowRootOptions, delegatesFocus: true }"
+            },
+            {
+              "kind": "field",
+              "name": "href",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Destination URL. Without it the item is plain text.",
+              "attribute": "href",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "external",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Opens in a new tab with `rel=\"noopener noreferrer\"`, shows open-in-new instead of the chevron and announces it.",
+              "attribute": "external",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "description",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "One line saying what is there.",
+              "attribute": "description"
+            },
+            {
+              "kind": "field",
+              "name": "icon",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "A Material Symbols name for the leading icon, e.g. `dns`, `menu-book`.",
+              "attribute": "icon"
+            },
+            {
+              "kind": "field",
+              "name": "#slotted",
+              "privacy": "private",
+              "default": "new Set<string>()"
+            },
+            {
+              "kind": "field",
+              "name": "#onSlot",
+              "privacy": "private"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "href",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Destination URL. Without it the item is plain text.",
+              "fieldName": "href"
+            },
+            {
+              "name": "external",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Opens in a new tab with `rel=\"noopener noreferrer\"`, shows open-in-new instead of the chevron and announces it.",
+              "fieldName": "external"
+            },
+            {
+              "name": "description",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "One line saying what is there.",
+              "fieldName": "description"
+            },
+            {
+              "name": "icon",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "A Material Symbols name for the leading icon, e.g. `dns`, `menu-book`.",
+              "fieldName": "icon"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "mm-link-list-item",
+          "customElement": true,
+          "summary": "A whole-row link with an icon, title, one line of description and an indicator."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "MmLinkList",
+          "declaration": {
+            "name": "MmLinkList",
+            "module": "src/components/link-list/class.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "MmLinkListItem",
+          "declaration": {
+            "name": "MmLinkListItem",
+            "module": "src/components/link-list/class.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/components/link/class.ts",
       "declarations": [
         {

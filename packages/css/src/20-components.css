@@ -121,6 +121,61 @@
   .mm-list > li { display: flex; align-items: center; gap: var(--space-3); padding: 10px var(--space-4); font: var(--text-dense); border-top: 1px solid var(--mm-rule); }
   .mm-list > li:first-child { border-top: 0; }
 
+  /*
+   * Link list: the zero-JS version of mm-link-list, for places to go (docs pages, resources) in place
+   * of a grid of icon cards. Each row is one link: an optional 16px icon, the title, one quiet line
+   * and a chevron, or open-in-new for a link that opens a new tab.
+   *   <ul class="mm-link-list mm-link-list--2">
+   *     <li><a class="mm-link-list__item" href="/docs/deploy" aria-describedby="deploy-d">
+   *       <svg class="mm-link-list__icon" aria-hidden="true">…</svg>
+   *       <span class="mm-link-list__text"><span class="mm-link-list__title">Deploy</span>
+   *         <span class="mm-link-list__description" id="deploy-d" aria-hidden="true">Run Marmot on Kubernetes.</span></span>
+   *       <svg class="mm-link-list__indicator" aria-hidden="true">…</svg></a></li>
+   *   </ul>
+   * The description is hidden from the link's name and attached with aria-describedby, so it is read
+   * once. An entry that goes nowhere is a div.mm-link-list__item with no indicator.
+   * --2 gives two columns when the list is at least 40rem wide. Rows in a column pair share one height,
+   * so the hairlines run straight across both.
+   */
+  .mm-link-list {
+    container: mm-link-list / inline-size;
+    display: flex; flex-wrap: wrap;
+    list-style: none; margin: 0; padding: 0;
+    border-block-end: 1px solid var(--mm-rule);
+  }
+  .mm-link-list > li { flex: 0 0 100%; min-width: 0; margin: 0; padding: 0; border-block-start: 1px solid var(--mm-rule); }
+  @container mm-link-list (min-width: 40rem) {
+    .mm-link-list--2 > li { flex-basis: 50%; }
+  }
+  .mm-link-list__item {
+    display: flex; align-items: flex-start; gap: var(--space-3);
+    box-sizing: border-box; block-size: 100%; min-block-size: 44px;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--mm-text); text-decoration: none;
+  }
+  a.mm-link-list__item { cursor: pointer; transition: background-color var(--mm-dur-press) var(--mm-ease); }
+  .mm-link-list__icon { flex: none; width: 16px; height: 16px; margin-block-start: 2px; color: var(--mm-text-2); fill: currentColor; }
+  .mm-link-list__text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  .mm-link-list__title {
+    font: var(--text-label); color: var(--mm-text); overflow-wrap: anywhere;
+    text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+    text-decoration-color: transparent;
+    transition: text-decoration-color var(--mm-dur-press) var(--mm-ease);
+  }
+  div.mm-link-list__item .mm-link-list__title { text-decoration-line: none; }
+  .mm-link-list__description { font: var(--text-caption); color: var(--mm-text-2); overflow-wrap: anywhere; }
+  .mm-link-list__indicator {
+    flex: none; align-self: center; width: 16px; height: 16px;
+    color: var(--mm-text-3); fill: currentColor;
+    transition: color var(--mm-dur-press) var(--mm-ease);
+  }
+  /* The chevron and the open-in-new arrow point outward in right-to-left text. */
+  .mm-link-list__indicator:dir(rtl) { transform: scaleX(-1); }
+  a.mm-link-list__item:is(:hover, :focus-visible) { background: var(--mm-sunken); color: var(--mm-text); text-decoration: none; }
+  a.mm-link-list__item:is(:hover, :focus-visible) .mm-link-list__title { text-decoration-color: currentColor; }
+  a.mm-link-list__item:is(:hover, :focus-visible) .mm-link-list__indicator { color: var(--mm-text); }
+
   /* Tables */
   .mm-table-wrap { border: 1px solid var(--mm-rule); border-radius: var(--radius-md); overflow: auto; background: var(--mm-surface); }
   .mm-table { width: 100%; border-collapse: collapse; font: var(--text-dense); }
