@@ -34,6 +34,11 @@ export class MmButton extends LitElement {
         color: var(--mm-text-3);
         margin-inline-start: -2px;
       }
+      /* On a filled button the muted text colour all but vanishes; take the label's colour instead. */
+      .primary .ext,
+      .danger .ext {
+        color: inherit;
+      }
       :host {
         display: inline-flex;
         vertical-align: middle;
