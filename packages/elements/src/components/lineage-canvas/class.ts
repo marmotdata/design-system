@@ -16,19 +16,33 @@ import '../switch/define.js';
 import '../loading/define.js';
 import '../empty-state/define.js';
 import '../lineage-node/define.js';
+import {
+  COLUMN_ROW_HEIGHT,
+  NODE_BOTTOM_INSET,
+  estimateNodeHeight,
+  type LineageNodeColumn,
+} from '../lineage-node/class.js';
 import '../lineage-legend/define.js';
 import {
   WORKER_THRESHOLD,
   layoutGraph,
   prepareGraph,
   type LayoutOutput,
+  type LineageColumnMapping,
   type LineageGraph,
   type ViewEdge,
   type ViewGraph,
   type ViewNode,
 } from './layout.js';
 
-export type { LineageGraph, LineageGraphNode, LineageGraphEdge, LineageEdgeKind, LineageEdgeOrigin } from './layout.js';
+export type {
+  LineageGraph,
+  LineageGraphNode,
+  LineageGraphEdge,
+  LineageEdgeKind,
+  LineageEdgeOrigin,
+  LineageColumnMapping,
+} from './layout.js';
 
 /** Detail for `mm-node-activate`. */
 export interface MmLineageActivateDetail {
@@ -69,6 +83,13 @@ export interface MmLineageEdgeDeleteDetail {
   target: string;
   kind: string;
 }
+/** Detail for `mm-edge-activate`. Cancel the event to show the edge somewhere else (a blade) instead of tracing its columns. */
+export interface MmLineageEdgeActivateDetail {
+  source: string;
+  target: string;
+  kind: string;
+  columns: LineageColumnMapping[];
+}
 /** Detail for `mm-add-lineage`. */
 export interface MmLineageAddDetail {
   id: string;
@@ -82,7 +103,8 @@ export interface MmLineageLayoutDetail {
   where: 'worker' | 'main';
 }
 
-type Focus = { kind: 'node'; id: string } | { kind: 'edge'; id: string } | { kind: 'handle'; id: string; dir: 'up' | 'down' };
+type Focus =
+  { kind: 'node'; id: string } | { kind: 'edge'; id: string } | { kind: 'handle'; id: string; dir: 'up' | 'down' };
 
 /** Below this scale node text is unreadable, so nodes are drawn as plain shapes in the SVG layer. */
 const LOD_SCALE = 0.4;
@@ -98,13 +120,17 @@ const MAX_SCALE = 2;
  * Edges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,
  * mixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a "Returns to"
  * node rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or
- * focus, or always with `show-edge-labels`. Agents that looked an asset up are grouped into one
+ * focus, or always with `show-edge-labels`. An edge with column-level lineage (`columns`) adds its
+ * column count to the chip. Clicking it or pressing Enter on it traces the columns: both assets list
+ * the mapped columns, a line joins each source column to the column it feeds, and the rest of the
+ * graph fades. Hovering or clicking a column highlights its path and shows how it is derived. Escape,
+ * "Hide columns" or a click on empty paper ends the trace. Agents that looked an asset up are grouped into one
  * agent cluster that expands. Nodes with neighbours beyond the depth show a "+3 upstream" handle.
  *
  * Keyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves
  * downstream along an edge and Left upstream (flipped right to left), Up and Down move between assets
  * in the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused
- * asset's edges (Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current
+ * asset's edges (Enter traces an edge's columns, Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current
  * asset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.
  *
  * Performance: only nodes and edges in view plus a margin are rendered, panning moves one CSS
@@ -128,6 +154,7 @@ const MAX_SCALE = 2;
  * @fires mm-viewport-change - {MmLineageViewportDetail} A pan or zoom ended.
  * @fires mm-fullscreen-change - {MmLineageFullscreenDetail} Full screen was entered or left.
  * @fires mm-options-change - {MmLineageOptionsDetail} Depth, Observed or Structure changed.
+ * @fires mm-edge-activate - {MmLineageEdgeActivateDetail} An edge was clicked or Enter was pressed on it. Cancelable: cancel it to skip the column trace.
  * @fires mm-edge-delete - {MmLineageEdgeDeleteDetail} Delete was asked for on an edge (`editable` only). The app confirms and removes it.
  * @fires mm-add-lineage - {MmLineageAddDetail} "Add upstream" or "Add downstream" was pressed for the selected asset (`editable` only).
  * @fires mm-layout - {MmLineageLayoutDetail} A layout finished.
@@ -245,7 +272,9 @@ export class MmLineageCanvas extends LitElement {
         border-radius: var(--radius-sm);
         cursor: pointer;
         unicode-bidi: plaintext;
-        transition: border-color var(--mm-dur-press) var(--mm-ease), color var(--mm-dur-press) var(--mm-ease);
+        transition:
+          border-color var(--mm-dur-press) var(--mm-ease),
+          color var(--mm-dur-press) var(--mm-ease);
       }
       .handle:hover {
         color: var(--mm-text);
@@ -394,6 +423,56 @@ export class MmLineageCanvas extends LitElement {
       .del:focus-visible {
         outline: 2px solid var(--mm-text);
         outline-offset: 0;
+      }
+      .chip.cols {
+        pointer-events: auto;
+        cursor: pointer;
+      }
+      .chip.cols:hover {
+        color: var(--mm-text);
+        border-color: var(--mm-text);
+      }
+      .e {
+        transition: opacity var(--mm-dur-menu) var(--mm-ease);
+      }
+      .e.dim {
+        opacity: 0.3;
+      }
+      .trace.focused .cl:not(.off) {
+        stroke: var(--mm-text);
+        stroke-width: 2.5;
+      }
+      .cl {
+        fill: none;
+        stroke: var(--mm-text-2);
+        stroke-width: 1.5;
+        transition:
+          stroke var(--mm-dur-press) var(--mm-ease),
+          opacity var(--mm-dur-press) var(--mm-ease);
+      }
+      .cl.on {
+        stroke: var(--mm-text);
+        stroke-width: 2.5;
+      }
+      .cl.off {
+        opacity: 0.2;
+      }
+      .port {
+        fill: var(--mm-surface);
+        stroke: var(--mm-text-2);
+        stroke-width: 1.5;
+      }
+      .port.on {
+        fill: var(--mm-text);
+        stroke: var(--mm-text);
+      }
+      .chip.fx {
+        gap: var(--space-1);
+        font: var(--text-mono-dense);
+        letter-spacing: var(--tracking-mono-dense);
+        color: var(--mm-text);
+        border-color: var(--mm-text);
+        max-inline-size: 240px;
       }
       .tools {
         position: absolute;
@@ -547,6 +626,13 @@ export class MmLineageCanvas extends LitElement {
   #focus: Focus | null = null;
   #edgeAnchor = '';
   #hoverEdge = '';
+  /** Edge whose columns are traced, by its endpoints so it survives relayout. */
+  #trace: { source: string; target: string } | null = null;
+  /** View id of the traced edge in the current layout. */
+  #traceEdge = '';
+  /** Column under the pointer, and one pinned by a click (touch has no hover). */
+  #hoverCol: { node: string; col: string } | null = null;
+  #pinnedCol: { node: string; col: string } | null = null;
   #announce = '';
 
   #t: ZoomTransform = zoomIdentity;
@@ -663,7 +749,8 @@ export class MmLineageCanvas extends LitElement {
     if (typeof window === 'undefined') return;
     // A selection set from outside (a URL, a list beside the graph) is brought into view; one made
     // in the canvas is already on screen.
-    if (changed.has('selected') && this.selected && !this.#selecting && this.#layout && !this.#relayoutQueued) this.#reveal(this.selected);
+    if (changed.has('selected') && this.selected && !this.#selecting && this.#layout && !this.#relayoutQueued)
+      this.#reveal(this.selected);
     this.#selecting = false;
     const rtl = isRtl(this);
     if (rtl !== this.#rtl) {
@@ -694,12 +781,14 @@ export class MmLineageCanvas extends LitElement {
       expandedClusters: this.#expandedClusters,
       revealed: this.#revealed,
     });
+    this.#traceEdge = this.#trace ? this.#applyTrace(view, this.#trace) : '';
+    if (this.#trace && !this.#traceEdge) this.#trace = null;
     const big = view.nodes.length > WORKER_THRESHOLD;
     if (big) {
       this.#layingOut = true;
       this.requestUpdate();
     }
-    const anchor = this.#anchorScreenPoint();
+    const anchor = this.#anchorScreenPoint(this.#trace?.target);
     // Two of the largest spacing steps plus one more, so an edge chip fits between columns.
     const ranksep = this.#space('--space-12', 48) * 2 + this.#space('--space-8', 32);
     this.#chipMax = Math.max(48, ranksep - 2 * this.#space('--space-2', 8));
@@ -731,7 +820,13 @@ export class MmLineageCanvas extends LitElement {
     this.#computeVisible();
     this.requestUpdate();
     await this.updateComplete;
-    if (out) emit<MmLineageLayoutDetail>(this, 'mm-layout', { nodes: view.nodes.length, edges: view.edges.length, ms: Math.round(out.ms), where: out.where });
+    if (out)
+      emit<MmLineageLayoutDetail>(this, 'mm-layout', {
+        nodes: view.nodes.length,
+        edges: view.edges.length,
+        ms: Math.round(out.ms),
+        where: out.where,
+      });
     resolve?.();
   }
 
@@ -785,7 +880,11 @@ export class MmLineageCanvas extends LitElement {
     const l = this.#layout;
     if (!l || !this.#vw || !this.#vh) return 1;
     const b = this.#fitBox();
-    return Math.min(1, (this.#vw - b.side * 2) / Math.max(1, l.width + b.hx * 2), (this.#vh - b.top - b.bottom) / Math.max(1, l.height));
+    return Math.min(
+      1,
+      (this.#vw - b.side * 2) / Math.max(1, l.width + b.hx * 2),
+      (this.#vh - b.top - b.bottom) / Math.max(1, l.height),
+    );
   }
 
   /**
@@ -880,8 +979,13 @@ export class MmLineageCanvas extends LitElement {
     if (sx - hw < m || sx + hw > this.#vw - m || sy - hh < m || sy + hh > this.#vh - m) this.#centreOn(id);
   }
 
-  #anchorScreenPoint(): { id: string; sx: number; sy: number } | null {
-    const id = this.#focus?.kind === 'node' ? this.#focus.id : this.graph.currentId;
+  #anchorScreenPoint(prefer?: string): { id: string; sx: number; sy: number } | null {
+    const id =
+      prefer && this.#layout?.nodes[prefer]
+        ? prefer
+        : this.#focus?.kind === 'node'
+          ? this.#focus.id
+          : this.graph.currentId;
     const p = id ? this.#layout?.nodes[id] : undefined;
     if (!id || !p) return null;
     return { id, sx: p[0] * this.#t.k + this.#t.x, sy: p[1] * this.#t.k + this.#t.y };
@@ -958,7 +1062,12 @@ export class MmLineageCanvas extends LitElement {
     this.#cull = cull;
     this.#visibleNodes = view.nodes.filter((n) => {
       const p = l.nodes[n.id]!;
-      return p[0] + n.w / 2 + 120 >= cull[0] && p[0] - n.w / 2 - 120 <= cull[2] && p[1] + n.h / 2 >= cull[1] && p[1] - n.h / 2 <= cull[3];
+      return (
+        p[0] + n.w / 2 + 120 >= cull[0] &&
+        p[0] - n.w / 2 - 120 <= cull[2] &&
+        p[1] + n.h / 2 >= cull[1] &&
+        p[1] - n.h / 2 <= cull[3]
+      );
     });
     this.#visibleEdges = view.edges.filter((e) => {
       const box = l.edges[e.id]!.box;
@@ -978,7 +1087,8 @@ export class MmLineageCanvas extends LitElement {
         const { x, y, k } = this.#t;
         const sx = l.lx * k + x;
         const sy = l.ly * k + y;
-        if (sx < 24 || sy < 24 || sx > this.#vw - 24 || sy > this.#vh - 24) this.#zoom?.translateTo(this.#sel!, l.lx, l.ly);
+        if (sx < 24 || sy < 24 || sx > this.#vw - 24 || sy > this.#vh - 24)
+          this.#zoom?.translateTo(this.#sel!, l.lx, l.ly);
       }
     }
     // Keep the focused item rendered even when it is outside the culled set.
@@ -987,7 +1097,8 @@ export class MmLineageCanvas extends LitElement {
 
   #onViewportFocus = () => {
     if (this.#focus || !this.#view?.nodes.length) return;
-    const id = this.graph.currentId && this.#byId.has(this.graph.currentId) ? this.graph.currentId : this.#view.nodes[0]!.id;
+    const id =
+      this.graph.currentId && this.#byId.has(this.graph.currentId) ? this.graph.currentId : this.#view.nodes[0]!.id;
     this.#setFocus({ kind: 'node', id }, { reveal: false });
   };
 
@@ -1000,10 +1111,13 @@ export class MmLineageCanvas extends LitElement {
   };
 
   #neighbour(id: string, dir: 'up' | 'down'): string | null {
-    const list = dir === 'down' ? (this.#out.get(id) ?? []).map((e) => e.target) : (this.#in.get(id) ?? []).map((e) => e.source);
+    const list =
+      dir === 'down' ? (this.#out.get(id) ?? []).map((e) => e.target) : (this.#in.get(id) ?? []).map((e) => e.source);
     if (!list.length) return null;
     const y = this.#layout!.nodes[id]![1];
-    return list.reduce((best, cur) => (Math.abs(this.#layout!.nodes[cur]![1] - y) < Math.abs(this.#layout!.nodes[best]![1] - y) ? cur : best));
+    return list.reduce((best, cur) =>
+      Math.abs(this.#layout!.nodes[cur]![1] - y) < Math.abs(this.#layout!.nodes[best]![1] - y) ? cur : best,
+    );
   }
 
   #incidentEdges(id: string): ViewEdge[] {
@@ -1019,7 +1133,9 @@ export class MmLineageCanvas extends LitElement {
     const upKey = this.#rtl ? 'ArrowRight' : 'ArrowLeft';
     const key = e.key;
     let handled = true;
-    if (key === '+' || key === '=') {
+    if (key === 'Escape' && this.#trace) {
+      this.#clearTrace();
+    } else if (key === '+' || key === '=') {
       this.zoomIn();
       this.#say(tr('lineageZoomLevel', 'Zoom {n}%', { n: Math.round(this.#t.k * 100) }));
     } else if (key === '-' || key === '_') {
@@ -1040,7 +1156,8 @@ export class MmLineageCanvas extends LitElement {
     } else if (f.kind === 'node') {
       handled = this.#nodeKey(f.id, key, downKey, upKey);
     } else if (f.kind === 'handle') {
-      if ((key === downKey && f.dir === 'up') || (key === upKey && f.dir === 'down') || key === 'Escape') this.#setFocus({ kind: 'node', id: f.id });
+      if ((key === downKey && f.dir === 'up') || (key === upKey && f.dir === 'down') || key === 'Escape')
+        this.#setFocus({ kind: 'node', id: f.id });
       else if (key === 'Enter' || key === ' ') this.#expandHidden(f.id, f.dir);
       else handled = false;
     } else {
@@ -1054,8 +1171,15 @@ export class MmLineageCanvas extends LitElement {
         const step = key === 'ArrowUp' || (key !== 'ArrowDown' && e.shiftKey) ? -1 : 1;
         const next = list[(i + step + list.length) % list.length];
         if (next) this.#setFocus({ kind: 'edge', id: next.id });
-      } else if (key === 'Escape') this.#setFocus({ kind: 'node', id: this.#edgeAnchor || edge.source });
-      else if ((key === 'Delete' || key === 'Backspace') && this.editable && edge.origin !== 'cycle' && !edge.source.startsWith('agents:') && !edge.target.startsWith('agents:'))
+      } else if (key === 'Enter') this.#activateEdge(edge);
+      else if (key === 'Escape') this.#setFocus({ kind: 'node', id: this.#edgeAnchor || edge.source });
+      else if (
+        (key === 'Delete' || key === 'Backspace') &&
+        this.editable &&
+        edge.origin !== 'cycle' &&
+        !edge.source.startsWith('agents:') &&
+        !edge.target.startsWith('agents:')
+      )
         this.#deleteEdge(edge);
       else handled = false;
     }
@@ -1141,7 +1265,8 @@ export class MmLineageCanvas extends LitElement {
   /** Collapses every expanded agent cluster. */
   collapseGroups(): void {
     if (!this.#expandedClusters.size) return;
-    for (const id of [...this.#expandedClusters]) emit<MmLineageExpandDetail>(this, 'mm-expand', { id, direction: 'agents', expanded: false });
+    for (const id of [...this.#expandedClusters])
+      emit<MmLineageExpandDetail>(this, 'mm-expand', { id, direction: 'agents', expanded: false });
     this.#expandedClusters.clear();
     this.#queueRelayout();
     this.requestUpdate();
@@ -1159,18 +1284,145 @@ export class MmLineageCanvas extends LitElement {
     void this.#layoutDone.then(() => {
       const next = this.#byId.has(id) ? this.#neighbour(id, dir) : null;
       if (next && this.#focus?.kind === 'handle') this.#setFocus({ kind: 'node', id: next });
-      else if (this.#focus?.kind === 'handle' && !this.#byId.get(id)?.[dir === 'up' ? 'hiddenUp' : 'hiddenDown']) this.#setFocus({ kind: 'node', id });
+      else if (this.#focus?.kind === 'handle' && !this.#byId.get(id)?.[dir === 'up' ? 'hiddenUp' : 'hiddenDown'])
+        this.#setFocus({ kind: 'node', id });
     });
   }
 
   #deleteEdge(edge: ViewEdge) {
-    emit<MmLineageEdgeDeleteDetail>(this, 'mm-edge-delete', { source: edge.source, target: edge.target, kind: edge.kind });
+    emit<MmLineageEdgeDeleteDetail>(this, 'mm-edge-delete', {
+      source: edge.source,
+      target: edge.target,
+      kind: edge.kind,
+    });
   }
+
+  #activateEdge(edge: ViewEdge) {
+    const columns = edge.columns ?? [];
+    const go = emit<MmLineageEdgeActivateDetail>(
+      this,
+      'mm-edge-activate',
+      { source: edge.source, target: edge.target, kind: edge.kind, columns },
+      { cancelable: true },
+    );
+    if (!go || !columns.length) return;
+    if (this.#traceEdge === edge.id) {
+      this.#clearTrace();
+      return;
+    }
+    this.#trace = { source: edge.source, target: edge.target };
+    this.#hoverCol = null;
+    this.#pinnedCol = null;
+    this.#queueRelayout();
+    this.requestUpdate();
+    void this.#layoutDone.then(() => {
+      if (!this.#traceEdge) return;
+      this.#revealTrace();
+      const s = this.#byId.get(edge.source)?.name ?? edge.source;
+      const t = this.#byId.get(edge.target)?.name ?? edge.target;
+      this.#say(
+        tr('lineageColumnsTraced', 'Showing {n} columns from {source} to {target}', {
+          n: formatCount(columns.length),
+          source: s,
+          target: t,
+        }),
+      );
+    });
+  }
+
+  #clearTrace() {
+    if (!this.#trace) return;
+    this.#trace = null;
+    this.#hoverCol = null;
+    this.#pinnedCol = null;
+    this.#queueRelayout();
+    this.requestUpdate();
+    this.#say(tr('lineageColumnsHidden', 'Columns hidden'));
+  }
+
+  /**
+   * Lists the traced edge's columns on its two assets and sizes them to fit, before layout, so dagre
+   * makes room. Source columns follow the order of the columns they feed, which keeps lines from crossing.
+   */
+  #applyTrace(view: ViewGraph, trace: { source: string; target: string }): string {
+    const e = view.edges.find((x) => x.source === trace.source && x.target === trace.target && x.columns?.length);
+    const src = e && view.nodes.find((n) => n.id === e.source);
+    const tgt = e && view.nodes.find((n) => n.id === e.target);
+    if (!e || !src || !tgt || src.variant !== 'asset' || tgt.variant !== 'asset') return '';
+    const targets: LineageNodeColumn[] = [];
+    const sources: LineageNodeColumn[] = [];
+    const seenT = new Set<string>();
+    const seenS = new Set<string>();
+    for (const m of e.columns!) {
+      if (!seenT.has(m.to)) {
+        seenT.add(m.to);
+        targets.push(m.transform ? { name: m.to, transform: m.transform } : { name: m.to });
+      }
+      for (const f of m.from) {
+        if (seenS.has(f)) continue;
+        seenS.add(f);
+        sources.push({ name: f });
+      }
+    }
+    for (const [n, cols] of [
+      [src, sources],
+      [tgt, targets],
+    ] as const) {
+      n.columns = cols;
+      n.h = estimateNodeHeight({ name: n.name, variant: n.variant, failed: n.failed, columns: cols.length });
+    }
+    return e.id;
+  }
+
+  /** Brings both traced assets into view, zooming out only as far as needed. */
+  #revealTrace() {
+    const e = this.#edgeById.get(this.#traceEdge);
+    const l = this.#layout;
+    if (!e || !l || !this.#sel || !this.#zoom || !this.#vw || !this.#vh) return;
+    const ends = [e.source, e.target].map((id) => ({ n: this.#byId.get(id)!, p: l.nodes[id]! }));
+    const x0 = Math.min(...ends.map(({ n, p }) => p[0] - n.w / 2));
+    const x1 = Math.max(...ends.map(({ n, p }) => p[0] + n.w / 2));
+    const y0 = Math.min(...ends.map(({ n, p }) => p[1] - n.h / 2));
+    const y1 = Math.max(...ends.map(({ n, p }) => p[1] + n.h / 2));
+    const box = this.#safeBox();
+    const { x, y, k } = this.#t;
+    if (x0 * k + x >= box.l && x1 * k + x <= box.r && y0 * k + y >= box.t && y1 * k + y <= box.b) return;
+    const kk = Math.min(k, (box.r - box.l) / Math.max(1, x1 - x0), (box.b - box.t) / Math.max(1, y1 - y0));
+    const cx = (box.l + box.r) / 2;
+    const cy = (box.t + box.b) / 2;
+    this.#zoom.transform(
+      this.#sel,
+      zoomIdentity.translate(cx - ((x0 + x1) / 2) * kk, cy - ((y0 + y1) / 2) * kk).scale(kk),
+    );
+  }
+
+  /** The column whose path is highlighted: the pinned one, else the one under the pointer. */
+  get #activeCol(): { node: string; col: string } | null {
+    return this.#pinnedCol ?? this.#hoverCol;
+  }
+
+  /** Mappings on the traced edge that touch the active column. */
+  #activeMappings(e: ViewEdge): LineageColumnMapping[] {
+    const a = this.#activeCol;
+    if (!a || !e.columns) return [];
+    if (a.node === e.target) return e.columns.filter((m) => m.to === a.col);
+    if (a.node === e.source) return e.columns.filter((m) => m.from.includes(a.col));
+    return [];
+  }
+
+  #onViewportClick = (e: MouseEvent) => {
+    // A click on empty paper ends the trace; d3-zoom swallows the click that ends a drag.
+    if (e.target === this.#vp && this.#trace) this.#clearTrace();
+  };
 
   #setFullscreen(on: boolean) {
     this.fullscreen = on;
     emit<MmLineageFullscreenDetail>(this, 'mm-fullscreen-change', { fullscreen: on });
-    this.#say(on ? tr('lineageFullscreenOn', 'Full screen. Press Escape to leave.') : tr('lineageFullscreenOff', 'Left full screen'));
+    this.#say(
+      on
+        ? tr('lineageFullscreenOn', 'Full screen. Press Escape to leave.')
+        : tr('lineageFullscreenOff', 'Left full screen'),
+    );
   }
 
   #say(text: string) {
@@ -1180,7 +1432,11 @@ export class MmLineageCanvas extends LitElement {
   }
 
   #options() {
-    emit<MmLineageOptionsDetail>(this, 'mm-options-change', { depth: this.depth, showObserved: this.showObserved, showStructure: !this.hideStructure });
+    emit<MmLineageOptionsDetail>(this, 'mm-options-change', {
+      depth: this.depth,
+      showObserved: this.showObserved,
+      showStructure: !this.hideStructure,
+    });
   }
 
   /* ---------------------------------------------------------------- pointer */
@@ -1189,6 +1445,15 @@ export class MmLineageCanvas extends LitElement {
     for (const t of e.composedPath()) {
       if (!(t instanceof Element) || t === this.#layer) break;
       const ds = (t as HTMLElement | SVGElement).dataset;
+      if (ds.col) {
+        const host = e.composedPath().find((x): x is HTMLElement => x instanceof HTMLElement && !!x.dataset?.node);
+        if (host?.dataset.node) {
+          const same = this.#pinnedCol?.node === host.dataset.node && this.#pinnedCol.col === ds.col;
+          this.#pinnedCol = same ? null : { node: host.dataset.node, col: ds.col };
+          this.requestUpdate();
+        }
+        return;
+      }
       if (ds.del) {
         const edge = this.#edgeById.get(ds.del);
         if (edge) this.#deleteEdge(edge);
@@ -1200,8 +1465,10 @@ export class MmLineageCanvas extends LitElement {
         return;
       }
       if (ds.edge) {
-        this.#edgeAnchor = this.#edgeById.get(ds.edge)?.source ?? '';
+        const edge = this.#edgeById.get(ds.edge);
+        this.#edgeAnchor = edge?.source ?? '';
         this.#setFocus({ kind: 'edge', id: ds.edge });
+        if (edge) this.#activateEdge(edge);
         return;
       }
       if (ds.node) {
@@ -1216,6 +1483,21 @@ export class MmLineageCanvas extends LitElement {
   };
 
   #onPointerOver = (e: PointerEvent) => {
+    if (this.#traceEdge) {
+      let col = '';
+      let node = '';
+      for (const t of e.composedPath()) {
+        if (!(t instanceof Element) || t === this.#layer) break;
+        const ds = (t as HTMLElement).dataset;
+        if (ds?.col && !col) col = ds.col;
+        if (ds?.node && t.classList.contains('n')) node = ds.node;
+      }
+      const next = col && node ? { node, col } : null;
+      if (next?.node !== this.#hoverCol?.node || next?.col !== this.#hoverCol?.col) {
+        this.#hoverCol = next;
+        this.requestUpdate();
+      }
+    }
     let id = '';
     for (const t of e.composedPath()) {
       if (!(t instanceof Element) || t === this.#layer) break;
@@ -1266,7 +1548,12 @@ export class MmLineageCanvas extends LitElement {
     const k = this.#t.k;
     const step = (e.shiftKey ? 0.5 : 0.15) * Math.min(this.#vw, this.#vh);
     // Arrows move the view rectangle, so content moves the other way.
-    const moves: Record<string, [number, number]> = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] };
+    const moves: Record<string, [number, number]> = {
+      ArrowLeft: [step, 0],
+      ArrowRight: [-step, 0],
+      ArrowUp: [0, step],
+      ArrowDown: [0, -step],
+    };
     const mv = moves[e.key];
     if (mv) this.#zoom.translateBy(this.#sel, mv[0] / k, mv[1] / k);
     else if (e.key === '+' || e.key === '=') this.zoomIn();
@@ -1284,9 +1571,16 @@ export class MmLineageCanvas extends LitElement {
     const parts: string[] = [];
     if (n.variant === 'agent-cluster') {
       const c = n.members?.length ?? 0;
-      parts.push(tr('lineageAgentsMany', '{n} agents looked this up', { n: c }), n.members?.join(', ') ?? '', tr('lineageEnterShowsAgents', 'press Enter to show them'));
+      parts.push(
+        tr('lineageAgentsMany', '{n} agents looked this up', { n: c }),
+        n.members?.join(', ') ?? '',
+        tr('lineageEnterShowsAgents', 'press Enter to show them'),
+      );
     } else if (n.variant === 'cycle-return') {
-      parts.push(tr('lineageReturnsTo', 'Returns to {name}', { name: n.name }), tr('lineageEnterGoesTo', 'press Enter to go there'));
+      parts.push(
+        tr('lineageReturnsTo', 'Returns to {name}', { name: n.name }),
+        tr('lineageEnterGoesTo', 'press Enter to go there'),
+      );
     } else {
       parts.push(n.name, n.type);
       if (n.provider) parts.push(MmProviderLogo.displayName(n.provider));
@@ -1302,9 +1596,17 @@ export class MmLineageCanvas extends LitElement {
   }
 
   #chipText(e: ViewEdge): string {
+    const base = this.#chipBase(e);
+    const n = e.columns?.length ?? 0;
+    if (!n) return base;
+    return `${base} · ${n === 1 ? tr('lineageColumnOne', '1 column') : tr('lineageColumnsCount', '{n} columns', { n: formatCount(n) })}`;
+  }
+
+  #chipBase(e: ViewEdge): string {
     const runs = e.observations ? ` · ${tr('lineageRuns', '{n} runs', { n: formatCount(e.observations) })}` : '';
     if (e.origin === 'cycle') return tr('lineageCycleChip', 'cycle');
-    if (e.origin === 'observed') return `${e.kind === 'AGENT_LOOKUP' ? tr('lineageLookedUp', 'looked up') : tr('lineageObserved', 'observed')}${runs}`;
+    if (e.origin === 'observed')
+      return `${e.kind === 'AGENT_LOOKUP' ? tr('lineageLookedUp', 'looked up') : tr('lineageObserved', 'observed')}${runs}`;
     if (e.origin === 'mixed') return `${tr('lineageMixed', 'mixed')}${runs}`;
     if (e.job) return e.job.startsWith('mrn://') ? e.job.slice(e.job.lastIndexOf('/') + 1) : e.job;
     return e.kind;
@@ -1313,13 +1615,46 @@ export class MmLineageCanvas extends LitElement {
   #edgeLabel(e: ViewEdge): string {
     const s = this.#byId.get(e.source)?.name ?? e.source;
     const t = this.#byId.get(e.target);
-    const tn = t?.variant === 'cycle-return' ? tr('lineageReturnsTo', 'Returns to {name}', { name: t.name }) : (t?.name ?? e.target);
+    const tn =
+      t?.variant === 'cycle-return'
+        ? tr('lineageReturnsTo', 'Returns to {name}', { name: t.name })
+        : (t?.name ?? e.target);
     const origin =
-      e.origin === 'cycle' ? tr('lineageCycleEdge', 'cycle, dotted') : e.origin === 'observed' ? tr('lineageObservedEdge', 'observed, dashed') : e.origin === 'mixed' ? tr('lineageMixedEdge', 'declared and observed') : tr('lineageDeclaredEdge', 'declared, solid');
-    const parts = [tr('lineageEdgeFromTo', '{kind} from {source} to {target}', { kind: e.kind, source: s, target: tn }), origin];
+      e.origin === 'cycle'
+        ? tr('lineageCycleEdge', 'cycle, dotted')
+        : e.origin === 'observed'
+          ? tr('lineageObservedEdge', 'observed, dashed')
+          : e.origin === 'mixed'
+            ? tr('lineageMixedEdge', 'declared and observed')
+            : tr('lineageDeclaredEdge', 'declared, solid');
+    const parts = [
+      tr('lineageEdgeFromTo', '{kind} from {source} to {target}', { kind: e.kind, source: s, target: tn }),
+      origin,
+    ];
     if (e.observations) parts.push(tr('lineageRuns', '{n} runs', { n: formatCount(e.observations) }));
     if (e.lastSeen) parts.push(tr('lineageLastSeen', 'last seen {when}', { when: formatRelative(e.lastSeen) }));
     if (e.job) parts.push(tr('lineageJob', 'job {job}', { job: e.job }));
+    if (e.columns?.length && this.#traceEdge === e.id)
+      parts.push(
+        tr('lineageColumnsList', 'columns {list}', {
+          list: e.columns
+            .map((m) =>
+              m.transform
+                ? tr('lineageColumnDerived', '{to} from {from} by {transform}', {
+                    to: m.to,
+                    from: m.from.join(', '),
+                    transform: m.transform,
+                  })
+                : tr('lineageColumnFrom', '{to} from {from}', { to: m.to, from: m.from.join(', ') }),
+            )
+            .join('; '),
+        }),
+        tr('lineageColumnsEscape', 'press Escape to hide them'),
+      );
+    else if (e.columns?.length)
+      parts.push(
+        tr('lineageColumnsHint', '{n} column mappings, press Enter to show them', { n: formatCount(e.columns.length) }),
+      );
     if (this.editable && e.origin !== 'cycle') parts.push(tr('lineageDeleteHint', 'press Delete to remove'));
     return parts.join(', ');
   }
@@ -1352,6 +1687,15 @@ export class MmLineageCanvas extends LitElement {
             ${dir === 'up' ? tr('lineageUpstreamCount', '+{n} upstream', { n: count }) : tr('lineageDownstreamCount', '+{n} downstream', { n: count })}
           </button>`
         : nothing;
+    const tracing = !!this.#traceEdge;
+    const traced = tracing && !!n.columns?.length;
+    const a = this.#activeCol;
+    const te = traced ? this.#edgeById.get(this.#traceEdge) : undefined;
+    let active: string[] = [];
+    if (te && a) {
+      const ms = this.#activeMappings(te);
+      active = n.id === te.target ? ms.map((m) => m.to) : [...new Set(ms.flatMap((m) => m.from))];
+    }
     return html`<div class="n" style="left:${p[0]}px;top:${p[1]}px" data-node=${n.id}>
       <mm-lineage-node
         id="n${i}"
@@ -1364,6 +1708,10 @@ export class MmLineageCanvas extends LitElement {
         .provider=${n.provider}
         .mrn=${n.mrn}
         .members=${n.members ?? []}
+        .columns=${n.columns ?? []}
+        ?muted=${tracing && !traced}
+        .activeColumns=${active}
+        style=${traced ? `--_h:${n.h}px` : nothing}
         ?current=${n.current}
         ?stub=${n.stub}
         ?failed=${n.failed}
@@ -1381,9 +1729,26 @@ export class MmLineageCanvas extends LitElement {
     const f = this.#focus;
     const focused = f?.kind === 'edge' && f.id === e.id;
     const touchesFocus = f?.kind === 'node' && (e.source === f.id || e.target === f.id);
-    const hot = focused || this.#hoverEdge === e.id || touchesFocus || (!!this.selected && (e.source === this.selected || e.target === this.selected));
-    const marker = this.#lod ? undefined : e.origin === 'observed' ? 'url(#ah-observed)' : e.origin === 'cycle' ? 'url(#ah-cycle)' : 'url(#ah-declared)';
-    return svg`<g class="e ${e.origin} ${hot ? 'hot' : ''}" id="e${i}" data-edge=${e.id} role="group" aria-roledescription=${tr('lineageEdgeRole', 'edge')} aria-label=${this.#edgeLabel(e)}>
+    const hot =
+      focused ||
+      this.#hoverEdge === e.id ||
+      touchesFocus ||
+      (!!this.selected && (e.source === this.selected || e.target === this.selected));
+    const marker = this.#lod
+      ? undefined
+      : e.origin === 'observed'
+        ? 'url(#ah-observed)'
+        : e.origin === 'cycle'
+          ? 'url(#ah-cycle)'
+          : 'url(#ah-declared)';
+    // A traced edge is drawn by its column lines instead; it keeps its hit area, label and id so it can still be focused and clicked.
+    if (this.#traceEdge === e.id) {
+      return svg`<g class="e traced" id="e${i}" data-edge=${e.id} role="group" aria-roledescription=${tr('lineageEdgeRole', 'edge')} aria-label=${this.#edgeLabel(e)}>
+        <path class="hit" d=${g.d}><title>${this.#chipText(e)}</title></path>
+      </g>`;
+    }
+    const fade = this.#traceEdge ? 'dim' : '';
+    return svg`<g class="e ${e.origin} ${hot ? 'hot' : ''} ${fade}" id="e${i}" data-edge=${e.id} role="group" aria-roledescription=${tr('lineageEdgeRole', 'edge')} aria-label=${this.#edgeLabel(e)}>
       ${focused ? svg`<path class="ring" d=${g.d}></path><path class="gap" d=${g.d}></path>` : nothing}
       <path class="hit" d=${g.d}><title>${e.job || this.#chipText(e)}</title></path>
       <path class="line" d=${g.d} marker-end=${marker ?? nothing}></path>
@@ -1393,15 +1758,96 @@ export class MmLineageCanvas extends LitElement {
 
   #renderLodNode(n: ViewNode): TemplateResult {
     const p = this.#layout!.nodes[n.id]!;
-    const cls = ['lodn', n.current ? 'current' : '', n.stub ? 'stub' : '', n.failed ? 'failed' : '', n.variant === 'cycle-return' ? 'cycle' : ''].join(' ');
+    const cls = [
+      'lodn',
+      n.current ? 'current' : '',
+      n.stub ? 'stub' : '',
+      n.failed ? 'failed' : '',
+      n.variant === 'cycle-return' ? 'cycle' : '',
+    ].join(' ');
     return svg`<rect class=${cls} data-node=${n.id} x=${p[0] - n.w / 2} y=${p[1] - n.h / 2} width=${n.w} height=${n.h} rx="6"></rect>`;
+  }
+
+  /** Row ends for a traced asset's columns, in graph space, on the side facing the other asset. */
+  #columnPorts(id: string, towards: number): Map<string, [number, number]> {
+    const n = this.#byId.get(id);
+    const p = this.#layout?.nodes[id];
+    const out = new Map<string, [number, number]>();
+    if (!n?.columns || !p) return out;
+    const x = towards >= p[0] ? p[0] + n.w / 2 : p[0] - n.w / 2;
+    const bottom = p[1] + n.h / 2 - NODE_BOTTOM_INSET;
+    const count = n.columns.length;
+    n.columns.forEach((c, i) => out.set(c.name, [x, bottom - (count - i - 0.5) * COLUMN_ROW_HEIGHT]));
+    return out;
+  }
+
+  /** Lines joining each traced source column to the column it feeds. */
+  #renderTrace(): TemplateResult | typeof nothing {
+    const e = this.#traceEdge ? this.#edgeById.get(this.#traceEdge) : undefined;
+    const l = this.#layout;
+    if (!e?.columns || !l || this.#lod) return nothing;
+    const ps = l.nodes[e.source]!;
+    const pt = l.nodes[e.target]!;
+    const from = this.#columnPorts(e.source, pt[0]);
+    const to = this.#columnPorts(e.target, ps[0]);
+    const on = new Set(this.#activeMappings(e));
+    const any = on.size > 0;
+    const lines: TemplateResult[] = [];
+    const ports: TemplateResult[] = [];
+    for (const m of e.columns) {
+      const b = to.get(m.to);
+      if (!b) continue;
+      const cls = on.has(m) ? 'on' : any ? 'off' : '';
+      for (const f of m.from) {
+        const a = from.get(f);
+        if (!a) continue;
+        const dx = (b[0] - a[0]) / 2;
+        lines.push(
+          svg`<path class="cl ${cls}" d="M${a[0]},${a[1]} C${a[0] + dx},${a[1]} ${b[0] - dx},${b[1]} ${b[0]},${b[1]}"></path>`,
+        );
+      }
+    }
+    for (const [ends, side] of [
+      [from, e.source],
+      [to, e.target],
+    ] as const) {
+      const lit = new Set(this.#activeCol ? this.#activeColumnsOn(e, side) : []);
+      for (const [name, [x, y]] of ends)
+        ports.push(svg`<circle class="port ${lit.has(name) ? 'on' : ''}" cx=${x} cy=${y} r="3"></circle>`);
+    }
+    const focused = this.#focus?.kind === 'edge' && this.#focus.id === e.id;
+    return svg`<g class="trace ${focused ? 'focused' : ''}" aria-hidden="true">${lines}${ports}</g>`;
+  }
+
+  #activeColumnsOn(e: ViewEdge, id: string): string[] {
+    const ms = this.#activeMappings(e);
+    return id === e.target ? ms.map((m) => m.to) : ms.flatMap((m) => m.from);
+  }
+
+  /** The derivation of the highlighted column, on its line, so the change is read where it happens. */
+  #renderTraceChip(): TemplateResult | typeof nothing {
+    const e = this.#traceEdge ? this.#edgeById.get(this.#traceEdge) : undefined;
+    if (!e || this.#lod) return nothing;
+    const ms = this.#activeMappings(e).filter((m) => m.transform);
+    if (ms.length !== 1) return nothing;
+    const m = ms[0]!;
+    const a = this.#columnPorts(e.source, this.#layout!.nodes[e.target]![0]).get(m.from[0] ?? '');
+    const b = this.#columnPorts(e.target, this.#layout!.nodes[e.source]![0]).get(m.to);
+    if (!a || !b) return nothing;
+    return html`<span class="chip fx" style="left:${(a[0] + b[0]) / 2}px;top:${(a[1] + b[1]) / 2}px" aria-hidden="true"
+      ><mm-icon name="functions" size="14"></mm-icon><span class="ct">${m.transform}</span></span
+    >`;
   }
 
   #renderMinimap(): TemplateResult {
     const l = this.#layout!;
     const view = this.#view!;
     const pad = 40;
-    return html`<svg viewBox="${-pad} ${-pad} ${l.width + pad * 2} ${l.height + pad * 2}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    return html`<svg
+      viewBox="${-pad} ${-pad} ${l.width + pad * 2} ${l.height + pad * 2}"
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+    >
       ${view.nodes.map((n) => {
         const p = l.nodes[n.id]!;
         return svg`<rect class="mmn ${n.current ? 'current' : ''}" x=${p[0] - n.w / 2} y=${p[1] - n.h / 2} width=${n.w} height=${n.h}></rect>`;
@@ -1458,26 +1904,39 @@ export class MmLineageCanvas extends LitElement {
         }}
         @mm-input=${(e: Event) => e.stopPropagation()}
       ></mm-switch>
-      ${this.#expandedClusters.size
-        ? html`<mm-button variant="ghost" size="sm" icon="expand-less" @click=${() => this.collapseGroups()}>${tr('lineageCollapseGroups', 'Collapse groups')}</mm-button>`
-        : nothing}
+      ${
+        this.#expandedClusters.size
+          ? html`<mm-button variant="ghost" size="sm" icon="expand-less" @click=${() => this.collapseGroups()}
+              >${tr('lineageCollapseGroups', 'Collapse groups')}</mm-button
+            >`
+          : nothing
+      }
+      ${
+        this.#trace
+          ? html`<mm-button variant="ghost" size="sm" icon="close" @click=${() => this.#clearTrace()}
+              >${tr('lineageHideColumns', 'Hide columns')}</mm-button
+            >`
+          : nothing
+      }
       <span class="spacer"></span>
       <div class="end">
-        ${this.editable && sel
-          ? html`<mm-button
-                variant="secondary"
-                size="sm"
-                icon="add"
-                @click=${() => emit<MmLineageAddDetail>(this, 'mm-add-lineage', { id: sel.id, direction: 'upstream' })}
-                >${tr('lineageAddUpstream', 'Add upstream')}</mm-button
-              ><mm-button
-                variant="secondary"
-                size="sm"
-                icon="add"
-                @click=${() => emit<MmLineageAddDetail>(this, 'mm-add-lineage', { id: sel.id, direction: 'downstream' })}
-                >${tr('lineageAddDownstream', 'Add downstream')}</mm-button
-              >`
-          : nothing}
+        ${
+          this.editable && sel
+            ? html`<mm-button
+                  variant="secondary"
+                  size="sm"
+                  icon="add"
+                  @click=${() => emit<MmLineageAddDetail>(this, 'mm-add-lineage', { id: sel.id, direction: 'upstream' })}
+                  >${tr('lineageAddUpstream', 'Add upstream')}</mm-button
+                ><mm-button
+                  variant="secondary"
+                  size="sm"
+                  icon="add"
+                  @click=${() => emit<MmLineageAddDetail>(this, 'mm-add-lineage', { id: sel.id, direction: 'downstream' })}
+                  >${tr('lineageAddDownstream', 'Add downstream')}</mm-button
+                >`
+            : nothing
+        }
         <slot name="actions"></slot>
         <mm-button
           variant="ghost"
@@ -1497,13 +1956,17 @@ export class MmLineageCanvas extends LitElement {
         <div class="error" role="alert">
           <strong><mm-icon name="error"></mm-icon>${tr('lineageErrorTitle', 'Lineage could not be loaded')}</strong>
           <p>${this.error}</p>
-          <mm-button variant="secondary" icon="refresh" @click=${() => emit(this, 'mm-retry', {})}>${tr('lineageRetry', 'Try again')}</mm-button>
+          <mm-button variant="secondary" icon="refresh" @click=${() => emit(this, 'mm-retry', {})}
+            >${tr('lineageRetry', 'Try again')}</mm-button
+          >
         </div>
       </div>`;
     }
     if (this.loading || this.#layingOut) {
       // mm-loading applies the 200ms delay and 400ms minimum itself.
-      return html`<div class="state"><mm-loading caption=${tr('lineageLoading', 'Drawing lineage')}></mm-loading></div>`;
+      return html`<div class="state">
+        <mm-loading caption=${tr('lineageLoading', 'Drawing lineage')}></mm-loading>
+      </div>`;
     }
     if (!this.graph.nodes.length || !this.graph.edges.length) {
       return html`<div class="state">
@@ -1531,7 +1994,8 @@ export class MmLineageCanvas extends LitElement {
     const l = this.#layout;
     const view = this.#view;
     const current = this.graph.nodes.find((n) => n.id === this.graph.currentId);
-    const label = this.label || (current ? tr('lineageOf', 'Lineage of {name}', { name: current.name }) : tr('lineage', 'Lineage'));
+    const label =
+      this.label || (current ? tr('lineageOf', 'Lineage of {name}', { name: current.name }) : tr('lineage', 'Lineage'));
     const ready = !!(l && view && !this.error && !this.loading && this.graph.edges.length);
 
     let nodes: ViewNode[] = [];
@@ -1555,6 +2019,7 @@ export class MmLineageCanvas extends LitElement {
       if (this.showEdgeLabels) edges.forEach((e) => chipIds.add(e.id));
       if (this.#hoverEdge) chipIds.add(this.#hoverEdge);
       if (this.#focus?.kind === 'edge') chipIds.add(this.#focus.id);
+      if (this.#traceEdge) chipIds.delete(this.#traceEdge);
     }
 
     return html`
@@ -1571,96 +2036,190 @@ export class MmLineageCanvas extends LitElement {
           tabindex=${ready ? 0 : -1}
           @keydown=${this.#onKeydown}
           @focus=${this.#onViewportFocus}
+          @click=${this.#onViewportClick}
         >
           <div class="layer" @click=${this.#onLayerClick} @pointerover=${this.#onPointerOver}>
-            ${ready
-              ? html`<svg class="edges ${this.#lod ? 'lod' : ''}" width=${l!.width} height=${l!.height}>
-                    <defs>
-                      <marker id="ah-declared" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
-                        <path class="head-declared" d="M0,0 L8,4 L0,8 Z"></path>
-                      </marker>
-                      <marker id="ah-observed" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
-                        <path class="head-observed" d="M0,0 L8,4 L0,8 Z"></path>
-                      </marker>
-                      <marker id="ah-cycle" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
-                        <path class="head-cycle" d="M0,0 L8,4 L0,8 Z"></path>
-                      </marker>
-                    </defs>
-                    ${repeat(edges, (e) => e.id, (e) => this.#renderEdge(e))}
-                    ${repeat(lodNodes, (n) => n.id, (n) => this.#renderLodNode(n))}
-                  </svg>
-                  ${repeat(nodes, (n) => n.id, (n) => this.#renderNode(n))}
-                  ${repeat(
-                    [...chipIds].map((id) => this.#edgeById.get(id)!).filter(Boolean),
-                    (e) => e.id,
-                    (e) => {
-                      const g = l!.edges[e.id]!;
-                      const del = this.editable && e.origin !== 'cycle' && !e.source.startsWith('agents:') && !e.target.startsWith('agents:');
-                      const full = this.#hoverEdge === e.id || (this.#focus?.kind === 'edge' && this.#focus.id === e.id);
-                      return html`<span class="chip ${del ? 'editable' : ''} ${full ? 'full' : ''}" style="left:${g.lx}px;top:${g.ly}px;max-inline-size:${full ? 'none' : `${this.#chipMax}px`}" data-edge=${e.id} aria-hidden=${del ? nothing : 'true'}
-                        ><span class="ct">${this.#chipText(e)}</span>${del
-                          ? html`<button class="del" type="button" tabindex="-1" data-del=${e.id} aria-label=${tr('lineageDeleteEdge', 'Delete edge')}>
-                              <mm-icon name="close" size="14"></mm-icon>
-                            </button>`
-                          : nothing}</span
-                      >`;
-                    },
-                  )}`
-              : nothing}
+            ${
+              ready
+                ? html`<svg class="edges ${this.#lod ? 'lod' : ''}" width=${l!.width} height=${l!.height}>
+                      <defs>
+                        <marker
+                          id="ah-declared"
+                          viewBox="0 0 8 8"
+                          refX="7"
+                          refY="4"
+                          markerWidth="8"
+                          markerHeight="8"
+                          markerUnits="userSpaceOnUse"
+                          orient="auto"
+                        >
+                          <path class="head-declared" d="M0,0 L8,4 L0,8 Z"></path>
+                        </marker>
+                        <marker
+                          id="ah-observed"
+                          viewBox="0 0 8 8"
+                          refX="7"
+                          refY="4"
+                          markerWidth="8"
+                          markerHeight="8"
+                          markerUnits="userSpaceOnUse"
+                          orient="auto"
+                        >
+                          <path class="head-observed" d="M0,0 L8,4 L0,8 Z"></path>
+                        </marker>
+                        <marker
+                          id="ah-cycle"
+                          viewBox="0 0 8 8"
+                          refX="7"
+                          refY="4"
+                          markerWidth="8"
+                          markerHeight="8"
+                          markerUnits="userSpaceOnUse"
+                          orient="auto"
+                        >
+                          <path class="head-cycle" d="M0,0 L8,4 L0,8 Z"></path>
+                        </marker>
+                      </defs>
+                      ${repeat(
+                        edges,
+                        (e) => e.id,
+                        (e) => this.#renderEdge(e),
+                      )}
+                      ${this.#renderTrace()}
+                      ${repeat(
+                        lodNodes,
+                        (n) => n.id,
+                        (n) => this.#renderLodNode(n),
+                      )}
+                    </svg>
+                    ${repeat(
+                      nodes,
+                      (n) => n.id,
+                      (n) => this.#renderNode(n),
+                    )}
+                    ${repeat(
+                      [...chipIds].map((id) => this.#edgeById.get(id)!).filter(Boolean),
+                      (e) => e.id,
+                      (e) => {
+                        const g = l!.edges[e.id]!;
+                        const del =
+                          this.editable &&
+                          e.origin !== 'cycle' &&
+                          !e.source.startsWith('agents:') &&
+                          !e.target.startsWith('agents:');
+                        const full =
+                          this.#hoverEdge === e.id || (this.#focus?.kind === 'edge' && this.#focus.id === e.id);
+                        const cols = e.columns?.length ? 'cols' : '';
+                        return html`<span
+                          class="chip ${del ? 'editable' : ''} ${cols} ${full ? 'full' : ''}"
+                          style="left:${g.lx}px;top:${g.ly}px;max-inline-size:${full ? 'none' : `${this.#chipMax}px`}"
+                          data-edge=${e.id}
+                          aria-hidden=${del ? nothing : 'true'}
+                          ><span class="ct">${this.#chipText(e)}</span>${
+                            del
+                              ? html`<button
+                                  class="del"
+                                  type="button"
+                                  tabindex="-1"
+                                  data-del=${e.id}
+                                  aria-label=${tr('lineageDeleteEdge', 'Delete edge')}
+                                >
+                                  <mm-icon name="close" size="14"></mm-icon>
+                                </button>`
+                              : nothing
+                          }</span
+                        >`;
+                      },
+                    )}
+                    ${this.#renderTraceChip()}`
+                : nothing
+            }
           </div>
         </div>
         ${this.#renderOverlay()}
-        ${ready
-          ? html`<div class="tools" part="zoom-controls" role="group" aria-label=${tr('lineageZoom', 'Zoom')}>
-                <mm-button variant="ghost" size="sm" icon="zoom-out" label=${tr('zoomOut', 'Zoom out')} @click=${() => this.zoomOut()}></mm-button>
-                <span class="zoom-val" aria-hidden="true"></span>
-                <mm-button variant="ghost" size="sm" icon="zoom-in" label=${tr('zoomIn', 'Zoom in')} @click=${() => this.zoomIn()}></mm-button>
-                <mm-button variant="ghost" size="sm" icon="fit-screen" label=${tr('fitView', 'Fit to view')} @click=${() => this.fit()}></mm-button>
-                ${this.graph.currentId
-                  ? html`<mm-button
-                      variant="ghost"
-                      size="sm"
-                      icon="center-focus-strong"
-                      label=${tr('lineageShowCurrent', 'Show current asset')}
-                      @click=${() => {
-                        this.#userMoved = true;
-                        if (this.graph.currentId) this.#centreOn(this.graph.currentId);
-                      }}
-                    ></mm-button>`
-                  : nothing}
-                ${this.hideMinimap
-                  ? nothing
-                  : html`<mm-button
-                      variant="ghost"
-                      size="sm"
-                      icon="layers"
-                      label=${this.#minimapShown ? tr('lineageHideMinimap', 'Hide minimap') : tr('lineageShowMinimap', 'Show minimap')}
-                      pressed=${this.#minimapShown ? 'true' : 'false'}
-                      @click=${() => {
-                        this.#minimapOpen = !this.#minimapShown;
-                        this.requestUpdate();
-                      }}
-                    ></mm-button>`}
-              </div>
-              ${!this.#minimapShown
-                ? nothing
-                : html`<div
-                    class="minimap"
-                    part="minimap"
-                    tabindex="0"
-                    role="application"
-                    aria-roledescription=${tr('lineageMinimapRole', 'minimap')}
-                    aria-label=${tr('lineageMinimap', 'Minimap. Arrow keys move the view, plus and minus zoom, 0 fits.')}
-                    @pointerdown=${this.#onMinimapDown}
-                    @pointermove=${this.#onMinimapMove}
-                    @pointerup=${this.#onMinimapUp}
-                    @pointercancel=${this.#onMinimapUp}
-                    @keydown=${this.#onMinimapKey}
-                  >
-                    ${guard([l, view], () => this.#renderMinimap())}
-                  </div>`}
-              ${this.hideLegend ? nothing : html`<div class="legend"><slot name="legend"><mm-lineage-legend compact></mm-lineage-legend></slot></div>`}`
-          : nothing}
+        ${
+          ready
+            ? html`<div class="tools" part="zoom-controls" role="group" aria-label=${tr('lineageZoom', 'Zoom')}>
+                  <mm-button
+                    variant="ghost"
+                    size="sm"
+                    icon="zoom-out"
+                    label=${tr('zoomOut', 'Zoom out')}
+                    @click=${() => this.zoomOut()}
+                  ></mm-button>
+                  <span class="zoom-val" aria-hidden="true"></span>
+                  <mm-button
+                    variant="ghost"
+                    size="sm"
+                    icon="zoom-in"
+                    label=${tr('zoomIn', 'Zoom in')}
+                    @click=${() => this.zoomIn()}
+                  ></mm-button>
+                  <mm-button
+                    variant="ghost"
+                    size="sm"
+                    icon="fit-screen"
+                    label=${tr('fitView', 'Fit to view')}
+                    @click=${() => this.fit()}
+                  ></mm-button>
+                  ${
+                    this.graph.currentId
+                      ? html`<mm-button
+                          variant="ghost"
+                          size="sm"
+                          icon="center-focus-strong"
+                          label=${tr('lineageShowCurrent', 'Show current asset')}
+                          @click=${() => {
+                            this.#userMoved = true;
+                            if (this.graph.currentId) this.#centreOn(this.graph.currentId);
+                          }}
+                        ></mm-button>`
+                      : nothing
+                  }
+                  ${
+                    this.hideMinimap
+                      ? nothing
+                      : html`<mm-button
+                          variant="ghost"
+                          size="sm"
+                          icon="layers"
+                          label=${this.#minimapShown ? tr('lineageHideMinimap', 'Hide minimap') : tr('lineageShowMinimap', 'Show minimap')}
+                          pressed=${this.#minimapShown ? 'true' : 'false'}
+                          @click=${() => {
+                            this.#minimapOpen = !this.#minimapShown;
+                            this.requestUpdate();
+                          }}
+                        ></mm-button>`
+                  }
+                </div>
+                ${
+                  !this.#minimapShown
+                    ? nothing
+                    : html`<div
+                        class="minimap"
+                        part="minimap"
+                        tabindex="0"
+                        role="application"
+                        aria-roledescription=${tr('lineageMinimapRole', 'minimap')}
+                        aria-label=${tr('lineageMinimap', 'Minimap. Arrow keys move the view, plus and minus zoom, 0 fits.')}
+                        @pointerdown=${this.#onMinimapDown}
+                        @pointermove=${this.#onMinimapMove}
+                        @pointerup=${this.#onMinimapUp}
+                        @pointercancel=${this.#onMinimapUp}
+                        @keydown=${this.#onMinimapKey}
+                      >
+                        ${guard([l, view], () => this.#renderMinimap())}
+                      </div>`
+                }
+                ${
+                  this.hideLegend
+                    ? nothing
+                    : html`<div class="legend">
+                        <slot name="legend"><mm-lineage-legend compact></mm-lineage-legend></slot>
+                      </div>`
+                }`
+            : nothing
+        }
         <p id="help" class="visually-hidden">${this.#help()}</p>
         <div class="visually-hidden" role="status">${this.#announce}</div>
       </div>

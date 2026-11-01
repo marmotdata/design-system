@@ -18,6 +18,19 @@ export interface MmLineageNodeToggleDetail {
 
 export type LineageNodeVariant = 'asset' | 'cycle-return' | 'agent-cluster';
 
+/** A column listed on a node while the canvas traces column lineage. */
+export interface LineageNodeColumn {
+  name: string;
+  /** How the column is derived from its sources, when it is not a plain copy. Marked with a function icon. */
+  transform?: string;
+}
+
+/** Height of one column row, and the space above the first row, in px. The canvas places column lines with these. */
+export const COLUMN_ROW_HEIGHT = 24;
+export const COLUMN_LIST_TOP = 13;
+/** Border plus bottom padding of the card: the last column row ends this far above the card's bottom edge. */
+export const NODE_BOTTOM_INSET = 11;
+
 /** Width in px for each variant; the canvas lays nodes out with these. */
 export const NODE_WIDTH: Record<LineageNodeVariant, number> = { asset: 220, 'cycle-return': 180, 'agent-cluster': 220 };
 
@@ -25,13 +38,20 @@ export const NODE_WIDTH: Record<LineageNodeVariant, number> = { asset: 220, 'cyc
  * Estimated rendered height of a node, used by the canvas for layout without measuring thousands of
  * elements. Names wrap anywhere; 27 characters per 200px line is a safe estimate for 13px Geist.
  */
-export function estimateNodeHeight(n: { name: string; variant?: LineageNodeVariant; failed?: boolean; members?: number }): number {
+export function estimateNodeHeight(n: {
+  name: string;
+  variant?: LineageNodeVariant;
+  failed?: boolean;
+  members?: number;
+  columns?: number;
+}): number {
   const variant = n.variant ?? 'asset';
   const perLine = variant === 'cycle-return' ? 22 : 27;
   const lines = Math.max(1, Math.ceil(n.name.length / perLine));
   if (variant === 'agent-cluster') return 92 + (n.members ?? 0) * 22;
   if (variant === 'cycle-return') return 40 + lines * 19 + 18;
-  return 8 + 16 + 4 + lines * 19 + 2 + 18 + 10 + (n.failed ? 20 : 0);
+  const columns = n.columns ? COLUMN_LIST_TOP + n.columns * COLUMN_ROW_HEIGHT : 0;
+  return 8 + 16 + 4 + lines * 19 + 2 + 18 + 10 + (n.failed ? 20 : 0) + columns;
 }
 
 /** Sentence case for a type word written in normal case: "table" → "Table". */
@@ -55,6 +75,13 @@ const sentence = (s: string): string => (s ? s.charAt(0).toLocaleUpperCase() + s
  * dotted ochre border, matching cycle edges). `agent-cluster` groups agents that looked up one asset
  * ("4 agents looked this up") and expands to list them.
  *
+ * `muted` recedes the card while the canvas traces columns through other assets, keeping its text
+ * at readable contrast.
+ *
+ * `columns` lists columns below the provider while the canvas traces column lineage. Rows have a fixed
+ * height and sit at the bottom of the card so the canvas can join them with lines; a column derived by
+ * an expression carries a function icon. Set `--_h` to give the card an exact height.
+ *
  * Standalone, set `interactive` to render the node as a button that fires `mm-node-activate`. Inside
  * `mm-lineage-canvas` the canvas owns focus and keyboard, so nodes are not tab stops there.
  *
@@ -66,6 +93,7 @@ const sentence = (s: string): string => (s ? s.charAt(0).toLocaleUpperCase() + s
  * @csspart provider - The provider row.
  * @csspart status - The "Last run failed" row.
  * @csspart toggle - The agent cluster's show or hide button.
+ * @csspart columns - The column list.
  * @fires mm-node-activate - {MmLineageNodeActivateDetail} An interactive node was clicked or activated with Enter or Space.
  * @fires mm-toggle - {MmLineageNodeToggleDetail} An agent cluster was expanded or collapsed.
  */
@@ -82,9 +110,11 @@ export class MmLineageNode extends LitElement {
       .node {
         all: unset;
         box-sizing: border-box;
-        display: block;
+        display: flex;
+        flex-direction: column;
         position: relative;
         width: 100%;
+        height: var(--_h, auto);
         background: var(--mm-surface);
         border: 1px solid var(--mm-control-border);
         border-radius: var(--radius-md);
@@ -111,6 +141,17 @@ export class MmLineageNode extends LitElement {
       :host([selected]:not([current])) .node {
         border: 2px solid var(--mm-text);
         padding: 7px 9px 9px;
+      }
+      :host([muted]) .node {
+        border-color: var(--mm-rule);
+        background: var(--mm-paper);
+      }
+      :host([muted]) .name {
+        color: var(--mm-text-2);
+        font-weight: 500;
+      }
+      :host([muted]) mm-provider-logo {
+        opacity: 0.5;
       }
       :host([stub]) .node {
         border-style: dashed;
@@ -223,7 +264,9 @@ export class MmLineageNode extends LitElement {
         font-weight: 600;
         color: var(--mm-text-2);
         cursor: pointer;
-        transition: background-color var(--mm-dur-press) var(--mm-ease), color var(--mm-dur-press) var(--mm-ease);
+        transition:
+          background-color var(--mm-dur-press) var(--mm-ease),
+          color var(--mm-dur-press) var(--mm-ease);
       }
       .toggle:hover {
         background: var(--mm-sunken);
@@ -253,6 +296,39 @@ export class MmLineageNode extends LitElement {
       li mm-icon,
       .cluster-row mm-icon {
         color: var(--mm-text-2);
+      }
+      ol.cols {
+        list-style: none;
+        margin: auto 0 0;
+        padding: 6px 0 0;
+        border-top: 1px solid var(--mm-rule);
+      }
+      ol.cols li {
+        box-sizing: border-box;
+        height: 24px;
+        min-height: 0;
+        gap: var(--space-1);
+        padding-inline: var(--space-1);
+        margin-inline: calc(-1 * var(--space-1));
+        border-radius: var(--radius-sm);
+        font: var(--text-mono-dense);
+        letter-spacing: var(--tracking-mono-dense);
+        transition:
+          background-color var(--mm-dur-press) var(--mm-ease),
+          opacity var(--mm-dur-press) var(--mm-ease);
+      }
+      ol.cols .c {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      ol.cols li.on {
+        background: var(--mm-selected);
+      }
+      ol.cols.hot li:not(.on) {
+        opacity: 0.45;
       }
     `,
   ];
@@ -285,6 +361,12 @@ export class MmLineageNode extends LitElement {
   @property({ attribute: false }) accessor members: string[] = [];
   /** Agent cluster: whether the agent list is shown. */
   @property({ type: Boolean, reflect: true }) accessor expanded = false;
+  /** Columns shown while the canvas traces column lineage through this asset. */
+  @property({ attribute: false }) accessor columns: LineageNodeColumn[] = [];
+  /** Set by the canvas while column lineage is traced elsewhere: the card recedes but its text stays readable. */
+  @property({ type: Boolean, reflect: true }) accessor muted = false;
+  /** Names of columns to highlight; the others fade. */
+  @property({ attribute: false }) accessor activeColumns: string[] = [];
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     if (changed.has('variant')) this.style.setProperty('--_w', `${NODE_WIDTH[this.variant] ?? 220}px`);
@@ -316,7 +398,9 @@ export class MmLineageNode extends LitElement {
 
   #clusterText(): string {
     const n = this.#count;
-    return n === 1 ? tr('lineageAgentsOne', '1 agent looked this up') : tr('lineageAgentsMany', '{n} agents looked this up', { n });
+    return n === 1
+      ? tr('lineageAgentsOne', '1 agent looked this up')
+      : tr('lineageAgentsMany', '{n} agents looked this up', { n });
   }
 
   /** Expands or collapses an agent cluster and fires `mm-toggle`. */
@@ -338,21 +422,32 @@ export class MmLineageNode extends LitElement {
 
   #body(): TemplateResult {
     const tick = this.selected
-      ? html`<mm-icon class="tick" name="check" size="14"></mm-icon><span class="visually-hidden">${tr('lineageSelected', 'selected')}</span>`
+      ? html`<mm-icon class="tick" name="check" size="14"></mm-icon
+          ><span class="visually-hidden">${tr('lineageSelected', 'selected')}</span>`
       : nothing;
     if (this.variant === 'cycle-return') {
-      return html`<span part="type" class="strip"><span class="t">${sentence(this.type || tr('lineageCycle', 'cycle'))}</span>${tick}</span>
+      return html`<span part="type" class="strip"
+          ><span class="t">${sentence(this.type || tr('lineageCycle', 'cycle'))}</span>${tick}</span
+        >
         <span class="returns"
-          ><span class="row"><mm-icon name="keyboard-return" size="14"></mm-icon>${tr('lineageReturnsToLabel', 'Returns to')}</span
+          ><span class="row"
+            ><mm-icon name="keyboard-return" size="14"></mm-icon>${tr('lineageReturnsToLabel', 'Returns to')}</span
           ><span part="name" class="name">${this.name}</span></span
         >`;
     }
     if (this.variant === 'agent-cluster') {
-      const members = this.expanded && this.members.length
-        ? html`<ul aria-label=${tr('lineageAgents', 'Agents')}>${this.members.map((m) => html`<li><mm-icon name="smart-toy" size="14"></mm-icon>${m}</li>`)}</ul>`
-        : nothing;
-      return html`<span part="type" class="strip"><span class="t">${tr('lineageAgentsType', 'Agents')}</span>${tick}</span>
-        <span part="name" class="cluster-row"><mm-icon name="smart-toy"></mm-icon><span class="count">${this.#clusterText()}</span></span>
+      const members =
+        this.expanded && this.members.length
+          ? html`<ul aria-label=${tr('lineageAgents', 'Agents')}>
+              ${this.members.map((m) => html`<li><mm-icon name="smart-toy" size="14"></mm-icon>${m}</li>`)}
+            </ul>`
+          : nothing;
+      return html`<span part="type" class="strip"
+          ><span class="t">${tr('lineageAgentsType', 'Agents')}</span>${tick}</span
+        >
+        <span part="name" class="cluster-row"
+          ><mm-icon name="smart-toy"></mm-icon><span class="count">${this.#clusterText()}</span></span
+        >
         <button
           part="toggle"
           class="toggle"
@@ -361,26 +456,62 @@ export class MmLineageNode extends LitElement {
           aria-expanded=${this.expanded ? 'true' : 'false'}
           @click=${this.#onToggleClick}
         >
-          <mm-icon name=${this.expanded ? 'expand-less' : 'expand-more'} size="14"></mm-icon>${this.expanded
-            ? tr('lineageHideAgents', 'Hide agents')
-            : tr('lineageShowAgents', 'Show agents')}
+          <mm-icon name=${this.expanded ? 'expand-less' : 'expand-more'} size="14"></mm-icon>${
+            this.expanded ? tr('lineageHideAgents', 'Hide agents') : tr('lineageShowAgents', 'Show agents')
+          }
         </button>
         ${members}`;
     }
     const providerName = this.provider ? MmProviderLogo.displayName(this.provider) : '';
     return html`<span part="type" class="strip"
-        ><span class="t">${sentence(this.type)}${this.stub ? html` · ${tr('lineageStub', 'stub')}` : nothing}</span>${tick}</span
+        ><span class="t">${sentence(this.type)}${this.stub ? html` · ${tr('lineageStub', 'stub')}` : nothing}</span
+        >${tick}</span
       >
       <span part="name" class="name">${this.name}</span>
       ${this.stub ? html`<span class="visually-hidden">${tr('lineageNotSurveyed', 'Not catalogued yet')}</span>` : nothing}
-      ${providerName
-        ? html`<span part="provider" class="src"
-            ><mm-provider-logo provider=${this.provider} size="14" decorative></mm-provider-logo><span class="p">${providerName}</span></span
-          >`
-        : nothing}
-      ${this.failed
-        ? html`<span part="status" class="status"><mm-icon name="error" size="14"></mm-icon>${tr('lineageLastRunFailed', 'Last run failed')}</span>`
-        : nothing}`;
+      ${
+        providerName
+          ? html`<span part="provider" class="src"
+              ><mm-provider-logo provider=${this.provider} size="14" decorative></mm-provider-logo
+              ><span class="p">${providerName}</span></span
+            >`
+          : nothing
+      }
+      ${
+        this.failed
+          ? html`<span part="status" class="status"
+              ><mm-icon name="error" size="14"></mm-icon>${tr('lineageLastRunFailed', 'Last run failed')}</span
+            >`
+          : nothing
+      }
+      ${this.columns.length ? this.#columnList() : nothing}`;
+  }
+
+  #columnList(): TemplateResult {
+    const active = new Set(this.activeColumns);
+    return html`<ol
+      part="columns"
+      class="cols ${active.size ? 'hot' : ''}"
+      aria-label=${tr('lineageColumns', 'Columns')}
+    >
+      ${this.columns.map(
+        (c) =>
+          html`<li
+            class=${active.has(c.name) ? 'on' : ''}
+            data-col=${c.name}
+            title=${c.transform ? `${c.name} = ${c.transform}` : c.name}
+          >
+            <span class="c">${c.name}</span>${
+              c.transform
+                ? html`<mm-icon name="functions" size="14"></mm-icon
+                    ><span class="visually-hidden"
+                      >${tr('lineageDerived', 'derived by {transform}', { transform: c.transform })}</span
+                    >`
+                : nothing
+            }
+          </li>`,
+      )}
+    </ol>`;
   }
 
   override render() {

@@ -24928,7 +24928,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch. Embedded in a page that scrolls (a docs or\nmarketing page), set `modifier-zoom` so the wheel scrolls the page and zooms only with Ctrl or ⌘.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused\nasset's edges (Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
+          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch. Embedded in a page that scrolls (a docs or\nmarketing page), set `modifier-zoom` so the wheel scrolls the page and zooms only with Ctrl or ⌘.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. An edge with column-level lineage (`columns`) adds its\ncolumn count to the chip. Clicking it or pressing Enter on it traces the columns: both assets list\nthe mapped columns, a line joins each source column to the column it feeds, and the rest of the\ngraph fades. Hovering or clicking a column highlights its path and shows how it is derived. Escape,\n\"Hide columns\" or a click on empty paper ends the trace. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused\nasset's edges (Enter traces an edge's columns, Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
           "name": "MmLineageCanvas",
           "cssProperties": [
             {
@@ -25267,6 +25267,45 @@
                 "text": "string"
               },
               "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "#trace",
+              "privacy": "private",
+              "type": {
+                "text": "{ source: string; target: string } | null"
+              },
+              "default": "null",
+              "description": "Edge whose columns are traced, by its endpoints so it survives relayout."
+            },
+            {
+              "kind": "field",
+              "name": "#traceEdge",
+              "privacy": "private",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "View id of the traced edge in the current layout."
+            },
+            {
+              "kind": "field",
+              "name": "#hoverCol",
+              "privacy": "private",
+              "type": {
+                "text": "{ node: string; col: string } | null"
+              },
+              "default": "null",
+              "description": "Column under the pointer, and one pinned by a click (touch has no hover)."
+            },
+            {
+              "kind": "field",
+              "name": "#pinnedCol",
+              "privacy": "private",
+              "type": {
+                "text": "{ node: string; col: string } | null"
+              },
+              "default": "null"
             },
             {
               "kind": "field",
@@ -25744,7 +25783,16 @@
                 "type": {
                   "text": "{ id: string; sx: number; sy: number } | null"
                 }
-              }
+              },
+              "parameters": [
+                {
+                  "name": "prefer",
+                  "optional": true,
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
             },
             {
               "kind": "method",
@@ -25997,6 +26045,89 @@
             },
             {
               "kind": "method",
+              "name": "#activateEdge",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "edge",
+                  "type": {
+                    "text": "ViewEdge"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#clearTrace",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#applyTrace",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "view",
+                  "type": {
+                    "text": "ViewGraph"
+                  }
+                },
+                {
+                  "name": "trace",
+                  "type": {
+                    "text": "{ source: string; target: string }"
+                  }
+                }
+              ],
+              "description": "Lists the traced edge's columns on its two assets and sizes them to fit, before layout, so dagre\nmakes room. Source columns follow the order of the columns they feed, which keeps lines from crossing."
+            },
+            {
+              "kind": "method",
+              "name": "#revealTrace",
+              "privacy": "private",
+              "description": "Brings both traced assets into view, zooming out only as far as needed."
+            },
+            {
+              "kind": "field",
+              "name": "#activeCol",
+              "privacy": "private",
+              "type": {
+                "text": "{ node: string; col: string } | null"
+              },
+              "description": "The column whose path is highlighted: the pinned one, else the one under the pointer.",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "#activeMappings",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "LineageColumnMapping[]"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "ViewEdge"
+                  }
+                }
+              ],
+              "description": "Mappings on the traced edge that touch the active column."
+            },
+            {
+              "kind": "field",
+              "name": "#onViewportClick",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
               "name": "#setFullscreen",
               "privacy": "private",
               "parameters": [
@@ -26117,6 +26248,24 @@
             },
             {
               "kind": "method",
+              "name": "#chipBase",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "ViewEdge"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "#edgeLabel",
               "privacy": "private",
               "return": {
@@ -26207,6 +26356,77 @@
             },
             {
               "kind": "method",
+              "name": "#columnPorts",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "Map<string, [number, number]>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "towards",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Row ends for a traced asset's columns, in graph space, on the side facing the other asset."
+            },
+            {
+              "kind": "method",
+              "name": "#renderTrace",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult | typeof nothing"
+                }
+              },
+              "description": "Lines joining each traced source column to the column it feeds."
+            },
+            {
+              "kind": "method",
+              "name": "#activeColumnsOn",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "string[]"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "ViewEdge"
+                  }
+                },
+                {
+                  "name": "id",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#renderTraceChip",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult | typeof nothing"
+                }
+              },
+              "description": "The derivation of the highlighted column, on its line, so the change is read where it happens."
+            },
+            {
+              "kind": "method",
               "name": "#renderMinimap",
               "privacy": "private",
               "return": {
@@ -26287,6 +26507,13 @@
               "name": "mm-options-change",
               "type": {
                 "text": "CustomEvent<MmLineageOptionsDetail>"
+              }
+            },
+            {
+              "description": "An edge was clicked or Enter was pressed on it. Cancelable: cancel it to skip the column trace.",
+              "name": "mm-edge-activate",
+              "type": {
+                "text": "CustomEvent<MmLineageEdgeActivateDetail>"
               }
             },
             {
@@ -26505,6 +26732,14 @@
         },
         {
           "kind": "js",
+          "name": "LineageColumnMapping",
+          "declaration": {
+            "name": "LineageColumnMapping",
+            "module": "./layout.js"
+          }
+        },
+        {
+          "kind": "js",
           "name": "MmLineageCanvas",
           "declaration": {
             "name": "MmLineageCanvas",
@@ -26687,6 +26922,32 @@
       "declarations": [
         {
           "kind": "variable",
+          "name": "COLUMN_ROW_HEIGHT",
+          "type": {
+            "text": "number"
+          },
+          "default": "24",
+          "description": "Height of one column row, and the space above the first row, in px. The canvas places column lines with these."
+        },
+        {
+          "kind": "variable",
+          "name": "COLUMN_LIST_TOP",
+          "type": {
+            "text": "number"
+          },
+          "default": "13"
+        },
+        {
+          "kind": "variable",
+          "name": "NODE_BOTTOM_INSET",
+          "type": {
+            "text": "number"
+          },
+          "default": "11",
+          "description": "Border plus bottom padding of the card: the last column row ends this far above the card's bottom edge."
+        },
+        {
+          "kind": "variable",
           "name": "NODE_WIDTH",
           "type": {
             "text": "Record<LineageNodeVariant, number>"
@@ -26706,7 +26967,7 @@
             {
               "name": "n",
               "type": {
-                "text": "{ name: string; variant?: LineageNodeVariant; failed?: boolean; members?: number }"
+                "text": "{\n  name: string;\n  variant?: LineageNodeVariant;\n  failed?: boolean;\n  members?: number;\n  columns?: number;\n}"
               }
             }
           ],
@@ -26714,7 +26975,7 @@
         },
         {
           "kind": "class",
-          "description": "Lineage nodes are compact cards on the lineage canvas: a sentence-case caption naming the asset\ntype (\"Table\", \"Topic · stub\"), the asset name (13px, 600, wrapping anywhere so long MRN-like names never overflow), and the provider\nwith its logo. Provider logos are the only colour; they are never recoloured.\n\nStates, each carried by shape or words as well as colour:\n- `current`: the asset whose page you are on. 2px burnt sienna border on the burnt sienna tint. One per graph.\n- `selected`: a 2px ink border and a tick at the end of the type strip. It is deliberately not the\n  focus ring (a detached 2px ink outline with a 2px gap) and not burnt sienna, so current, selected and\n  focused can all be told apart, alone or combined.\n- `stub`: created by OpenLineage but not yet surveyed by a plugin. Dashed border on a transparent\n  ground, \"stub\" in the type strip, and \"Not catalogued yet\" for assistive technology.\n- `failed`: the last run failed. A crimson error icon and the words \"Last run failed\".\n\nVariants: `cycle-return` closes a cycle without drawing an edge backwards (\"Returns to orders_daily\",\ndotted ochre border, matching cycle edges). `agent-cluster` groups agents that looked up one asset\n(\"4 agents looked this up\") and expands to list them.\n\nStandalone, set `interactive` to render the node as a button that fires `mm-node-activate`. Inside\n`mm-lineage-canvas` the canvas owns focus and keyboard, so nodes are not tab stops there.",
+          "description": "Lineage nodes are compact cards on the lineage canvas: a sentence-case caption naming the asset\ntype (\"Table\", \"Topic · stub\"), the asset name (13px, 600, wrapping anywhere so long MRN-like names never overflow), and the provider\nwith its logo. Provider logos are the only colour; they are never recoloured.\n\nStates, each carried by shape or words as well as colour:\n- `current`: the asset whose page you are on. 2px burnt sienna border on the burnt sienna tint. One per graph.\n- `selected`: a 2px ink border and a tick at the end of the type strip. It is deliberately not the\n  focus ring (a detached 2px ink outline with a 2px gap) and not burnt sienna, so current, selected and\n  focused can all be told apart, alone or combined.\n- `stub`: created by OpenLineage but not yet surveyed by a plugin. Dashed border on a transparent\n  ground, \"stub\" in the type strip, and \"Not catalogued yet\" for assistive technology.\n- `failed`: the last run failed. A crimson error icon and the words \"Last run failed\".\n\nVariants: `cycle-return` closes a cycle without drawing an edge backwards (\"Returns to orders_daily\",\ndotted ochre border, matching cycle edges). `agent-cluster` groups agents that looked up one asset\n(\"4 agents looked this up\") and expands to list them.\n\n`muted` recedes the card while the canvas traces columns through other assets, keeping its text\nat readable contrast.\n\n`columns` lists columns below the provider while the canvas traces column lineage. Rows have a fixed\nheight and sit at the bottom of the card so the canvas can join them with lines; a column derived by\nan expression carries a function icon. Set `--_h` to give the card an exact height.\n\nStandalone, set `interactive` to render the node as a button that fires `mm-node-activate`. Inside\n`mm-lineage-canvas` the canvas owns focus and keyboard, so nodes are not tab stops there.",
           "name": "MmLineageNode",
           "cssParts": [
             {
@@ -26740,6 +27001,10 @@
             {
               "description": "The agent cluster's show or hide button.",
               "name": "toggle"
+            },
+            {
+              "description": "The column list.",
+              "name": "columns"
             }
           ],
           "members": [
@@ -26892,6 +27157,35 @@
             },
             {
               "kind": "field",
+              "name": "columns",
+              "type": {
+                "text": "LineageNodeColumn[]"
+              },
+              "default": "[]",
+              "description": "Columns shown while the canvas traces column lineage through this asset."
+            },
+            {
+              "kind": "field",
+              "name": "muted",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Set by the canvas while column lineage is traced elsewhere: the card recedes but its text stays readable.",
+              "attribute": "muted",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "activeColumns",
+              "type": {
+                "text": "string[]"
+              },
+              "default": "[]",
+              "description": "Names of columns to highlight; the others fade."
+            },
+            {
+              "kind": "field",
               "name": "#count",
               "privacy": "private",
               "type": {
@@ -26951,6 +27245,16 @@
             {
               "kind": "method",
               "name": "#body",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#columnList",
               "privacy": "private",
               "return": {
                 "type": {
@@ -27092,6 +27396,15 @@
               "default": "false",
               "description": "Agent cluster: whether the agent list is shown.",
               "fieldName": "expanded"
+            },
+            {
+              "name": "muted",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Set by the canvas while column lineage is traced elsewhere: the card recedes but its text stays readable.",
+              "fieldName": "muted"
             }
           ],
           "superclass": {
@@ -27104,6 +27417,30 @@
         }
       ],
       "exports": [
+        {
+          "kind": "js",
+          "name": "COLUMN_ROW_HEIGHT",
+          "declaration": {
+            "name": "COLUMN_ROW_HEIGHT",
+            "module": "src/components/lineage-node/class.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "COLUMN_LIST_TOP",
+          "declaration": {
+            "name": "COLUMN_LIST_TOP",
+            "module": "src/components/lineage-node/class.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "NODE_BOTTOM_INSET",
+          "declaration": {
+            "name": "NODE_BOTTOM_INSET",
+            "module": "src/components/lineage-node/class.ts"
+          }
+        },
         {
           "kind": "js",
           "name": "NODE_WIDTH",

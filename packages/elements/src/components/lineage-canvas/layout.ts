@@ -7,7 +7,12 @@
  * thread for large graphs.
  */
 import { graphlib, layout as dagreLayout } from '@dagrejs/dagre';
-import { NODE_WIDTH, estimateNodeHeight, type LineageNodeVariant } from '../lineage-node/class.js';
+import {
+  NODE_WIDTH,
+  estimateNodeHeight,
+  type LineageNodeColumn,
+  type LineageNodeVariant,
+} from '../lineage-node/class.js';
 
 export type LineageEdgeKind = 'CONTAINS' | 'FEEDS' | 'PRODUCES' | 'REFERENCES' | 'AGENT_LOOKUP';
 export type LineageEdgeOrigin = 'declared' | 'observed' | 'mixed';
@@ -28,6 +33,16 @@ export interface LineageGraphNode {
   hiddenDownstream?: number;
 }
 
+/** One column of an edge's target and the source columns it is derived from. */
+export interface LineageColumnMapping {
+  /** Source-asset columns the target column is derived from. More than one means they are combined. */
+  from: string[];
+  /** The target-asset column. */
+  to: string;
+  /** How `from` becomes `to`, e.g. `first_name || ' ' || last_name`. Free text shown as-is; leave it out for plain copies. */
+  transform?: string;
+}
+
 export interface LineageGraphEdge {
   source: string;
   target: string;
@@ -41,6 +56,8 @@ export interface LineageGraphEdge {
   lastSeen?: string;
   /** The job that produces the edge, e.g. `dbt run orders_daily` or a job MRN. */
   job?: string;
+  /** Column-level lineage: which source columns each target column comes from. */
+  columns?: LineageColumnMapping[];
 }
 
 export interface LineageGraph {
@@ -77,6 +94,8 @@ export interface ViewNode {
   memberIds?: string[];
   hiddenUp: number;
   hiddenDown: number;
+  /** Columns listed on the node while column lineage is traced through it. */
+  columns?: LineageNodeColumn[];
   w: number;
   h: number;
 }
@@ -92,6 +111,7 @@ export interface ViewEdge {
   observations?: number;
   lastSeen?: string;
   job?: string;
+  columns?: LineageColumnMapping[];
 }
 
 export interface ViewGraph {
@@ -102,7 +122,8 @@ export interface ViewGraph {
 }
 
 const kindOf = (e: LineageGraphEdge): LineageEdgeKind => e.kind ?? 'FEEDS';
-const originOf = (e: LineageGraphEdge): LineageEdgeOrigin => e.origin ?? (kindOf(e) === 'AGENT_LOOKUP' ? 'observed' : 'declared');
+const originOf = (e: LineageGraphEdge): LineageEdgeOrigin =>
+  e.origin ?? (kindOf(e) === 'AGENT_LOOKUP' ? 'observed' : 'declared');
 
 /** Builds the drawn graph from the app's lineage response. Pure; safe to call on every toggle. */
 export function prepareGraph(graph: LineageGraph, opts: PrepareOptions): ViewGraph {
@@ -222,7 +243,11 @@ export function prepareGraph(graph: LineageGraph, opts: PrepareOptions): ViewGra
       h: estimateNodeHeight({ name: '', variant: 'agent-cluster' }),
     });
     const observations = merged.reduce((s, e) => s + (e.observations ?? 0), 0);
-    const lastSeen = merged.map((e) => e.lastSeen ?? '').sort().pop() || undefined;
+    const lastSeen =
+      merged
+        .map((e) => e.lastSeen ?? '')
+        .sort()
+        .pop() || undefined;
     shown.push({
       source: g.agentIsSource ? key : g.anchor,
       target: g.agentIsSource ? g.anchor : key,
@@ -290,9 +315,29 @@ export function prepareGraph(graph: LineageGraph, opts: PrepareOptions): ViewGra
         w: NODE_WIDTH['cycle-return'],
         h: estimateNodeHeight({ name: target.name, variant: 'cycle-return' }),
       });
-      viewEdges.push({ id, source: e.source, target: rid, kind: kindOf(e), origin: 'cycle', observations: e.observations, lastSeen: e.lastSeen, job: e.job });
+      viewEdges.push({
+        id,
+        source: e.source,
+        target: rid,
+        kind: kindOf(e),
+        origin: 'cycle',
+        observations: e.observations,
+        lastSeen: e.lastSeen,
+        job: e.job,
+        columns: e.columns,
+      });
     } else {
-      viewEdges.push({ id, source: e.source, target: e.target, kind: kindOf(e), origin: originOf(e), observations: e.observations, lastSeen: e.lastSeen, job: e.job });
+      viewEdges.push({
+        id,
+        source: e.source,
+        target: e.target,
+        kind: kindOf(e),
+        origin: originOf(e),
+        observations: e.observations,
+        lastSeen: e.lastSeen,
+        job: e.job,
+        columns: e.columns,
+      });
     }
   });
 
@@ -331,7 +376,14 @@ export function runLayout(
 ): LayoutOutput {
   const t0 = performance.now();
   const g = new dagre.graphlib.Graph({ multigraph: true });
-  g.setGraph({ rankdir: 'LR', nodesep: input.nodesep, ranksep: input.ranksep, ranker: input.ranker, marginx: 0, marginy: 0 });
+  g.setGraph({
+    rankdir: 'LR',
+    nodesep: input.nodesep,
+    ranksep: input.ranksep,
+    ranker: input.ranker,
+    marginx: 0,
+    marginy: 0,
+  });
   g.setDefaultEdgeLabel(() => ({}));
   const size: Record<string, { w: number; h: number }> = {};
   for (const n of input.nodes) {
@@ -491,11 +543,17 @@ export function resolveDagreUrl(explicit: string): string {
 }
 
 /** Lays the graph out, in a worker when the graph is large and a worker can import dagre; synchronously otherwise. */
-export async function layoutGraph(input: LayoutInput, moduleUrl: string): Promise<LayoutOutput & { where: 'worker' | 'main' }> {
+export async function layoutGraph(
+  input: LayoutInput,
+  moduleUrl: string,
+): Promise<LayoutOutput & { where: 'worker' | 'main' }> {
   const big = input.nodes.length > WORKER_THRESHOLD;
   const url = big ? resolveDagreUrl(moduleUrl) : '';
   // No URL for dagre: embed a prebuilt copy in the worker, loaded lazily so small graphs never pay for it.
-  const embedded = big && !url && typeof Worker !== 'undefined' && worker === undefined ? (await import('./dagre-source.generated.js')).default : '';
+  const embedded =
+    big && !url && typeof Worker !== 'undefined' && worker === undefined
+      ? (await import('./dagre-source.generated.js')).default
+      : '';
   if (big && (url || embedded || worker) && typeof Worker !== 'undefined') {
     const w = getWorker(embedded);
     if (w) {
