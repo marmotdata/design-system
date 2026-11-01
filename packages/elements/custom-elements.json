@@ -5379,6 +5379,11 @@
             },
             {
               "kind": "field",
+              "name": "#onFocus",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
               "name": "#hideTip",
               "privacy": "private"
             }
@@ -24928,7 +24933,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch. Embedded in a page that scrolls (a docs or\nmarketing page), set `modifier-zoom` so the wheel scrolls the page and zooms only with Ctrl or ⌘.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. An edge with column-level lineage (`columns`) adds its\ncolumn count to the chip. Clicking it or pressing Enter on it traces the columns: both assets list\nthe mapped columns, a line joins each source column to the column it feeds, and the rest of the\ngraph fades. Hovering or clicking a column highlights its path and shows how it is derived. Escape,\n\"Hide columns\" or a click on empty paper ends the trace. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused\nasset's edges (Enter traces an edge's columns, Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
+          "description": "The lineage canvas draws how data moves between assets: HTML nodes on one transformed layer, SVG\nedges beneath, on survey paper with a 16px dot grid that pans and zooms with the content. Layout\nis dagre, left to right (mirrored in right-to-left documents), run in a worker for large graphs.\nPan and zoom use d3-zoom: drag, wheel and pinch. Embedded in a page that scrolls (a docs or\nmarketing page), set `modifier-zoom` so the wheel scrolls the page and zooms only with Ctrl or ⌘.\n\nEdges never rely on colour alone: declared edges are solid ink-3, observed edges dashed moss,\nmixed edges solid with a dashed overlay, and cycle edges dotted ochre ending in a \"Returns to\"\nnode rather than doubling back. Edge chips (origin and run count, or the job) appear on hover or\nfocus, or always with `show-edge-labels`. An edge with column-level lineage (`columns`) adds its\ncolumn count to the chip. Clicking it or pressing Enter on it traces the columns: both assets list\nthe mapped columns, a line joins each source column to the column it feeds, and the rest of the\ngraph fades. Hovering or clicking a column highlights its path and shows how it is derived. Escape,\n\"Hide columns\" or a click on empty paper ends the trace. Agents that looked an asset up are grouped into one\nagent cluster that expands. Nodes with neighbours beyond the depth show a \"+3 upstream\" handle.\n\nAssets can be dragged to rearrange the graph, and Shift with an arrow key nudges the focused one;\ntheir edges follow. Moved assets keep their place when the layout reruns (a depth change, a toggle,\na column trace) until \"Reset layout\" puts everything back. Set `fixed-layout` to turn this off.\n\nKeyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves\ndownstream along an edge and Left upstream (flipped right to left), Up and Down move between assets\nin the same column, Enter opens (`mm-node-activate`), Space selects, Shift with an arrow moves the asset, E steps through the focused\nasset's edges (Enter traces an edge's columns, Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current\nasset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.\n\nPerformance: only nodes and edges in view plus a margin are rendered, panning moves one CSS\ntransform, and below 40% zoom nodes become plain shapes. 2,000 nodes pan at display rate.\n\nFull screen is in-page (`fullscreen`); making it deep-linkable is the app's job, from\n`mm-fullscreen-change`.",
           "name": "MmLineageCanvas",
           "cssProperties": [
             {
@@ -25048,6 +25053,17 @@
               "default": "false",
               "description": "The wheel zooms only while Ctrl or ⌘ is held, so a canvas inside a scrolling page never traps\nthe scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).",
               "attribute": "modifier-zoom",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "fixedLayout",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Keeps assets where the layout puts them: no dragging, nudging or \"Reset layout\". For static graphs such as docs and marketing pages.",
+              "attribute": "fixed-layout",
               "reflects": true
             },
             {
@@ -25267,6 +25283,43 @@
                 "text": "string"
               },
               "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "#moved",
+              "privacy": "private",
+              "default": "new Map<string, [number, number]>()",
+              "description": "Assets the person moved, by id: their centres in graph coordinates, kept across relayouts."
+            },
+            {
+              "kind": "field",
+              "name": "#drag",
+              "privacy": "private",
+              "type": {
+                "text": "{ id: string; pointer: number; sx: number; sy: number; nx: number; ny: number; moved: boolean } | null"
+              },
+              "default": "null",
+              "description": "The node being dragged: pointer start, node start, and whether it has moved past the click threshold."
+            },
+            {
+              "kind": "field",
+              "name": "#dragged",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Set when a drag ends, so the click that follows does not open the asset."
+            },
+            {
+              "kind": "field",
+              "name": "#moveSeq",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "Bumped on every move so the minimap redraws."
             },
             {
               "kind": "field",
@@ -25671,6 +25724,107 @@
             {
               "kind": "method",
               "name": "#fit",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#extent",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "{ x0: number; y0: number; w: number; h: number }"
+                }
+              },
+              "description": "The drawn graph's bounds: the layout's box, grown to take in any asset moved outside it."
+            },
+            {
+              "kind": "method",
+              "name": "#reroute",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "l",
+                  "type": {
+                    "text": "LayoutOutput"
+                  }
+                },
+                {
+                  "name": "view",
+                  "type": {
+                    "text": "ViewGraph"
+                  }
+                },
+                {
+                  "name": "ids",
+                  "type": {
+                    "text": "ReadonlySet<string>"
+                  }
+                }
+              ],
+              "description": "Redraws the edges touching moved assets as one smooth curve between their facing sides."
+            },
+            {
+              "kind": "method",
+              "name": "#moveNode",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "x",
+                  "type": {
+                    "text": "number"
+                  }
+                },
+                {
+                  "name": "y",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Moves an asset to a centre in graph coordinates and reroutes its edges."
+            },
+            {
+              "kind": "method",
+              "name": "#emitMove",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "resetLayout",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Puts every moved asset back where the layout placed it."
+            },
+            {
+              "kind": "field",
+              "name": "#onNodeDown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#onNodeMove",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#onNodeUp",
               "privacy": "private"
             },
             {
@@ -26510,6 +26664,20 @@
               }
             },
             {
+              "description": "An asset was dragged or nudged to a new place.",
+              "name": "mm-node-move",
+              "type": {
+                "text": "CustomEvent<MmLineageNodeMoveDetail>"
+              }
+            },
+            {
+              "description": "\"Reset layout\" put moved assets back.",
+              "name": "mm-layout-reset",
+              "type": {
+                "text": "CustomEvent<Record<string, never>>"
+              }
+            },
+            {
               "description": "An edge was clicked or Enter was pressed on it. Cancelable: cancel it to skip the column trace.",
               "name": "mm-edge-activate",
               "type": {
@@ -26608,6 +26776,15 @@
               "default": "false",
               "description": "The wheel zooms only while Ctrl or ⌘ is held, so a canvas inside a scrolling page never traps\nthe scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).",
               "fieldName": "modifierZoom"
+            },
+            {
+              "name": "fixed-layout",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Keeps assets where the layout puts them: no dragging, nudging or \"Reset layout\". For static graphs such as docs and marketing pages.",
+              "fieldName": "fixedLayout"
             },
             {
               "name": "editable",

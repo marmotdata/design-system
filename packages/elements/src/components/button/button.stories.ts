@@ -1,11 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/web-components-vite';
 import { html } from 'lit';
 import { expect, fn, userEvent } from 'storybook/test';
-import { deepActive, press, tab } from '../../../../../apps/storybook/src/support/keys.ts';
+import { click, deepActive, press, tab } from '../../../../../apps/storybook/src/support/keys.ts';
 import { themes } from '../../../../../apps/storybook/src/support/themes.ts';
 import '@marmotdata/elements/button.js';
 
-type Args = { variant: string; size: string; icon: string; label: string; disabled: boolean; loading: boolean; text: string };
+type Args = {
+  variant: string;
+  size: string;
+  icon: string;
+  label: string;
+  disabled: boolean;
+  loading: boolean;
+  text: string;
+};
 
 const meta: Meta<Args> = {
   title: 'Components/Actions/Button',
@@ -17,7 +25,15 @@ const meta: Meta<Args> = {
     text: { name: 'label text (slot)' },
   },
   render: (a) =>
-    html`<mm-button variant=${a.variant} size=${a.size} icon=${a.icon} label=${a.label} ?disabled=${a.disabled} ?loading=${a.loading}>${a.text}</mm-button>`,
+    html`<mm-button
+      variant=${a.variant}
+      size=${a.size}
+      icon=${a.icon}
+      label=${a.label}
+      ?disabled=${a.disabled}
+      ?loading=${a.loading}
+      >${a.text}</mm-button
+    >`,
   parameters: {
     usage: {
       html: `<mm-button variant="primary" icon="play-arrow">Run query</mm-button>
@@ -46,14 +62,15 @@ export const Danger: Story = { args: { variant: 'danger', text: 'Delete asset', 
 export const Small: Story = { args: { size: 'sm', variant: 'secondary', text: 'Run now', icon: 'play-arrow' } };
 
 export const AllVariants: Story = {
-  render: () => html`<div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center">
-    <mm-button variant="primary" icon="play-arrow">Run query</mm-button>
-    <mm-button variant="secondary" icon="add">Add plugin</mm-button>
-    <mm-button variant="ghost" icon="account-tree">View lineage</mm-button>
-    <mm-button variant="danger" icon="delete">Delete asset</mm-button>
-    <mm-button variant="secondary" size="sm" icon="play-arrow">Run now</mm-button>
-    <mm-button variant="ghost" icon="content-copy" label="Copy MRN"></mm-button>
-  </div>`,
+  render: () =>
+    html`<div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center">
+      <mm-button variant="primary" icon="play-arrow">Run query</mm-button>
+      <mm-button variant="secondary" icon="add">Add plugin</mm-button>
+      <mm-button variant="ghost" icon="account-tree">View lineage</mm-button>
+      <mm-button variant="danger" icon="delete">Delete asset</mm-button>
+      <mm-button variant="secondary" size="sm" icon="play-arrow">Run now</mm-button>
+      <mm-button variant="ghost" icon="content-copy" label="Copy MRN"></mm-button>
+    </div>`,
 };
 
 export const IconOnly: Story = {
@@ -65,8 +82,16 @@ export const IconOnly: Story = {
   },
 };
 
-export const Hover: Story = { args: { icon: 'play-arrow' }, parameters: { pseudo: { hover: true } }, render: () => html`<div style="display:flex;gap:var(--space-2)">
-  <mm-button variant="primary">Run query</mm-button><mm-button variant="secondary">Add plugin</mm-button><mm-button variant="ghost">View lineage</mm-button><mm-button variant="danger" icon="delete">Delete asset</mm-button></div>` };
+export const Hover: Story = {
+  args: { icon: 'play-arrow' },
+  parameters: { pseudo: { hover: true } },
+  render: () =>
+    html`<div style="display:flex;gap:var(--space-2)">
+      <mm-button variant="primary">Run query</mm-button><mm-button variant="secondary">Add plugin</mm-button
+      ><mm-button variant="ghost">View lineage</mm-button
+      ><mm-button variant="danger" icon="delete">Delete asset</mm-button>
+    </div>`,
+};
 export const Active: Story = { parameters: { pseudo: { active: true } }, render: Hover.render };
 export const Focus: Story = {
   args: { icon: 'play-arrow' },
@@ -75,17 +100,55 @@ export const Focus: Story = {
     await expect(deepActive()).toBe(canvasElement.querySelector('mm-button')!.shadowRoot!.querySelector('button'));
   },
 };
-export const Disabled: Story = { render: () => html`<div style="display:flex;gap:var(--space-2)">
-  <mm-button variant="primary" disabled>Run query</mm-button><mm-button variant="secondary" disabled>Add plugin</mm-button><mm-button variant="ghost" disabled>View lineage</mm-button><mm-button variant="danger" icon="delete" disabled>Delete asset</mm-button></div>` };
+export const Disabled: Story = {
+  render: () =>
+    html`<div style="display:flex;gap:var(--space-2)">
+      <mm-button variant="primary" disabled>Run query</mm-button
+      ><mm-button variant="secondary" disabled>Add plugin</mm-button
+      ><mm-button variant="ghost" disabled>View lineage</mm-button
+      ><mm-button variant="danger" icon="delete" disabled>Delete asset</mm-button>
+    </div>`,
+};
 export const Loading: Story = { args: { loading: true, text: 'Running query' } };
 export const LongLabel: Story = {
   name: 'Overflowing content',
-  render: () => html`<div style="width:260px;display:grid;gap:var(--space-2)">
-    <mm-button variant="secondary" icon="table">Open mrn://postgresql/table/shop.public.orders_daily_rollup</mm-button>
-    <p style="font:var(--text-caption);color:var(--mm-text-2);margin:0">Labels never wrap. Keep them to a verb and an object; long identifiers belong in the page, not the button.</p>
-  </div>`,
+  render: () =>
+    html`<div style="width:260px;display:grid;gap:var(--space-2)">
+      <mm-button variant="secondary" icon="table"
+        >Open mrn://postgresql/table/shop.public.orders_daily_rollup</mm-button
+      >
+      <p style="font:var(--text-caption);color:var(--mm-text-2);margin:0">
+        Labels never wrap. Keep them to a verb and an object; long identifiers belong in the page, not the button.
+      </p>
+    </div>`,
 };
-export const RightToLeft: Story = { parameters: { dir: 'rtl' }, args: { icon: 'arrow-forward', text: 'تشغيل الاستعلام' } };
+export const RightToLeft: Story = {
+  parameters: { dir: 'rtl' },
+  args: { icon: 'arrow-forward', text: 'تشغيل الاستعلام' },
+};
+
+export const TooltipOnKeyboardFocusOnly: Story = {
+  name: 'Tooltip: keyboard focus shows it, focus moved after a click does not',
+  render: () =>
+    html`<div style="display:flex;gap:var(--space-2)">
+      <mm-button variant="secondary" id="open">Open blade</mm-button>
+      <mm-button variant="ghost" icon="close" label="Close" id="close"></mm-button>
+    </div>`,
+  play: async ({ canvasElement }) => {
+    const open = canvasElement.querySelector<HTMLElement>('#open')!;
+    const close = canvasElement.querySelector<HTMLElement & { focus(): void }>('#close')!;
+    const tip = () => close.shadowRoot!.querySelector('.tip')!.matches(':popover-open');
+    // A blade opened by a click moves focus to its close button from script.
+    await click(open);
+    close.focus();
+    await expect(deepActive()).toBe(close.shadowRoot!.querySelector('button'));
+    await expect(tip()).toBe(false);
+    // Reaching it with the keyboard shows the tooltip.
+    open.focus();
+    await tab();
+    await expect(tip()).toBe(true);
+  },
+};
 
 export const KeyboardActivation: Story = {
   name: 'Keyboard: Enter and Space activate',
@@ -103,9 +166,15 @@ const onClick = fn();
 
 export const SubmitsForm: Story = {
   name: 'Submits a native form',
-  render: () => html`<form @submit=${(e: SubmitEvent) => { e.preventDefault(); onSubmit(new FormData(e.target as HTMLFormElement, e.submitter).get('intent')); }}>
-    <mm-button variant="primary" type="submit" name="intent" value="run">Run query</mm-button>
-  </form>`,
+  render: () =>
+    html`<form
+      @submit=${(e: SubmitEvent) => {
+        e.preventDefault();
+        onSubmit(new FormData(e.target as HTMLFormElement, e.submitter).get('intent'));
+      }}
+    >
+      <mm-button variant="primary" type="submit" name="intent" value="run">Run query</mm-button>
+    </form>`,
   play: async ({ canvasElement }) => {
     onSubmit.mockClear();
     await userEvent.click(canvasElement.querySelector('mm-button')!);

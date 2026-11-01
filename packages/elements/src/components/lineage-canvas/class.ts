@@ -90,6 +90,13 @@ export interface MmLineageEdgeActivateDetail {
   kind: string;
   columns: LineageColumnMapping[];
 }
+/** Detail for `mm-node-move`: the node's new centre in graph coordinates. */
+export interface MmLineageNodeMoveDetail {
+  id: string;
+  mrn: string;
+  x: number;
+  y: number;
+}
 /** Detail for `mm-add-lineage`. */
 export interface MmLineageAddDetail {
   id: string;
@@ -127,9 +134,13 @@ const MAX_SCALE = 2;
  * "Hide columns" or a click on empty paper ends the trace. Agents that looked an asset up are grouped into one
  * agent cluster that expands. Nodes with neighbours beyond the depth show a "+3 upstream" handle.
  *
+ * Assets can be dragged to rearrange the graph, and Shift with an arrow key nudges the focused one;
+ * their edges follow. Moved assets keep their place when the layout reruns (a depth change, a toggle,
+ * a column trace) until "Reset layout" puts everything back. Set `fixed-layout` to turn this off.
+ *
  * Keyboard: the canvas is one tab stop (an `application` with `aria-activedescendant`). Right moves
  * downstream along an edge and Left upstream (flipped right to left), Up and Down move between assets
- * in the same column, Enter opens (`mm-node-activate`), Space selects, E steps through the focused
+ * in the same column, Enter opens (`mm-node-activate`), Space selects, Shift with an arrow moves the asset, E steps through the focused
  * asset's edges (Enter traces an edge's columns, Delete removes one when `editable`), + and - zoom, 0 fits, F returns to the current
  * asset, and Escape leaves full screen. The minimap is a second tab stop: arrows pan, + and - zoom.
  *
@@ -154,6 +165,8 @@ const MAX_SCALE = 2;
  * @fires mm-viewport-change - {MmLineageViewportDetail} A pan or zoom ended.
  * @fires mm-fullscreen-change - {MmLineageFullscreenDetail} Full screen was entered or left.
  * @fires mm-options-change - {MmLineageOptionsDetail} Depth, Observed or Structure changed.
+ * @fires mm-node-move - {MmLineageNodeMoveDetail} An asset was dragged or nudged to a new place.
+ * @fires mm-layout-reset - {Record<string, never>} "Reset layout" put moved assets back.
  * @fires mm-edge-activate - {MmLineageEdgeActivateDetail} An edge was clicked or Enter was pressed on it. Cancelable: cancel it to skip the column trace.
  * @fires mm-edge-delete - {MmLineageEdgeDeleteDetail} Delete was asked for on an edge (`editable` only). The app confirms and removes it.
  * @fires mm-add-lineage - {MmLineageAddDetail} "Add upstream" or "Add downstream" was pressed for the selected asset (`editable` only).
@@ -250,6 +263,11 @@ export class MmLineageCanvas extends LitElement {
         position: absolute;
         transform: translate(-50%, -50%);
         cursor: pointer;
+        touch-action: none;
+      }
+      :host([data-dragging]) .viewport,
+      :host([data-dragging]) .n {
+        cursor: grabbing;
       }
       .n mm-lineage-node:not([current]):not([selected]):hover::part(node) {
         border-color: var(--mm-text);
@@ -586,6 +604,8 @@ export class MmLineageCanvas extends LitElement {
    * the scroll. Trackpad pinch still zooms (browsers report it as a wheel with Ctrl).
    */
   @property({ type: Boolean, reflect: true, attribute: 'modifier-zoom' }) accessor modifierZoom = false;
+  /** Keeps assets where the layout puts them: no dragging, nudging or "Reset layout". For static graphs such as docs and marketing pages. */
+  @property({ type: Boolean, reflect: true, attribute: 'fixed-layout' }) accessor fixedLayout = false;
   /** Offers "Add upstream", "Add downstream" and edge deletion. */
   @property({ type: Boolean, reflect: true }) accessor editable = false;
   /** Shows the topographic loading field (after 200ms, for at least 400ms). */
@@ -626,6 +646,14 @@ export class MmLineageCanvas extends LitElement {
   #focus: Focus | null = null;
   #edgeAnchor = '';
   #hoverEdge = '';
+  /** Assets the person moved, by id: their centres in graph coordinates, kept across relayouts. */
+  #moved = new Map<string, [number, number]>();
+  /** The node being dragged: pointer start, node start, and whether it has moved past the click threshold. */
+  #drag: { id: string; pointer: number; sx: number; sy: number; nx: number; ny: number; moved: boolean } | null = null;
+  /** Set when a drag ends, so the click that follows does not open the asset. */
+  #dragged = false;
+  /** Bumped on every move so the minimap redraws. */
+  #moveSeq = 0;
   /** Edge whose columns are traced, by its endpoints so it survives relayout. */
   #trace: { source: string; target: string } | null = null;
   /** View id of the traced edge in the current layout. */
@@ -690,6 +718,7 @@ export class MmLineageCanvas extends LitElement {
         this.#lastCurrent = this.graph.currentId;
         this.#expandedClusters.clear();
         this.#revealed.clear();
+        this.#moved.clear();
         this.#focus = null;
         this.#needsInitialView = true;
         this.#userMoved = false;
@@ -697,6 +726,10 @@ export class MmLineageCanvas extends LitElement {
       this.#queueRelayout();
     }
     if (changed.has('depth') || changed.has('showObserved') || changed.has('hideStructure')) this.#queueRelayout();
+    if (changed.has('fixedLayout') && this.fixedLayout && this.#moved.size) {
+      this.#moved.clear();
+      this.#queueRelayout();
+    }
   }
 
   #queueRelayout() {
@@ -713,7 +746,7 @@ export class MmLineageCanvas extends LitElement {
       .filter((e: Event) => {
         if (e.type === 'wheel') return !this.modifierZoom || (e as WheelEvent).ctrlKey || (e as WheelEvent).metaKey;
         const t = e.target as Element | null;
-        if (t?.closest?.('button, .chip')) return false;
+        if (t?.closest?.('button, .chip, .n')) return false;
         return !(e as MouseEvent).button;
       })
       .on('start', () => this.#layer && (this.#layer.style.willChange = 'transform'))
@@ -808,6 +841,10 @@ export class MmLineageCanvas extends LitElement {
     }
     if (seq !== this.#layoutSeq) return;
     this.#layingOut = false;
+    if (out && this.#moved.size) {
+      for (const [id, p] of this.#moved) if (out.nodes[id]) out.nodes[id] = [p[0], p[1]];
+      this.#reroute(out, view, new Set(this.#moved.keys()));
+    }
     this.#view = view;
     this.#layout = out;
     this.#index(view);
@@ -882,8 +919,8 @@ export class MmLineageCanvas extends LitElement {
     const b = this.#fitBox();
     return Math.min(
       1,
-      (this.#vw - b.side * 2) / Math.max(1, l.width + b.hx * 2),
-      (this.#vh - b.top - b.bottom) / Math.max(1, l.height),
+      (this.#vw - b.side * 2) / Math.max(1, this.#extent().w + b.hx * 2),
+      (this.#vh - b.top - b.bottom) / Math.max(1, this.#extent().h),
     );
   }
 
@@ -927,10 +964,129 @@ export class MmLineageCanvas extends LitElement {
     if (!l || !this.#sel || !this.#zoom) return;
     const k = this.#fitScale();
     const b = this.#fitBox();
-    const x = b.side + (this.#vw - b.side * 2 - (l.width + b.hx * 2) * k) / 2 + b.hx * k;
-    const y = b.top + (this.#vh - b.top - b.bottom - l.height * k) / 2;
+    const ext = this.#extent();
+    const x = b.side + (this.#vw - b.side * 2 - (ext.w + b.hx * 2) * k) / 2 + b.hx * k - ext.x0 * k;
+    const y = b.top + (this.#vh - b.top - b.bottom - ext.h * k) / 2 - ext.y0 * k;
     this.#zoom.transform(this.#sel, zoomIdentity.translate(x, y).scale(k));
   }
+
+  /** The drawn graph's bounds: the layout's box, grown to take in any asset moved outside it. */
+  #extent(): { x0: number; y0: number; w: number; h: number } {
+    const l = this.#layout;
+    if (!l) return { x0: 0, y0: 0, w: 0, h: 0 };
+    if (!this.#moved.size) return { x0: 0, y0: 0, w: l.width, h: l.height };
+    let x0 = 0;
+    let y0 = 0;
+    let x1 = l.width;
+    let y1 = l.height;
+    for (const n of this.#view?.nodes ?? []) {
+      const p = l.nodes[n.id];
+      if (!p) continue;
+      x0 = Math.min(x0, p[0] - n.w / 2);
+      y0 = Math.min(y0, p[1] - n.h / 2);
+      x1 = Math.max(x1, p[0] + n.w / 2);
+      y1 = Math.max(y1, p[1] + n.h / 2);
+    }
+    return { x0, y0, w: x1 - x0, h: y1 - y0 };
+  }
+
+  /** Redraws the edges touching moved assets as one smooth curve between their facing sides. */
+  #reroute(l: LayoutOutput, view: ViewGraph, ids: ReadonlySet<string>) {
+    const size = new Map(view.nodes.map((n) => [n.id, n]));
+    for (const e of view.edges) {
+      if (!ids.has(e.source) && !ids.has(e.target)) continue;
+      const ps = l.nodes[e.source];
+      const pt = l.nodes[e.target];
+      const sn = size.get(e.source);
+      const tn = size.get(e.target);
+      if (!ps || !pt || !sn || !tn) continue;
+      const dir = pt[0] >= ps[0] ? 1 : -1;
+      const x1 = ps[0] + dir * (sn.w / 2 + 1);
+      const x2 = pt[0] - dir * (tn.w / 2 + 1);
+      const dx = dir * Math.max(40, Math.abs(x2 - x1) / 2);
+      const r = (v: number) => Math.round(v * 10) / 10;
+      const c1 = x1 + dx;
+      const c2 = x2 - dx;
+      l.edges[e.id] = {
+        d: `M${r(x1)},${r(ps[1])} C${r(c1)},${r(ps[1])} ${r(c2)},${r(pt[1])} ${r(x2)},${r(pt[1])}`,
+        lx: (x1 + x2) / 2,
+        ly: (ps[1] + pt[1]) / 2,
+        box: [Math.min(x1, x2, c1, c2), Math.min(ps[1], pt[1]), Math.max(x1, x2, c1, c2), Math.max(ps[1], pt[1])],
+      };
+    }
+  }
+
+  /** Moves an asset to a centre in graph coordinates and reroutes its edges. */
+  #moveNode(id: string, x: number, y: number) {
+    const l = this.#layout;
+    const view = this.#view;
+    if (!l || !view || !l.nodes[id]) return;
+    l.nodes[id] = [x, y];
+    this.#moved.set(id, [x, y]);
+    this.#reroute(l, view, new Set([id]));
+    this.#moveSeq++;
+    this.#cull = null;
+    this.#computeVisible();
+    this.requestUpdate();
+  }
+
+  #emitMove(id: string) {
+    const p = this.#layout?.nodes[id];
+    if (!p) return;
+    emit<MmLineageNodeMoveDetail>(this, 'mm-node-move', { id, mrn: this.#byId.get(id)?.mrn ?? '', x: p[0], y: p[1] });
+  }
+
+  /** Puts every moved asset back where the layout placed it. */
+  resetLayout(): void {
+    if (!this.#moved.size) return;
+    this.#moved.clear();
+    emit(this, 'mm-layout-reset', {});
+    this.#queueRelayout();
+    this.requestUpdate();
+    this.#say(tr('lineageLayoutReset', 'Layout reset'));
+  }
+
+  #onNodeDown = (e: PointerEvent) => {
+    if (this.fixedLayout || e.button !== 0 || !e.isPrimary) return;
+    const host = e.currentTarget as HTMLElement;
+    const id = host.dataset.node;
+    // Handles and the cluster toggle are their own controls.
+    if (!id || (e.composedPath()[0] as Element | undefined)?.closest?.('button')) return;
+    const p = this.#layout?.nodes[id];
+    if (!p) return;
+    this.#drag = { id, pointer: e.pointerId, sx: e.clientX, sy: e.clientY, nx: p[0], ny: p[1], moved: false };
+  };
+
+  #onNodeMove = (e: PointerEvent) => {
+    const d = this.#drag;
+    if (!d || e.pointerId !== d.pointer) return;
+    const dx = e.clientX - d.sx;
+    const dy = e.clientY - d.sy;
+    if (!d.moved) {
+      // A few pixels of wobble is still a click.
+      if (Math.hypot(dx, dy) < 4) return;
+      d.moved = true;
+      try {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {
+        /* the pointer is already gone */
+      }
+      this.toggleAttribute('data-dragging', true);
+    }
+    const k = this.#t.k;
+    this.#moveNode(d.id, d.nx + dx / k, d.ny + dy / k);
+  };
+
+  #onNodeUp = (e: PointerEvent) => {
+    const d = this.#drag;
+    if (!d || e.pointerId !== d.pointer) return;
+    this.#drag = null;
+    if (!d.moved) return;
+    this.#userMoved = true;
+    this.#dragged = true;
+    this.toggleAttribute('data-dragging', false);
+    this.#emitMove(d.id);
+  };
 
   /** Fits the whole graph in view, clear of the legend, zoom controls and minimap. */
   fit(): void {
@@ -1153,6 +1309,26 @@ export class MmLineageCanvas extends LitElement {
         this.#onViewportFocus();
         handled = true;
       }
+    } else if (
+      f.kind === 'node' &&
+      !this.fixedLayout &&
+      e.shiftKey &&
+      key.startsWith('Arrow') &&
+      this.#layout?.nodes[f.id]
+    ) {
+      // Graph coordinates are physical, so Left always moves left, in either direction of text.
+      const step = 16;
+      const p = this.#layout.nodes[f.id]!;
+      const mv: Record<string, [number, number]> = {
+        ArrowLeft: [-step, 0],
+        ArrowRight: [step, 0],
+        ArrowUp: [0, -step],
+        ArrowDown: [0, step],
+      };
+      const [mx, my] = mv[key] ?? [0, 0];
+      this.#moveNode(f.id, p[0] + mx, p[1] + my);
+      this.#ensureVisible(f.id);
+      this.#emitMove(f.id);
     } else if (f.kind === 'node') {
       handled = this.#nodeKey(f.id, key, downKey, upKey);
     } else if (f.kind === 'handle') {
@@ -1442,6 +1618,10 @@ export class MmLineageCanvas extends LitElement {
   /* ---------------------------------------------------------------- pointer */
 
   #onLayerClick = (e: MouseEvent) => {
+    if (this.#dragged) {
+      this.#dragged = false;
+      return;
+    }
     for (const t of e.composedPath()) {
       if (!(t instanceof Element) || t === this.#layer) break;
       const ds = (t as HTMLElement | SVGElement).dataset;
@@ -1696,7 +1876,15 @@ export class MmLineageCanvas extends LitElement {
       const ms = this.#activeMappings(te);
       active = n.id === te.target ? ms.map((m) => m.to) : [...new Set(ms.flatMap((m) => m.from))];
     }
-    return html`<div class="n" style="left:${p[0]}px;top:${p[1]}px" data-node=${n.id}>
+    return html`<div
+      class="n"
+      style="left:${p[0]}px;top:${p[1]}px"
+      data-node=${n.id}
+      @pointerdown=${this.#onNodeDown}
+      @pointermove=${this.#onNodeMove}
+      @pointerup=${this.#onNodeUp}
+      @pointercancel=${this.#onNodeUp}
+    >
       <mm-lineage-node
         id="n${i}"
         role="group"
@@ -1843,8 +2031,9 @@ export class MmLineageCanvas extends LitElement {
     const l = this.#layout!;
     const view = this.#view!;
     const pad = 40;
+    const ext = this.#extent();
     return html`<svg
-      viewBox="${-pad} ${-pad} ${l.width + pad * 2} ${l.height + pad * 2}"
+      viewBox="${ext.x0 - pad} ${ext.y0 - pad} ${ext.w + pad * 2} ${ext.h + pad * 2}"
       preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
     >
@@ -1908,6 +2097,13 @@ export class MmLineageCanvas extends LitElement {
         this.#expandedClusters.size
           ? html`<mm-button variant="ghost" size="sm" icon="expand-less" @click=${() => this.collapseGroups()}
               >${tr('lineageCollapseGroups', 'Collapse groups')}</mm-button
+            >`
+          : nothing
+      }
+      ${
+        this.#moved.size && !this.fixedLayout
+          ? html`<mm-button variant="ghost" size="sm" icon="restart-alt" @click=${() => this.resetLayout()}
+              >${tr('lineageResetLayout', 'Reset layout')}</mm-button
             >`
           : nothing
       }
@@ -1983,9 +2179,15 @@ export class MmLineageCanvas extends LitElement {
   #help(): string {
     const right = this.#rtl ? tr('lineageKeyLeft', 'Left') : tr('lineageKeyRight', 'Right');
     const left = this.#rtl ? tr('lineageKeyRight', 'Right') : tr('lineageKeyLeft', 'Left');
+    if (this.fixedLayout)
+      return tr(
+        'lineageHelpFixed',
+        '{right} arrow moves downstream and {left} arrow upstream. Up and Down move within a column. Enter opens, Space selects, E steps through edges, plus and minus zoom, 0 fits the graph, F returns to the current asset.',
+        { right, left },
+      );
     return tr(
       'lineageHelp',
-      '{right} arrow moves downstream and {left} arrow upstream. Up and Down move within a column. Enter opens, Space selects, E steps through edges, plus and minus zoom, 0 fits the graph, F returns to the current asset.',
+      '{right} arrow moves downstream and {left} arrow upstream. Up and Down move within a column. Enter opens, Space selects, Shift with an arrow moves an asset, E steps through edges, plus and minus zoom, 0 fits the graph, F returns to the current asset.',
       { right, left },
     );
   }
@@ -2208,7 +2410,7 @@ export class MmLineageCanvas extends LitElement {
                         @pointercancel=${this.#onMinimapUp}
                         @keydown=${this.#onMinimapKey}
                       >
-                        ${guard([l, view], () => this.#renderMinimap())}
+                        ${guard([l, view, this.#moveSeq], () => this.#renderMinimap())}
                       </div>`
                 }
                 ${

@@ -117,10 +117,19 @@ export class MmButton extends LitElement {
       .btn[aria-disabled='true']:hover {
         background: revert-layer;
       }
-      .primary[aria-disabled='true'] { background: var(--mm-primary-fill); }
-      .secondary[aria-disabled='true'] { border-color: var(--mm-control-border); }
-      .ghost[aria-disabled='true'] { background: transparent; color: var(--mm-text-2); }
-      .danger[aria-disabled='true'] { background: var(--mm-danger-fill); }
+      .primary[aria-disabled='true'] {
+        background: var(--mm-primary-fill);
+      }
+      .secondary[aria-disabled='true'] {
+        border-color: var(--mm-control-border);
+      }
+      .ghost[aria-disabled='true'] {
+        background: transparent;
+        color: var(--mm-text-2);
+      }
+      .danger[aria-disabled='true'] {
+        background: var(--mm-danger-fill);
+      }
       .label {
         display: inline-flex;
         align-items: center;
@@ -265,6 +274,10 @@ export class MmButton extends LitElement {
     tip.style.left = `${Math.max(8, r.left + r.width / 2 - t.width / 2)}px`;
     tip.style.top = `${r.top - t.height - 6 < 8 ? r.bottom + 6 : r.top - t.height - 6}px`;
   };
+  // Focus shows the tooltip only when it would show a focus ring: a dialog or blade moving focus to its close button after a click must not pop "Close" up unasked.
+  #onFocus = (e: FocusEvent) => {
+    if ((e.currentTarget as HTMLElement).matches(':focus-visible')) this.#showTip();
+  };
   #hideTip = () => {
     try {
       this.#tip?.hidePopover();
@@ -276,18 +289,25 @@ export class MmButton extends LitElement {
   override render() {
     const disabled = this.disabled || this.loading;
     const inner = html`
-      ${this.loading
-        ? html`<span part="spinner" class="spinner" aria-hidden="true"></span>`
-        : this.icon
-          ? html`<mm-icon part="icon" name=${this.icon}></mm-icon>`
-          : html`<slot name="icon"></slot>`}
+      ${
+        this.loading
+          ? html`<span part="spinner" class="spinner" aria-hidden="true"></span>`
+          : this.icon
+            ? html`<mm-icon part="icon" name=${this.icon}></mm-icon>`
+            : html`<slot name="icon"></slot>`
+      }
       <span part="label" class="label"><slot @slotchange=${() => this.requestUpdate()}>${this.label}</slot></span>
-      ${this.external && this.href
-        ? html`<mm-icon class="ext" name="open-in-new" size="14" aria-hidden="true"></mm-icon><span class="visually-hidden"> ${tr('opensInNewTab', '(opens in a new tab)')}</span>`
-        : nothing}
+      ${
+        this.external && this.href
+          ? html`<mm-icon class="ext" name="open-in-new" size="14" aria-hidden="true"></mm-icon
+              ><span class="visually-hidden"> ${tr('opensInNewTab', '(opens in a new tab)')}</span>`
+          : nothing
+      }
     `;
     const cls = `btn ${this.variant}`;
-    const tip = this.label ? html`<div class="tip" popover="manual" role="tooltip" id="tip" aria-hidden="true">${this.label}</div>` : nothing;
+    const tip = this.label
+      ? html`<div class="tip" popover="manual" role="tooltip" id="tip" aria-hidden="true">${this.label}</div>`
+      : nothing;
     if (this.href && !disabled) {
       return html`<a
           part="button"
@@ -298,7 +318,7 @@ export class MmButton extends LitElement {
           aria-label=${ifDefined(this.hasAttribute('icon-only') ? this.label : undefined)}
           @pointerenter=${this.#showTip}
           @pointerleave=${this.#hideTip}
-          @focus=${this.#showTip}
+          @focus=${this.#onFocus}
           @blur=${this.#hideTip}
           >${inner}</a
         >${tip}`;
@@ -316,12 +336,12 @@ export class MmButton extends LitElement {
         aria-controls=${ifDefined(this.controls || undefined)}
         @pointerenter=${this.#showTip}
         @pointerleave=${this.#hideTip}
-        @focus=${this.#showTip}
+        @focus=${this.#onFocus}
         @blur=${this.#hideTip}
         @keydown=${(e: KeyboardEvent) => e.key === 'Escape' && this.#hideTip()}
       >
-        ${inner}
-      </button>${tip}`;
+        ${inner}</button
+      >${tip}`;
   }
 }
 

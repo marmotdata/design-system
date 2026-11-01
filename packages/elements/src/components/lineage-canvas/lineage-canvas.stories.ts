@@ -1172,6 +1172,137 @@ export const ClickColumnChip: Story = {
   },
 };
 
+const onMove = fn();
+const nodeBox = (c: MmLineageCanvas, name: string) => nodeNamed(c, name).closest<HTMLElement>('.n')!;
+const centre = (c: MmLineageCanvas, name: string) => {
+  const el = nodeBox(c, name);
+  return [parseFloat(el.style.left), parseFloat(el.style.top)] as const;
+};
+/** Drags an asset by screen pixels with pointer events, the way a mouse would. */
+async function drag(c: MmLineageCanvas, name: string, dx: number, dy: number) {
+  const el = nodeBox(c, name);
+  const r = el.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const opts = (cx: number, cy: number) => ({
+    bubbles: true,
+    composed: true,
+    pointerId: 1,
+    isPrimary: true,
+    button: 0,
+    clientX: cx,
+    clientY: cy,
+  });
+  el.dispatchEvent(new PointerEvent('pointerdown', opts(x, y)));
+  for (let i = 1; i <= 5; i++)
+    el.dispatchEvent(new PointerEvent('pointermove', opts(x + (dx * i) / 5, y + (dy * i) / 5)));
+  el.dispatchEvent(new PointerEvent('pointerup', opts(x + dx, y + dy)));
+  // Browsers follow a mouse drag that starts and ends on the same element with a click.
+  el.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, clientX: x + dx, clientY: y + dy }));
+  await c.updateComplete;
+}
+const movable = (graph: LineageGraph, fixed = false) =>
+  html`<mm-lineage-canvas
+    .graph=${graph}
+    show-observed
+    ?fixed-layout=${fixed}
+    layout-module-url=${dagreUrl}
+    style="--mm-lineage-height:560px"
+    @mm-node-activate=${(e: CustomEvent) => onActivate(e.detail)}
+    @mm-node-move=${(e: CustomEvent) => onMove(e.detail)}
+  ></mm-lineage-canvas>`;
+
+export const DragNodes: Story = {
+  name: 'Pointer: drag assets to rearrange',
+  render: () => movable(ordersGraph),
+  play: async ({ canvasElement }) => {
+    clear();
+    onMove.mockClear();
+    const c = el(canvasElement);
+    await ready(c);
+    const [x0, y0] = centre(c, 'customers_dim');
+    const k = c.transform.k;
+    const edgeBefore = c
+      .shadowRoot!.querySelector('[data-edge="customers_dim->orders_daily"] .line')!
+      .getAttribute('d');
+    await drag(c, 'customers_dim', 0, 120);
+    const [x1, y1] = centre(c, 'customers_dim');
+    await expect(x1).toBeCloseTo(x0, 0);
+    await expect(y1).toBeCloseTo(y0 + 120 / k, 0);
+    // Its edges follow, the move is reported, and the click that ends the drag does not open the asset.
+    await expect(
+      c.shadowRoot!.querySelector('[data-edge="customers_dim->orders_daily"] .line')!.getAttribute('d'),
+    ).not.toBe(edgeBefore);
+    await expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'customers_dim', mrn: 'mrn://snowflake/table/ANALYTICS.MARTS.CUSTOMERS_DIM' }),
+    );
+    await expect(onActivate).not.toHaveBeenCalled();
+    // A plain click still opens it.
+    nodeNamed(c, 'customers_dim').click();
+    await expect(onActivate).toHaveBeenCalledTimes(1);
+    // Moves survive a relayout, here the Structure toggle.
+    c.hideStructure = true;
+    await settle(c);
+    await expect(centre(c, 'customers_dim')[1]).toBeCloseTo(y1, 0);
+    // Reset layout puts it back.
+    const reset = [...c.shadowRoot!.querySelectorAll<HTMLElement>('.bar mm-button')].find((b) =>
+      b.textContent?.includes('Reset layout'),
+    )!;
+    await expect(reset).toBeTruthy();
+    c.hideStructure = false;
+    await settle(c);
+    reset.click();
+    await settle(c);
+    await expect(centre(c, 'customers_dim')[1]).toBeCloseTo(y0, 0);
+    await expect(
+      [...c.shadowRoot!.querySelectorAll('.bar mm-button')].some((b) => b.textContent?.includes('Reset layout')),
+    ).toBe(false);
+  },
+};
+
+export const KeyboardMoveNode: Story = {
+  name: 'Keyboard: Shift and an arrow moves an asset',
+  render: () => movable(ordersGraph),
+  play: async ({ canvasElement }) => {
+    onMove.mockClear();
+    const c = el(canvasElement);
+    await ready(c);
+    vp(c).focus();
+    await c.updateComplete;
+    await expect(active(c)).toBe('orders_daily');
+    const [x0, y0] = centre(c, 'orders_daily');
+    await press('{Shift>}{ArrowDown}{ArrowDown}{ArrowRight}{/Shift}');
+    await c.updateComplete;
+    const [x1, y1] = centre(c, 'orders_daily');
+    await expect(y1 - y0).toBeCloseTo(32, 0);
+    await expect(x1 - x0).toBeCloseTo(16, 0);
+    await expect(onMove).toHaveBeenCalledTimes(3);
+    // Focus stays on the asset; plain arrows still move focus.
+    await expect(active(c)).toBe('orders_daily');
+  },
+};
+
+export const FixedLayout: Story = {
+  name: 'Fixed layout (static graphs)',
+  render: () => movable(ordersGraph, true),
+  play: async ({ canvasElement }) => {
+    onMove.mockClear();
+    const c = el(canvasElement);
+    await ready(c);
+    const before = centre(c, 'customers_dim');
+    await drag(c, 'customers_dim', 0, 120);
+    await expect(centre(c, 'customers_dim')).toEqual(before);
+    vp(c).focus();
+    await c.updateComplete;
+    const daily = centre(c, 'orders_daily');
+    await press('{Shift>}{ArrowDown}{/Shift}');
+    await c.updateComplete;
+    await expect(centre(c, 'orders_daily')).toEqual(daily);
+    await expect(onMove).not.toHaveBeenCalled();
+    await expect(c.shadowRoot!.getElementById('help')!.textContent).not.toContain('Shift');
+  },
+};
+
 export const KeyboardClusterAndHandles: Story = {
   name: 'Keyboard: agent cluster and hidden neighbours',
   render: () => canvas(ordersGraph),
