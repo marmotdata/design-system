@@ -240,6 +240,15 @@ export class MmRunStrip extends LitElement {
   #onLeave = () => {
     if (!this.matches(':focus-within')) this.active = -1;
   };
+  /**
+   * Hover follows pointer movement, not pointerenter: a strip that renders or reflows under a
+   * resting pointer gets an enter without a move, which would take over from the keyboard.
+   */
+  #onCellMove(i: number) {
+    if (this.active === i) return;
+    this.tipHidden = false;
+    this.active = i;
+  }
 
   protected override updated(): void {
     const tip = this.renderRoot.querySelector<MmTooltip>('mm-tooltip');
@@ -301,10 +310,7 @@ export class MmRunStrip extends LitElement {
               role="gridcell"
               id="${this.#id}-${i}"
               class="cell ${run.status} ${i === this.active ? 'active' : ''}"
-              @pointerenter=${() => {
-                this.tipHidden = false;
-                this.active = i;
-              }}
+              @pointermove=${() => this.#onCellMove(i)}
               @click=${() => this.#select(i)}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">${this.#glyph(run.status)}</svg>

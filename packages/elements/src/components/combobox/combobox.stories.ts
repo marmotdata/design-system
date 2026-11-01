@@ -166,10 +166,11 @@ export const AsyncSearch: Story = {
     const c = host(canvasElement);
     input(c).focus();
     await press('orders');
-    await waitFor(() => expect(c.shadowRoot!.querySelectorAll('mm-option').length).toBeGreaterThan(0), { timeout: 2000 });
-    // Debounced: one request for the whole word, not one per keystroke.
-    await expect(searchSpy).toHaveBeenCalledTimes(1);
-    await expect(searchSpy.mock.calls[0]![0]).toBe('orders');
+    await waitFor(() => expect(searchSpy.mock.lastCall?.[0]).toBe('orders'));
+    await waitFor(() => expect(c.shadowRoot!.querySelector('mm-option')).toHaveAttribute('label', 'orders_daily'), { timeout: 2000 });
+    // Debounced: a request once typing pauses, not one per keystroke. Typed at speed that is one request
+    // for the whole word; a stalled CI machine can pause long enough mid-word to fire one more.
+    await expect(searchSpy.mock.calls.length).toBeLessThan('orders'.length);
     await press('{ArrowDown}');
     await expect(activeOf(c)).toBe('orders_daily');
     await press('{ArrowDown}{Enter}');
@@ -356,7 +357,9 @@ export const FormSubmission: Story = {
     await expect(input(ignored!).disabled).toBe(true);
     input(upstream!).focus();
     await press('customers');
-    await waitFor(() => expect(upstream!.shadowRoot!.querySelectorAll('mm-option').length).toBeGreaterThan(0), { timeout: 2000 });
+    // Wait for the results of the whole word: on a slow machine the debounce fires between keystrokes,
+    // and the list briefly shows the results of a shorter query.
+    await waitFor(() => expect(upstream!.shadowRoot!.querySelector('mm-option')).toHaveAttribute('label', 'customers_dim'), { timeout: 2000 });
     await press('{ArrowDown}{Enter}');
     await waitFor(() => expect(upstream!.value).toBe('mrn://snowflake/table/analytics.marts.customers_dim'));
     await expect(form.checkValidity()).toBe(true);

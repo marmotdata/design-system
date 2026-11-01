@@ -134,7 +134,7 @@ export class MmMenu extends LitElement {
     super();
     this.addEventListener('keydown', (e) => this.#onKeydown(e));
     this.addEventListener('click', (e) => this.#onClick(e));
-    this.addEventListener('pointerover', (e) => this.#onPointerOver(e));
+    this.addEventListener('pointermove', (e) => this.#onPointerMove(e));
     this.addEventListener('toggle', (e) => this.#onToggle(e as ToggleEvent));
   }
 
@@ -282,7 +282,11 @@ export class MmMenu extends LitElement {
     if (item) this.activate(item);
   }
 
-  #onPointerOver(e: PointerEvent) {
+  /**
+   * Hover moves focus only when the pointer moves. A menu that opens under a resting pointer gets a
+   * pointerover (no pointermove), and following it would steal focus from the keyboard.
+   */
+  #onPointerMove(e: PointerEvent) {
     if (!this.open || e.pointerType === 'touch') return;
     const item = this.#itemFrom(e);
     if (!item || item.disabled || item === document.activeElement) return;

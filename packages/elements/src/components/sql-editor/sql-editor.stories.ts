@@ -256,8 +256,9 @@ export const Autocomplete: Story = {
     const editor = await loaded(canvasElement);
     await tab();
     await press('select * from shop.public.ord');
-    await waitFor(() => expect(popup(editor)).toBeTruthy());
-    await expect(popup(editor)!.querySelector('li[aria-selected]')).toHaveTextContent('order_items');
+    // The popup can still be showing a completion for an earlier word ("from") while the last keys
+    // are processed: wait for the one for the whole input.
+    await waitFor(() => expect(popup(editor)?.querySelector('li[aria-selected]')).toHaveTextContent('order_items'));
     await settle();
     await press('{ArrowDown}');
     await waitFor(() => expect(popup(editor)?.querySelector('li[aria-selected] .cm-completionLabel')).toHaveTextContent(/^orders$/));

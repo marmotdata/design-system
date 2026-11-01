@@ -28778,7 +28778,7 @@
             },
             {
               "kind": "method",
-              "name": "#onPointerOver",
+              "name": "#onPointerMove",
               "privacy": "private",
               "parameters": [
                 {
@@ -28787,7 +28787,8 @@
                     "text": "PointerEvent"
                   }
                 }
-              ]
+              ],
+              "description": "Hover moves focus only when the pointer moves. A menu that opens under a resting pointer gets a\npointerover (no pointermove), and following it would steal focus from the keyboard."
             },
             {
               "kind": "method",
@@ -39914,6 +39915,20 @@
               "kind": "field",
               "name": "#onLeave",
               "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#onCellMove",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "i",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Hover follows pointer movement, not pointerenter: a strip that renders or reflows under a\nresting pointer gets an enter without a move, which would take over from the keyboard."
             },
             {
               "kind": "method",

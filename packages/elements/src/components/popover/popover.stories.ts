@@ -239,6 +239,9 @@ export const LongIdentifiers: Story = {
     await shown(p);
     // The size middleware caps the height to the viewport; the panel scrolls.
     await waitFor(() => expect(panel(p).scrollHeight).toBeGreaterThan(panel(p).clientHeight));
+    // With nothing focusable inside, the scrolling panel itself takes a tab stop so the keyboard can
+    // scroll it. The panel measures from a ResizeObserver, a frame after layout: wait for it before axe runs.
+    await waitFor(() => expect(panel(p).getAttribute('tabindex')).toBe('0'));
   },
 };
 

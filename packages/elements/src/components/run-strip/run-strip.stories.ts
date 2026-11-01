@@ -104,7 +104,7 @@ export const Hover: Story = {
     const el = strip(canvasElement);
     await el.updateComplete;
     const cell = el.shadowRoot!.querySelectorAll('[role="gridcell"]')[6]!;
-    cell.dispatchEvent(new PointerEvent('pointerenter'));
+    cell.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, composed: true }));
     const tip = el.shadowRoot!.querySelector('mm-tooltip')!;
     await waitFor(() => expect(tip.open).toBe(true));
     await expect(tip.items[0]!.value).toBe('run_e61c09');
