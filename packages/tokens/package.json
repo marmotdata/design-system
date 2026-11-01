@@ -1,6 +1,6 @@
 {
   "name": "@marmotdata/tokens",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "type": "module",
   "repository": { "type": "git", "url": "git+https://github.com/marmotdata/design-system.git", "directory": "packages/tokens" },
