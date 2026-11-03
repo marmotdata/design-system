@@ -21,15 +21,15 @@ export interface MmOptionData {
 }
 
 /**
- * One choice inside `mm-select`, `mm-combobox` or `mm-multiselect`. The text content is the label.
- * Options can carry a leading icon, a provider logo in the `logo` slot, a description line (mono
- * only with `mono`, for an MRN people compare) and trailing metadata such as the kind ("Table") in
- * a quiet caption. The selected option is drawn in `mm-selected` with a check; the
+ * One choice inside `mm-select`, `mm-combobox` or `mm-multiselect`. The `label` attribute is the
+ * label, or the text content when `label` is not set. Options can carry a leading icon, a provider
+ * logo in the `logo` slot, a description line (mono only with `mono`, for an MRN people compare)
+ * and trailing metadata such as the kind ("Table") in a quiet caption. The selected option is drawn in `mm-selected` with a check; the
  * keyboard-highlighted option in `mm-sunken`.
  *
  * @tagname mm-option
  * @summary A choice in a listbox.
- * @slot - The label.
+ * @slot - The label, when `label` is not set.
  * @slot logo - A leading `<mm-provider-logo>`.
  * @slot description - Rich description, if the `description` attribute is not enough.
  * @csspart row - The option row.
@@ -132,9 +132,9 @@ export class MmOption extends LitElement {
     `,
   ];
 
-  /** Value submitted with the form. Defaults to the label text. */
-  @property({ reflect: true }) accessor value = '';
-  /** Text shown in the field when selected, if different from the content. */
+  /** Value submitted with the form, which can be empty. Defaults to the label when the attribute is absent. */
+  @property({ reflect: true, useDefault: true }) accessor value = '';
+  /** Label shown in the list and in the field when selected, used instead of the text content. */
   @property() accessor label = '';
   /** Second line under the label. */
   @property() accessor description = '';
@@ -154,11 +154,11 @@ export class MmOption extends LitElement {
   /** Substring to emphasise in the label (set by comboboxes while filtering). */
   @property({ attribute: false }) accessor highlight = '';
 
-  /** The value, falling back to the label text. */
+  /** The value, falling back to the label only when no value was given, so `value=""` stays empty. */
   get optionValue(): string {
-    return this.value || this.optionLabel;
+    return (this.value || this.hasAttribute('value')) ? this.value : this.optionLabel;
   }
-  /** The display label. */
+  /** The display label: `label` when set, otherwise the text content. */
   get optionLabel(): string {
     return this.label || (this.textContent ?? '').replace(/\s+/g, ' ').trim();
   }
@@ -185,7 +185,7 @@ export class MmOption extends LitElement {
     const text = this.optionLabel;
     const q = this.highlight.trim();
     const i = q ? text.toLowerCase().indexOf(q.toLowerCase()) : -1;
-    if (i < 0) return html`<slot></slot>`;
+    if (i < 0) return this.label ? text : html`<slot></slot>`;
     return html`<slot hidden></slot>${text.slice(0, i)}<mark>${text.slice(i, i + q.length)}</mark>${text.slice(i + q.length)}`;
   }
 

@@ -150,6 +150,30 @@ export const Filtering: Story = {
   },
 };
 
+export const LabelAttribute: Story = {
+  name: 'Labels from the label attribute',
+  render: () => html`<mm-combobox label="Owner team" placeholder="Search teams">
+    <mm-option value="analytics-engineering" label="Analytics Engineering"></mm-option>
+    <mm-option value="data-platform" label="Data Platform"></mm-option>
+    <mm-option value="finance-data" label="Finance Data"></mm-option>
+  </mm-combobox>`,
+  play: async ({ canvasElement }) => {
+    const c = host(canvasElement);
+    input(c).focus();
+    await press('{ArrowDown}');
+    await waitFor(() => expect(isOpen(c)).toBe(true));
+    for (const o of c.querySelectorAll('mm-option')) await expect(o.shadowRoot!.querySelector('.label')).toHaveTextContent(o.getAttribute('label')!);
+    await press('{Escape}');
+    await press('plat');
+    const visible = [...c.querySelectorAll('mm-option')].filter((o) => !o.hidden);
+    await expect(visible.map((o) => o.getAttribute('label'))).toEqual(['Data Platform']);
+    await expect(visible[0]!.shadowRoot!.querySelector('mark')).toHaveTextContent('Plat');
+    await press('{ArrowDown}{Enter}');
+    await waitFor(() => expect(c.value).toBe('data-platform'));
+    await expect(input(c)).toHaveValue('Data Platform');
+  },
+};
+
 const searchSpy = fn(catalogSearch(250));
 export const AsyncSearch: Story = {
   name: 'Async catalog search',

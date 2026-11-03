@@ -116,6 +116,66 @@ export const Groups: Story = {
   },
 };
 
+const ownerTeams = html`
+  <mm-option value="" label="Any owner"></mm-option>
+  <mm-option value="analytics-engineering" label="Analytics Engineering"></mm-option>
+  <mm-option value="data-platform" label="Data Platform"></mm-option>
+  <mm-option value="finance-data" label="Finance Data" disabled></mm-option>
+  <mm-option value="support-triage-agent" label="support-triage-agent" icon="smart-toy"></mm-option>
+`;
+const rendered = (o: Element | null | undefined) => o?.shadowRoot?.querySelector('.label')?.textContent?.trim();
+const onLabelSubmit = fn();
+export const LabelAttribute: Story = {
+  name: 'Labels from the label attribute',
+  render: () => html`<form
+    style="display:grid;gap:var(--space-3);justify-items:start"
+    @submit=${(e: SubmitEvent) => {
+      e.preventDefault();
+      onLabelSubmit(Object.fromEntries(new FormData(e.target as HTMLFormElement)));
+    }}
+  >
+    <mm-select name="owner" label="Owner team" placeholder="Choose a team">${ownerTeams}</mm-select>
+    <button type="submit">Filter assets</button>
+  </form>`,
+  play: async ({ canvasElement }) => {
+    onLabelSubmit.mockClear();
+    const s = host(canvasElement);
+    const any = s.querySelector('mm-option[value=""]')!;
+    const platform = s.querySelector('mm-option[value="data-platform"]')!;
+    // The empty value is no choice, but its option still shows its label in the field.
+    await expect(s.value).toBe('');
+    await expect(s.shadowRoot!.querySelector('.value')).toHaveTextContent('Any owner');
+    await tab();
+    await press('{ArrowDown}');
+    await waitFor(() => expect(isOpen(s)).toBe(true));
+    // The label is the rendered text, so it is also the name each option gets from its content.
+    for (const o of s.querySelectorAll('mm-option')) await expect(rendered(o)).toBe(o.getAttribute('label'));
+    await expect(any).toHaveAttribute('aria-selected', 'true');
+    await expect(s.querySelector('mm-option[active]')).toBe(any);
+    await press('{ArrowDown}{ArrowDown}');
+    await expect(s.querySelector('mm-option[active]')).toBe(platform);
+    await press('{ArrowDown}');
+    await expect(s.querySelector('mm-option[active]')?.getAttribute('label')).toBe('support-triage-agent'); // Finance Data is disabled and skipped
+    await press('{Home}');
+    await expect(s.querySelector('mm-option[active]')).toBe(any);
+    // Typeahead matches the label.
+    await press('d');
+    await expect(s.querySelector('mm-option[active]')).toBe(platform);
+    await press('{Enter}');
+    await waitFor(() => expect(isOpen(s)).toBe(false));
+    await expect(s.value).toBe('data-platform');
+    await expect(s.shadowRoot!.querySelector('.value')).toHaveTextContent('Data Platform');
+    canvasElement.querySelector('form')!.requestSubmit();
+    await expect(onLabelSubmit).toHaveBeenCalledWith({ owner: 'data-platform' });
+    // Choosing the empty option goes back to no choice, with its label shown.
+    await press('{ArrowDown}{Home}{Enter}');
+    await waitFor(() => expect(s.value).toBe(''));
+    await expect(s.shadowRoot!.querySelector('.value')).toHaveTextContent('Any owner');
+    canvasElement.querySelector('form')!.requestSubmit();
+    await expect(onLabelSubmit).toHaveBeenLastCalledWith({});
+  },
+};
+
 export const Hover: Story = { parameters: { pseudo: { hover: true } } };
 export const Active: Story = { parameters: { pseudo: { active: true } } };
 export const Focus: Story = {

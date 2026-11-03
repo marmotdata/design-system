@@ -224,7 +224,8 @@ export class MmSelect extends MmListboxControl {
   override render() {
     const disabled = this.isDisabled;
     const invalid = !!this.error;
-    const data = this.value ? this.dataFor(this.value) : null;
+    // An empty value is still no choice for validation and the form, but an option for it, such as "Any owner", shows its label.
+    const data = this.value || this.options.some((o) => o.optionValue === '' && o.optionLabel) ? this.dataFor(this.value) : null;
     return html`<div class="field">
       <span class="label ${this.hideLabel ? 'visually-hidden' : ''}" id="label" part="label" @click=${() => this.focus()}
         >${this.label}</span

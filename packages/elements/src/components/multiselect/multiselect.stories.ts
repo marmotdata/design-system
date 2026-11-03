@@ -120,6 +120,26 @@ export const Open: Story = {
   },
 };
 
+export const LabelAttribute: Story = {
+  name: 'Labels from the label attribute',
+  render: () => html`<mm-multiselect label="Owners" placeholder="Add owners">
+    <mm-option value="team:analytics-engineering" label="Analytics Engineering" icon="group"></mm-option>
+    <mm-option value="team:data-platform" label="Data Platform" icon="group"></mm-option>
+    <mm-option value="user:jane.doe" label="Jane Doe" icon="person"></mm-option>
+  </mm-multiselect>`,
+  play: async ({ canvasElement }) => {
+    const m = host(canvasElement);
+    input(m).focus();
+    await press('{ArrowDown}');
+    await waitFor(() => expect(isOpen(m)).toBe(true));
+    for (const o of m.querySelectorAll('mm-option')) await expect(o.shadowRoot!.querySelector('.label')).toHaveTextContent(o.getAttribute('label')!);
+    await press('{ArrowDown}{Enter}');
+    await waitFor(() => expect(m.value).toEqual(['team:data-platform']));
+    await expect(m.shadowRoot!.querySelector('.tag')).toHaveTextContent('Data Platform');
+    await press('{Escape}');
+  },
+};
+
 export const Overflow: Story = {
   name: 'Overflowing content (+N)',
   args: { value: 'pii,finance,certified,gdpr,marketing,orders' },
