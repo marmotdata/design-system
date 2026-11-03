@@ -1,6 +1,6 @@
 {
   "name": "@marmotdata/css",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "MIT",
   "type": "module",
   "repository": { "type": "git", "url": "git+https://github.com/marmotdata/design-system.git", "directory": "packages/css" },
