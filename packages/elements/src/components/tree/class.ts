@@ -118,8 +118,8 @@ const TYPEAHEAD_MS = 500;
  * right-to-left); Home and End go to the first and last row; Enter activates (`mm-activate`);
  * Space selects (`mm-select`; with `selection="multiple"` it toggles); `*` expands every sibling;
  * typing a few letters moves to the next row starting with them. Tab moves to the active row's
- * actions, then out of the tree. Clicking a row selects it, clicking the chevron toggles it, and
- * double-clicking activates it.
+ * actions, then out of the tree. Clicking a row selects it and opens or closes it if it has
+ * children, clicking the chevron only opens or closes it, and double-clicking activates it.
  *
  * @tagname mm-tree
  * @summary A virtualised, lazy-loading tree view.
@@ -764,6 +764,9 @@ export class MmTree extends LitElement {
       this.#setExpanded(row.node, !row.expanded, true);
       return;
     }
+    // The second click of a double-click leaves the node as the first one set it, so activating doesn't fold it back up
+    const modified = e.ctrlKey || e.metaKey || e.shiftKey;
+    if (row.expandable && !modified && e.detail <= 1) this.#setExpanded(row.node, !row.expanded, true);
     this.#select(row.node, this.selection === 'multiple' && (e.ctrlKey || e.metaKey));
   };
 
