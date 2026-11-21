@@ -1,12 +1,14 @@
+import { getLocale } from './strings.js';
+
 /** Number and time formatting to the guidelines rules: compact, tabular, non-breaking space before units. */
 const NBSP = ' ';
 
-export function formatCount(n: number, locale = 'en-GB'): string {
+export function formatCount(n: number, locale = getLocale()): string {
   return new Intl.NumberFormat(locale).format(n);
 }
 
 /** 1284019 → "1.28M"; 4120 → "4.1K". */
-export function formatCompact(n: number, locale = 'en-GB'): string {
+export function formatCompact(n: number, locale = getLocale()): string {
   // en-GB compact notation gives "1.28m" and "1.2bn"; the guidelines wants "1.28M", so English uses en-US symbols.
   const loc = locale.toLowerCase().startsWith('en') ? 'en-US' : locale;
   return new Intl.NumberFormat(loc, { notation: 'compact', maximumSignificantDigits: 3 }).format(n);
@@ -30,7 +32,7 @@ export function formatBytes(b: number): string {
   return `${b < 10 && i > 0 ? b.toFixed(1) : Math.round(b)}${NBSP}${units[i]}`;
 }
 
-export function formatRelative(date: Date | string | number, now = Date.now(), locale = 'en-GB'): string {
+export function formatRelative(date: Date | string | number, now = Date.now(), locale = getLocale()): string {
   const d = new Date(date).getTime();
   const s = Math.round((d - now) / 1000);
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });

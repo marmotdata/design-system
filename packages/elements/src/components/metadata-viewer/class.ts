@@ -6,7 +6,7 @@ import { deepActive } from '../../core/floating.js';
 import { formatBytes, formatCount } from '../../core/format.js';
 import { uid } from '../../core/id.js';
 import { isRtl } from '../../core/roving.js';
-import { t, tr } from '../../core/strings.js';
+import { getLocale, t, tr } from '../../core/strings.js';
 import { base, visuallyHidden } from '../../core/styles.js';
 import '@marmotdata/icons/define.js';
 import '../button/define.js';
@@ -511,7 +511,7 @@ export class MmMetadataViewer extends LitElement {
     const d = new Date(raw.length === 10 ? `${raw}T00:00:00Z` : raw);
     if (Number.isNaN(d.getTime())) return raw;
     const dateOnly = raw.length === 10;
-    return new Intl.DateTimeFormat('en-GB', {
+    return new Intl.DateTimeFormat(getLocale(), {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

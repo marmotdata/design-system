@@ -1,4 +1,5 @@
 import { formatCompact, formatCount } from '../../core/format.js';
+import { getLocale } from '../../core/strings.js';
 
 /** Non-breaking space, used before every unit (guidelines: "412 ms", "10 MB"). */
 export const NBSP = ' ';
@@ -50,7 +51,7 @@ const DAY = 86_400_000;
  * Returns a formatter for x values. Times within two days show "14:00"; longer spans show
  * "14 Oct". Times are formatted in `timeZone` (UTC by default) so server and client agree.
  */
-export function xFormatter(xs: readonly XValue[], timeZone = 'UTC', locale = 'en-GB'): (x: XValue) => string {
+export function xFormatter(xs: readonly XValue[], timeZone = 'UTC', locale = getLocale()): (x: XValue) => string {
   if (!isTimeX(xs)) return (x) => fmtNum(xNum(x));
   const nums = xs.map(xNum);
   const span = Math.max(...nums) - Math.min(...nums);
@@ -61,7 +62,7 @@ export function xFormatter(xs: readonly XValue[], timeZone = 'UTC', locale = 'en
 }
 
 /** A longer formatter for tooltips and tables: "27 Oct 14:00" or "27 Oct 2026". */
-export function xLongFormatter(xs: readonly XValue[], timeZone = 'UTC', locale = 'en-GB'): (x: XValue) => string {
+export function xLongFormatter(xs: readonly XValue[], timeZone = 'UTC', locale = getLocale()): (x: XValue) => string {
   if (!isTimeX(xs)) return (x) => fmtNum(xNum(x));
   const nums = xs.map(xNum);
   const step = medianStep(nums);

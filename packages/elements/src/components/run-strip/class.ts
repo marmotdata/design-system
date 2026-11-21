@@ -3,7 +3,7 @@ import { property, state } from 'lit/decorators.js';
 import { base, visuallyHidden } from '../../core/styles.js';
 import { emit } from '../../core/events.js';
 import { uid } from '../../core/id.js';
-import { tr } from '../../core/strings.js';
+import { getLocale, tr } from '../../core/strings.js';
 import { formatDuration } from '../../core/format.js';
 import { isRtl } from '../../core/roving.js';
 import { prefersReducedMotion } from '../../core/platform.js';
@@ -168,7 +168,7 @@ export class MmRunStrip extends LitElement {
   #fmtTime(d: Run['startedAt']): string {
     const date = new Date(d);
     if (Number.isNaN(date.getTime())) return '';
-    const s = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: this.timeZone }).format(date).replace(', ', ' ');
+    const s = new Intl.DateTimeFormat(getLocale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: this.timeZone }).format(date).replace(', ', ' ');
     return this.timeZone === 'UTC' ? `${s} UTC` : s;
   }
 

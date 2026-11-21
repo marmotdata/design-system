@@ -4,7 +4,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { base, visuallyHidden } from '../../core/styles.js';
 import { emit } from '../../core/events.js';
 import { isApple, isModKey } from '../../core/platform.js';
-import { t, tr } from '../../core/strings.js';
+import { getLocale, t, tr } from '../../core/strings.js';
 import '@marmotdata/icons/define.js';
 import '../button/define.js';
 import '../count/define.js';
@@ -278,7 +278,7 @@ export class MmTopBar extends LitElement {
               <mm-icon name="notifications"></mm-icon>
               <span class="visually-hidden">${t('notifications')}</span>
               ${unread
-                ? html`<mm-count .value=${unread} max="99" label=${tr('unreadCount', '{count} unread', { count: unread.toLocaleString('en-GB') })}></mm-count>`
+                ? html`<mm-count .value=${unread} max="99" label=${tr('unreadCount', '{count} unread', { count: unread.toLocaleString(getLocale()) })}></mm-count>`
                 : nothing}
             </button>`
           : nothing}

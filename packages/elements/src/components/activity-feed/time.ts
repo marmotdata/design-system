@@ -1,6 +1,6 @@
 import { css, html } from 'lit';
 import { formatRelative, formatTimestamp } from '../../core/format.js';
-import { tr } from '../../core/strings.js';
+import { getLocale, tr } from '../../core/strings.js';
 import '../tooltip/define.js';
 
 /** Shared by the activity feed, timeline and notifications: relative time in the text face with tabular figures, absolute UTC in a tooltip. */
@@ -29,7 +29,7 @@ export function timeText(time: string | number | Date | undefined, now?: number)
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
 /** Sentence-case day heading: "Today", "Yesterday", "Monday 26 October", with the year when it differs. */
-export function dayHeading(d: Date, now = Date.now(), locale = 'en-GB'): string {
+export function dayHeading(d: Date, now = Date.now(), locale = getLocale()): string {
   const today = startOfDay(new Date(now));
   const day = startOfDay(d);
   const diff = Math.round((today - day) / 86_400_000);

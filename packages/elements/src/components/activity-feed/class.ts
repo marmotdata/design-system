@@ -3,7 +3,7 @@ import { property, query, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { base, visuallyHidden } from '../../core/styles.js';
 import { emit } from '../../core/events.js';
-import { tr } from '../../core/strings.js';
+import { getLocale, tr } from '../../core/strings.js';
 import { uid } from '../../core/id.js';
 import type { AvatarKind } from '../avatar/class.js';
 import { STATUS_STATES, isHappyPath, type StatusState } from '../status-pill/class.js';
@@ -246,7 +246,7 @@ export class MmActivityFeed extends LitElement {
 
   override render() {
     const n = this.pending;
-    const newLabel = n === 1 ? tr('activityNewOne', '1 new event') : tr('activityNew', '{count} new events', { count: n.toLocaleString('en-GB') });
+    const newLabel = n === 1 ? tr('activityNewOne', '1 new event') : tr('activityNew', '{count} new events', { count: n.toLocaleString(getLocale()) });
     return html`<div class="new" aria-live="polite">${n > 0
         ? html`<mm-button part="new" size="sm" variant="secondary" icon="arrow-upward" @click=${() => emit(this, 'mm-show-new', { count: n })}
             >${newLabel}</mm-button

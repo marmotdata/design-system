@@ -81,6 +81,18 @@ export function tr(key: string, fallback: string, vars?: Record<string, string |
   return vars ? raw.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? '')) : raw;
 }
 
+let locale = 'en-GB';
+
+/** Sets the BCP 47 locale the built-in number and date formatting uses, for example `setLocale('es')`. */
+export function setLocale(next: string): void {
+  locale = next;
+  listeners.forEach((l) => l());
+}
+
+export function getLocale(): string {
+  return locale;
+}
+
 export function onStringsChange(cb: () => void): () => void {
   listeners.add(cb);
   return () => listeners.delete(cb);
