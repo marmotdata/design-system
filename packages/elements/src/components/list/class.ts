@@ -102,12 +102,17 @@ export class MmList extends LitElement {
  * fires `mm-activate`. Either way the whole row is the target, it turns `mm-sunken` on hover and
  * draws the ink focus ring around the row. Controls in the `end` slot stay separately clickable.
  *
- * `selected` marks the current item with `mm-selected` and `aria-current`.
+ * `selected` marks the current item with `mm-selected` and `aria-current`. `muted` draws the main
+ * text in `mm-text-2` for a record that is kept but no longer in use, such as a superseded policy.
+ *
+ * Search results are a list of these: a provider logo or kind icon in `start`, the name, pills or
+ * tags that need attention in `badges` beside it, one quiet `secondary` line and an optional `end`.
  *
  * @tagname mm-list-item
  * @summary A row with leading media, text, secondary line and trailing content.
  * @slot - The main text.
  * @slot start - An icon, provider logo, avatar or status pill. Its smallest width follows `--mm-list-lead-size` (set on the `mm-list`), so the text lines up when leads differ in width.
+ * @slot badges - Status pills or tags beside the main text, such as Stale or PII. They stay separately clickable above the row's link.
  * @slot secondary - A secondary line, if it needs markup. Otherwise use `secondary`.
  * @slot end - A status pill (only when something needs attention), a time (`mm-text` with `numeric`) or actions.
  * @csspart row - The row.
@@ -194,6 +199,24 @@ export class MmListItem extends LitElement {
         text-decoration-thickness: 1px;
         text-underline-offset: 2px;
       }
+      .line {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        min-width: 0;
+      }
+      .badges {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+      }
+      :host([muted]) .main {
+        color: var(--mm-text-2);
+      }
       .secondary {
         font: var(--text-caption);
         color: var(--mm-text-2);
@@ -234,6 +257,8 @@ export class MmListItem extends LitElement {
   /** Marks the current item: `mm-selected` and `aria-current`. */
   @property({ type: Boolean, reflect: true }) accessor selected = false;
   @property({ type: Boolean, reflect: true }) accessor disabled = false;
+  /** Quietens the main text, for a record that is kept but no longer in use. */
+  @property({ type: Boolean, reflect: true }) accessor muted = false;
   /** The secondary line. */
   @property() accessor secondary = '';
   /** Whether this item is the list's single tab stop. Managed by `mm-list`. */
@@ -312,7 +337,9 @@ export class MmListItem extends LitElement {
     return html`<div class="row" part="row">
       <span class="start" ?hidden=${!this.#slotted.has('start')}><slot name="start" @slotchange=${this.#onSlot}></slot></span>
       <span class="text">
-        ${main}
+        <span class="line"
+          >${main}<span class="badges" ?hidden=${!this.#slotted.has('badges')}><slot name="badges" @slotchange=${this.#onSlot}></slot></span
+        ></span>
         <span class="secondary" part="secondary" ?hidden=${!hasSecondary}
           ><slot name="secondary" @slotchange=${this.#onSlot}>${this.secondary || nothing}</slot></span
         >

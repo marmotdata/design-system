@@ -7,6 +7,7 @@ import '@marmotdata/elements/list.js';
 import '@marmotdata/elements/status-pill.js';
 import '@marmotdata/elements/text.js';
 import '@marmotdata/elements/button.js';
+import '@marmotdata/elements/tag.js';
 import '@marmotdata/icons/define.js';
 
 type Args = { dense: boolean };
@@ -122,6 +123,43 @@ export const WithActions: Story = {
       <mm-button slot="end" variant="ghost" size="sm" icon="notifications-off" label="Unsubscribe from customers_dim"></mm-button>
     </mm-list-item>
   </mm-list>`,
+};
+
+export const SearchResults: Story = {
+  name: 'Search results',
+  render: () => html`<mm-list aria-label="Results" style="max-width:640px;--mm-list-inset:0">
+    <mm-list-item href="#/assets/orders_daily" secondary="One row per order line · Table · Analytics Engineering · Updated 5 hours ago">
+      <mm-provider-logo slot="start" provider="snowflake" size="20" decorative></mm-provider-logo>
+      orders_daily
+      <mm-tag slot="badges">PII</mm-tag>
+      <mm-status-pill slot="badges" state="stale"></mm-status-pill>
+    </mm-list-item>
+    <mm-list-item href="#/knowledge/refunds" secondary="Refunds over £500 need a second approver · Policy · Finance · Updated 2 days ago">
+      <mm-icon slot="start" name="policy" size="20" aria-hidden="true"></mm-icon>
+      Refund approvals
+      <mm-status-pill slot="badges" state="review-due"></mm-status-pill>
+    </mm-list-item>
+    <mm-list-item href="#/knowledge/refunds-2023" muted secondary="Replaced by Refund approvals · Policy · Finance · Updated 14 March 2025">
+      <mm-icon slot="start" name="policy" size="20" aria-hidden="true"></mm-icon>
+      Refund approvals (2023)
+      <mm-status-pill slot="badges" state="historical">Superseded</mm-status-pill>
+    </mm-list-item>
+  </mm-list>`,
+  play: async ({ canvasElement }) => {
+    const [first, , old] = Array.from(canvasElement.querySelectorAll('mm-list-item'));
+    // Badges sit above the stretched link, so their own clicks land on them rather than following the row.
+    const badges = first!.shadowRoot!.querySelector('.badges') as HTMLElement;
+    await expect(badges.hidden).toBe(false);
+    await expect(getComputedStyle(badges).zIndex).toBe('1');
+    const pill = first!.querySelector('mm-status-pill')!;
+    const rect = pill.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    await expect(pill.contains(hit) || hit === pill).toBe(true);
+    // A muted row keeps its link but reads quieter.
+    const main = old!.shadowRoot!.querySelector('.main') as HTMLElement;
+    await expect(main.tagName).toBe('A');
+    await expect(getComputedStyle(main).color).not.toBe(getComputedStyle(first!.shadowRoot!.querySelector('.main')!).color);
+  },
 };
 
 export const Hover: Story = { parameters: { pseudo: { hover: true } } };

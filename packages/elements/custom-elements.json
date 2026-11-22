@@ -28173,7 +28173,7 @@
         },
         {
           "kind": "class",
-          "description": "One row of an `mm-list`: an optional `start` element (an icon, provider logo or avatar), the main\ntext, an optional secondary line in `mm-text-2` and an `end` slot for a status pill, a time\n(text face, tabular figures) or a row action. With `href` the main text is an ink link, underlined\non hover and focus; with `interactive` it is a button that\nfires `mm-activate`. Either way the whole row is the target, it turns `mm-sunken` on hover and\ndraws the ink focus ring around the row. Controls in the `end` slot stay separately clickable.\n\n`selected` marks the current item with `mm-selected` and `aria-current`.",
+          "description": "One row of an `mm-list`: an optional `start` element (an icon, provider logo or avatar), the main\ntext, an optional secondary line in `mm-text-2` and an `end` slot for a status pill, a time\n(text face, tabular figures) or a row action. With `href` the main text is an ink link, underlined\non hover and focus; with `interactive` it is a button that\nfires `mm-activate`. Either way the whole row is the target, it turns `mm-sunken` on hover and\ndraws the ink focus ring around the row. Controls in the `end` slot stay separately clickable.\n\n`selected` marks the current item with `mm-selected` and `aria-current`. `muted` draws the main\ntext in `mm-text-2` for a record that is kept but no longer in use, such as a superseded policy.\n\nSearch results are a list of these: a provider logo or kind icon in `start`, the name, pills or\ntags that need attention in `badges` beside it, one quiet `secondary` line and an optional `end`.",
           "name": "MmListItem",
           "cssParts": [
             {
@@ -28197,6 +28197,10 @@
             {
               "description": "An icon, provider logo, avatar or status pill. Its smallest width follows `--mm-list-lead-size` (set on the `mm-list`), so the text lines up when leads differ in width.",
               "name": "start"
+            },
+            {
+              "description": "Status pills or tags beside the main text, such as Stale or PII. They stay separately clickable above the row's link.",
+              "name": "badges"
             },
             {
               "description": "A secondary line, if it needs markup. Otherwise use `secondary`.",
@@ -28258,6 +28262,17 @@
               },
               "default": "false",
               "attribute": "disabled",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "muted",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Quietens the main text, for a record that is kept but no longer in use.",
+              "attribute": "muted",
               "reflects": true
             },
             {
@@ -28382,6 +28397,15 @@
               },
               "default": "false",
               "fieldName": "disabled"
+            },
+            {
+              "name": "muted",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Quietens the main text, for a record that is kept but no longer in use.",
+              "fieldName": "muted"
             },
             {
               "name": "secondary",
@@ -40960,7 +40984,7 @@
         },
         {
           "kind": "class",
-          "description": "The schema outline is the Schema tab of an asset, for flat SQL tables and deep Avro or JSON\nschemas alike. Each field reads as two lines: its name, its type in everyday words (\"Text\",\n\"Money (GBP)\", \"List of line item\", \"One of 3 values: WEB, IOS, ANDROID\") and markers (Key,\nPII, Certified), then its description with glossary terms beside it. Only exceptions are\nmarked: \"Optional\" for a nullable field, \"Edited\" for a description a person changed, and the\nfilled share when a field has gaps. Groups fold into a tree only where nesting exists, with a\nhairline guide per level; top-level groups start open. `density=\"compact\"` shows one line per\nfield for wide tables.\n\nSelecting a field opens a side panel with the exact type, its values (filled share, distinct\ncount, range, histogram, allowed values, default), who can see it, glossary terms and a copyable\npath. A Structure, JSON and YAML switch shows the schema as text with a copy button, from\n`source` (the original Avro or JSON Schema document) when given, or from `columns`.\n\nIt is an ARIA treegrid (https://www.w3.org/WAI/ARIA/apg/patterns/treegrid/) with row focus: one\ntab stop; Down and Up move between rows, Home and End go to the first and last; Right expands a\ngroup or moves to its first field, Left collapses it or moves to its parent (flipped in\nright-to-left); Enter opens the field panel and Escape closes it, returning focus to the row.",
+          "description": "The schema outline is the Schema tab of an asset, for flat SQL tables and deep Avro or JSON\nschemas alike. Each field reads as two lines: its name, its type in everyday words (\"Text\",\n\"Money (GBP)\", \"List of line item\", \"One of 3 values: WEB, IOS, ANDROID\") and markers (Key,\nPII, Certified), then its description with glossary terms beside it. Only exceptions are\nmarked: \"Optional\" for a nullable field, \"Edited\" for a description a person changed, and the\nfilled share when a field has gaps. Groups fold into a tree only where nesting exists, with a\nhairline guide per level; top-level groups start open. `density=\"compact\"` shows one line per\nfield for wide tables.\n\nSelecting a field opens a side panel with the exact type, its values (filled share, distinct\ncount, range, histogram, allowed values, default), who can see it, glossary terms and a copyable\npath. A Structure, JSON and YAML switch shows the schema as text with a copy button, from\n`source` (the original Avro or JSON Schema document) when given, or from `columns`.\n\nWith `editable`, the panel is the one place a field is changed: switches for Personal data and\nCertified that apply at once, the description edited in place, and the field's glossary terms\nwith Remove on each and a Link term button. The element only asks for each change through an\nevent; the page saves it, passes the save to `waitUntil`, and sets `columns` again when done.\n\nIt is an ARIA treegrid (https://www.w3.org/WAI/ARIA/apg/patterns/treegrid/) with row focus: one\ntab stop; Down and Up move between rows, Home and End go to the first and last; Right expands a\ngroup or moves to its first field, Left collapses it or moves to its parent (flipped in\nright-to-left); Enter opens the field panel and Escape closes it, returning focus to the row.",
           "name": "MmSchemaTable",
           "cssProperties": [
             {
@@ -41043,7 +41067,7 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "Shows \"Edit description\" in the field panel.",
+              "description": "Lets people change the field in the panel: Personal data, Certified, the description and glossary terms.",
               "attribute": "editable",
               "reflects": true
             },
@@ -41137,6 +41161,31 @@
             {
               "kind": "field",
               "name": "#activeKey",
+              "privacy": "private",
+              "type": {
+                "text": "string"
+              },
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "#draft",
+              "privacy": "private",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "The description being edited in the panel, or undefined when it is not open."
+            },
+            {
+              "kind": "field",
+              "name": "#busy",
+              "privacy": "private",
+              "default": "new Set<keyof SchemaFieldChange>()",
+              "description": "Panel controls waiting on a save: pii, certified or description."
+            },
+            {
+              "kind": "field",
+              "name": "#focusAfterRender",
               "privacy": "private",
               "type": {
                 "text": "string"
@@ -41240,6 +41289,141 @@
               "kind": "field",
               "name": "#onPanelKeydown",
               "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#change",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "Promise<boolean>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "c",
+                  "type": {
+                    "text": "SchemaColumn"
+                  }
+                },
+                {
+                  "name": "path",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "change",
+                  "type": {
+                    "text": "SchemaFieldChange"
+                  }
+                }
+              ],
+              "description": "Asks the page to save a change and waits for it when the page passes its save to `waitUntil`. Resolves to whether it was saved."
+            },
+            {
+              "kind": "method",
+              "name": "#toggleMarker",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "c",
+                  "type": {
+                    "text": "SchemaColumn"
+                  }
+                },
+                {
+                  "name": "path",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "key",
+                  "type": {
+                    "text": "'pii' | 'certified'"
+                  }
+                },
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#editDescription",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "c",
+                  "type": {
+                    "text": "SchemaColumn"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#cancelDescription",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#saveDescription",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "c",
+                  "type": {
+                    "text": "SchemaColumn"
+                  }
+                },
+                {
+                  "name": "path",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "#onDescriptionKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#unlink",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "c",
+                  "type": {
+                    "text": "SchemaColumn"
+                  }
+                },
+                {
+                  "name": "path",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "term",
+                  "type": {
+                    "text": "SchemaTerm"
+                  }
+                },
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ]
             },
             {
               "kind": "field",
@@ -41384,10 +41568,24 @@
               }
             },
             {
-              "description": "The person asked to edit a field's description.",
-              "name": "mm-edit-description",
+              "description": "The person turned Personal data or Certified on or off, or saved a description.",
+              "name": "mm-field-change",
               "type": {
-                "text": "CustomEvent<MmEditDescriptionDetail>"
+                "text": "CustomEvent<MmFieldChangeDetail>"
+              }
+            },
+            {
+              "description": "The person asked to link a glossary term to the field; the page opens its picker.",
+              "name": "mm-link-term",
+              "type": {
+                "text": "CustomEvent<MmTermDetail>"
+              }
+            },
+            {
+              "description": "The person removed a glossary term from the field.",
+              "name": "mm-unlink-term",
+              "type": {
+                "text": "CustomEvent<MmUnlinkTermDetail>"
               }
             },
             {
@@ -41432,7 +41630,7 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "Shows \"Edit description\" in the field panel.",
+              "description": "Lets people change the field in the panel: Personal data, Certified, the description and glossary terms.",
               "fieldName": "editable"
             },
             {
@@ -49575,7 +49773,7 @@
           "type": {
             "text": "Record<StatusState, { tone: StatusTone; icon?: string; dot?: boolean; word: () => string }>"
           },
-          "default": "{ succeeded: { tone: 'success', icon: 'check-circle', word: () => s('statusSucceeded', 'Succeeded') }, partial: { tone: 'warning', icon: 'data-usage', word: () => s('statusPartial', 'Partial') }, failed: { tone: 'danger', icon: 'cancel', word: () => s('statusFailed', 'Failed') }, running: { tone: 'info', dot: true, word: () => s('statusRunning', 'Running') }, queued: { tone: 'neutral', icon: 'hourglass-empty', word: () => s('statusQueued', 'Queued') }, stale: { tone: 'warning', icon: 'schedule', word: () => s('statusStale', 'Stale') }, denied: { tone: 'danger', dot: true, word: () => s('statusDenied', 'Denied') }, allowed: { tone: 'success', dot: true, word: () => s('statusAllowed', 'Allowed') }, cancelled: { tone: 'neutral', icon: 'block', word: () => s('statusCancelled', 'Cancelled') }, skipped: { tone: 'neutral', icon: 'trending-flat', word: () => s('statusSkipped', 'Skipped') }, }",
+          "default": "{ succeeded: { tone: 'success', icon: 'check-circle', word: () => s('statusSucceeded', 'Succeeded') }, partial: { tone: 'warning', icon: 'data-usage', word: () => s('statusPartial', 'Partial') }, failed: { tone: 'danger', icon: 'cancel', word: () => s('statusFailed', 'Failed') }, running: { tone: 'info', dot: true, word: () => s('statusRunning', 'Running') }, queued: { tone: 'neutral', icon: 'hourglass-empty', word: () => s('statusQueued', 'Queued') }, stale: { tone: 'warning', icon: 'schedule', word: () => s('statusStale', 'Stale') }, denied: { tone: 'danger', dot: true, word: () => s('statusDenied', 'Denied') }, allowed: { tone: 'success', dot: true, word: () => s('statusAllowed', 'Allowed') }, cancelled: { tone: 'neutral', icon: 'block', word: () => s('statusCancelled', 'Cancelled') }, skipped: { tone: 'neutral', icon: 'trending-flat', word: () => s('statusSkipped', 'Skipped') }, pending: { tone: 'info', icon: 'pending', word: () => s('statusPending', 'Not in use yet') }, historical: { tone: 'neutral', icon: 'archive', word: () => s('statusHistorical', 'No longer in use') }, 'review-due': { tone: 'warning', icon: 'schedule', word: () => s('statusReviewDue', 'Review due') }, }",
           "description": "What each semantic state means: tone, default glyph and default word."
         },
         {
@@ -49607,7 +49805,7 @@
         },
         {
           "kind": "class",
-          "description": "Status pills state the condition of a run, asset or request in a word: a soft status fill,\nstatus-coloured text and the word, with an optional leading icon or 6px dot. Colour is never\nthe only signal, and burnt sienna is never a status colour.\n\nSet `state` for the common Marmot states (`succeeded`, `partial`, `failed`, `running`, `queued`, `stale`,\n`denied`, `allowed`, `cancelled`, `skipped`), which picks the tone, glyph and default word for\nyou. `partial` is a run that finished with some failures: ochre (warning) with a part-filled ring,\nkept apart from burnt sienna and the failed crimson. Set `status` directly for anything else and slot your own word.\n\nDon't badge the happy path. Show a pill only when something needs attention (Denied, Failed,\nPartial, Stale, Expiring, Running). \"Allowed\", \"Succeeded\", \"Active\" and similar are the default\nand get no pill in rows, lists and tables: leave the cell empty, or give screen readers the word\nas visually hidden text. `isHappyPath(state)` and `HAPPY_PATH_STATES` from this module tell you\nwhich states to skip. A pill for a happy state is fine where the state is the subject, such as a\nrun's own page header.",
+          "description": "Status pills state the condition of a run, asset or request in a word: a soft status fill,\nstatus-coloured text and the word, with an optional leading icon or 6px dot. Colour is never\nthe only signal, and burnt sienna is never a status colour.\n\nSet `state` for the common Marmot states (`succeeded`, `partial`, `failed`, `running`, `queued`, `stale`,\n`denied`, `allowed`, `cancelled`, `skipped`), which picks the tone, glyph and default word for\nyou. Written records such as policies and decisions use `pending` (a draft, under review or not\nyet in force), `historical` (superseded or retired) and `review-due` (past its review date); slot\nthe record's own status word (\"Draft\", \"Superseded\") where it says more than the default. `partial` is a run that finished with some failures: ochre (warning) with a part-filled ring,\nkept apart from burnt sienna and the failed crimson. Set `status` directly for anything else and slot your own word.\n\nDon't badge the happy path. Show a pill only when something needs attention (Denied, Failed,\nPartial, Stale, Expiring, Running). \"Allowed\", \"Succeeded\", \"Active\" and similar are the default\nand get no pill in rows, lists and tables: leave the cell empty, or give screen readers the word\nas visually hidden text. `isHappyPath(state)` and `HAPPY_PATH_STATES` from this module tell you\nwhich states to skip. A pill for a happy state is fine where the state is the subject, such as a\nrun's own page header.",
           "name": "MmStatusPill",
           "cssParts": [
             {

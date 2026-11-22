@@ -157,6 +157,10 @@
     "icon": "material-symbols:change-history-outline",
     "generic": true
   },
+  "docusaurus": {
+    "name": "Docusaurus",
+    "icon": "logos:docusaurus"
+  },
   "doris": {
     "name": "Doris",
     "icon": "simple-icons:apachedoris"
@@ -327,6 +331,11 @@
   "mariadb": {
     "name": "MariaDB",
     "icon": "logos:mariadb-icon"
+  },
+  "marmot": {
+    "name": "Marmot",
+    "icon": "marmot:monogram",
+    "color": "ink"
   },
   "materialize": {
     "name": "Materialize",
@@ -594,6 +603,10 @@
   "superset": {
     "name": "Superset",
     "icon": "logos:apache-superset-icon"
+  },
+  "sveltekit": {
+    "name": "SvelteKit",
+    "icon": "logos:svelte-icon"
   },
   "synapse": {
     "name": "Azure Synapse",

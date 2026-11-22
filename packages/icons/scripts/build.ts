@@ -18,6 +18,12 @@ const sets: Record<string, IconSet> = {
   'simple-icons': require('@iconify-json/simple-icons/icons.json'),
 };
 
+// Marmot's own mark comes from the tokens package, so the monogram has one source: the provider logo for anything written in Marmot.
+const monogram = readFileSync(join(here, '../../tokens/source/logos/marmot-monogram.svg'), 'utf8');
+const [minX, minY, mw, mh] = monogram.match(/viewBox="([^"]+)"/)![1]!.split(/\s+/).map(Number) as [number, number, number, number];
+const monogramBody = monogram.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '').replace(/<path /g, '<path fill="currentColor" ');
+sets.marmot = { prefix: 'marmot', icons: { monogram: { body: `<g transform="translate(${-minX} ${-minY})">${monogramBody}</g>`, width: mw, height: mh } } };
+
 export interface IconData { body: string; width: number; height: number }
 
 function resolve(ref: string): IconData {

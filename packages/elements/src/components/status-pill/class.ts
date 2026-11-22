@@ -16,7 +16,10 @@ export type StatusState =
   | 'denied'
   | 'allowed'
   | 'cancelled'
-  | 'skipped';
+  | 'skipped'
+  | 'pending'
+  | 'historical'
+  | 'review-due';
 
 /** Local fallback until the keys land in `defaultStrings` (see the component report). */
 const s = (key: string, fallback: string): string => (t(key as never) as string | undefined) ?? fallback;
@@ -33,6 +36,9 @@ export const STATUS_STATES: Record<StatusState, { tone: StatusTone; icon?: strin
   allowed: { tone: 'success', dot: true, word: () => s('statusAllowed', 'Allowed') },
   cancelled: { tone: 'neutral', icon: 'block', word: () => s('statusCancelled', 'Cancelled') },
   skipped: { tone: 'neutral', icon: 'trending-flat', word: () => s('statusSkipped', 'Skipped') },
+  pending: { tone: 'info', icon: 'pending', word: () => s('statusPending', 'Not in use yet') },
+  historical: { tone: 'neutral', icon: 'archive', word: () => s('statusHistorical', 'No longer in use') },
+  'review-due': { tone: 'warning', icon: 'schedule', word: () => s('statusReviewDue', 'Review due') },
 };
 
 /**
@@ -51,7 +57,9 @@ export const isHappyPath = (state: string | undefined | null): boolean => HAPPY_
  *
  * Set `state` for the common Marmot states (`succeeded`, `partial`, `failed`, `running`, `queued`, `stale`,
  * `denied`, `allowed`, `cancelled`, `skipped`), which picks the tone, glyph and default word for
- * you. `partial` is a run that finished with some failures: ochre (warning) with a part-filled ring,
+ * you. Written records such as policies and decisions use `pending` (a draft, under review or not
+ * yet in force), `historical` (superseded or retired) and `review-due` (past its review date); slot
+ * the record's own status word ("Draft", "Superseded") where it says more than the default. `partial` is a run that finished with some failures: ochre (warning) with a part-filled ring,
  * kept apart from burnt sienna and the failed crimson. Set `status` directly for anything else and slot your own word.
  *
  * Don't badge the happy path. Show a pill only when something needs attention (Denied, Failed,

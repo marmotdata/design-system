@@ -52,6 +52,9 @@ const allStates = () => html`<div style="display:flex;flex-wrap:wrap;gap:var(--s
   <mm-status-pill state="denied"></mm-status-pill>
   <mm-status-pill state="cancelled"></mm-status-pill>
   <mm-status-pill state="skipped"></mm-status-pill>
+  <mm-status-pill state="pending"></mm-status-pill>
+  <mm-status-pill state="historical"></mm-status-pill>
+  <mm-status-pill state="review-due"></mm-status-pill>
 </div>`;
 
 export const States: Story = {
@@ -68,6 +71,13 @@ export const States: Story = {
     const glyph = (st: string) => canvasElement.querySelector(`mm-status-pill[state="${st}"]`)!.shadowRoot!.querySelector('mm-icon')?.getAttribute('name');
     await expect(glyph('partial')).not.toBe(glyph('stale'));
     await expect(glyph('partial')).not.toBe(glyph('failed'));
+    // Written records: not yet in force, kept for history and overdue a review read apart from run states.
+    const pill = (st: string) => canvasElement.querySelector(`mm-status-pill[state="${st}"]`)!.shadowRoot!;
+    await expect(pill('pending').querySelector('.pill')).toHaveClass('info');
+    await expect(pill('historical').querySelector('.pill')).toHaveClass('neutral');
+    await expect(pill('review-due').querySelector('.pill')).toHaveClass('warning');
+    await expect(pill('review-due').textContent).toContain('Review due');
+    await expect(glyph('historical')).not.toBe(glyph('cancelled'));
     // Colour is never the only signal: every pill carries a glyph and a word.
     for (const pill of canvasElement.querySelectorAll('mm-status-pill')) {
       await expect(pill.shadowRoot!.querySelector('mm-icon, .dot')).not.toBeNull();
