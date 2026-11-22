@@ -120,7 +120,9 @@ const meta: Meta<Args> = {
 <script type="module">
   const table = document.querySelector('#schema');
   table.columns = asset.schema.columns;
-  table.addEventListener('mm-edit-description', (e) => openEditor(e.detail.path));
+  table.addEventListener('mm-field-change', (e) => e.detail.waitUntil(saveField(e.detail.path, e.detail.change)));
+  table.addEventListener('mm-link-term', (e) => openTermPicker(e.detail.path));
+  table.addEventListener('mm-unlink-term', (e) => unlinkTerm(e.detail.path, e.detail.term.id));
 </script>`,
       react: `import { MmSchemaTable } from '@marmotdata/react';
 
@@ -128,7 +130,9 @@ const meta: Meta<Args> = {
   label="Schema of shop.public.orders"
   editable
   columns={asset.schema.columns}
-  onMmEditDescription={(e) => openEditor(e.detail.path)}
+  onMmFieldChange={(e) => e.detail.waitUntil(saveField(e.detail.path, e.detail.change))}
+  onMmLinkTerm={(e) => openTermPicker(e.detail.path)}
+  onMmUnlinkTerm={(e) => unlinkTerm(e.detail.path, e.detail.term.id)}
 />`,
       svelte: `<script lang="ts">
   import '@marmotdata/elements/schema-table.js';
@@ -139,7 +143,9 @@ const meta: Meta<Args> = {
   label="Schema of shop.public.orders"
   editable
   columns={asset.schema.columns}
-  onmm-edit-description={(e) => openEditor(e.detail.path)}
+  onmm-field-change={(e) => e.detail.waitUntil(saveField(e.detail.path, e.detail.change))}
+  onmm-link-term={(e) => openTermPicker(e.detail.path)}
+  onmm-unlink-term={(e) => unlinkTerm(e.detail.path, e.detail.term.id)}
 ></mm-schema-table>`,
     },
   },
@@ -194,7 +200,11 @@ export const Focus: Story = {
 export const Compact: Story = { name: 'Compact density', render: () => html`<mm-schema-table label="Schema of shop.public.orders" density="compact" .columns=${orders}></mm-schema-table>` };
 export const FieldPanel: Story = {
   name: 'Field panel open',
-  render: () => html`<mm-schema-table label="Schema of shop.public.orders" editable selected="order_id" .columns=${orders}></mm-schema-table>`,
+  render: () => html`<mm-schema-table label="Schema of shop.public.orders" selected="order_id" .columns=${orders}></mm-schema-table>`,
+};
+export const FieldPanelEditable: Story = {
+  name: 'Field panel, editable',
+  render: () => html`<mm-schema-table label="Schema of shop.public.orders" editable selected="customer_id" .columns=${linkedOrders}></mm-schema-table>`,
 };
 
 /** The Avro document as the registry holds it, for the text views. */
@@ -225,13 +235,21 @@ export const BothThemes: Story = { render: () => themes(html`<mm-schema-table la
 
 // ---- keyboard ---------------------------------------------------------------
 
-const onEdit = fn();
+const onChange = fn();
+const onLink = fn();
+const onUnlink = fn();
+
+/** Terms that link to the glossary, as a page passes them so the panel can remove one by id. */
+const linkedOrders: SchemaColumn[] = orders.map((c) =>
+  c.name === 'customer_id'
+    ? { ...c, glossaryTerms: [{ id: 't-customer', name: 'Customer', href: '#customer' }, { id: 't-customer-id', name: 'Customer ID', href: '#customer-id' }] }
+    : c,
+);
 
 export const KeyboardRows: Story = {
   name: 'Keyboard: rows, groups and the field panel',
-  render: () => html`<mm-schema-table label="Schema of shop.orders.v2" editable .columns=${avro} @mm-edit-description=${(e: CustomEvent) => onEdit(e.detail.path)}></mm-schema-table>`,
+  render: () => html`<mm-schema-table label="Schema of shop.orders.v2" .columns=${avro}></mm-schema-table>`,
   play: async ({ canvasElement }) => {
-    onEdit.mockClear();
     const t = tableOf(canvasElement);
     rowOf(t, 'order_id')!.focus();
     await press('{ArrowDown}');
@@ -267,11 +285,72 @@ export const KeyboardRows: Story = {
     await press('{Home}');
     await waitFor(() => expect(focusedKey()).toBe('order_id'));
 
-    // The panel's Edit description fires the event with the path.
+    // Without editable the panel has nothing to change.
     await press('{Enter}');
-    const edit = await waitFor(() => [...t.shadowRoot!.querySelectorAll('.panel mm-button')].find((b) => b.textContent?.includes('Edit description'))!);
-    await click(edit.shadowRoot!.querySelector('button')!);
-    await expect(onEdit).toHaveBeenCalledWith('order_id');
+    await waitFor(() => expect(t.shadowRoot!.querySelector('.panel')).not.toBeNull());
+    await expect(t.shadowRoot!.querySelector('.panel mm-switch, .panel .edit-description, .panel .link-term')).toBeNull();
+  },
+};
+
+export const KeyboardEditing: Story = {
+  name: 'Keyboard: changing a field in the panel',
+  render: () => html`<mm-schema-table
+    label="Schema of shop.public.orders"
+    editable
+    selected="customer_id"
+    .columns=${linkedOrders}
+    @mm-field-change=${(e: CustomEvent) => {
+      onChange(e.detail.path, e.detail.change);
+      // The first save fails, so the switch has to go back.
+      e.detail.waitUntil(Promise.resolve(onChange.mock.calls.length > 1));
+    }}
+    @mm-link-term=${(e: CustomEvent) => onLink(e.detail.path)}
+    @mm-unlink-term=${(e: CustomEvent) => onUnlink(e.detail.path, e.detail.term.id)}
+  ></mm-schema-table>`,
+  play: async ({ canvasElement }) => {
+    onChange.mockClear();
+    onLink.mockClear();
+    onUnlink.mockClear();
+    const t = tableOf(canvasElement);
+    const panel = () => t.shadowRoot!.querySelector('.panel')!;
+    const [pii] = [...panel().querySelectorAll('mm-switch')] as (HTMLElement & { checked: boolean })[];
+
+    // A switch asks for the change at once; a failed save puts it back.
+    pii!.focus();
+    await press('{Space}');
+    await expect(onChange).toHaveBeenLastCalledWith('customer_id', { pii: true });
+    await waitFor(() => expect(pii!.checked).toBe(false));
+    await press('{Space}');
+    await expect(onChange).toHaveBeenLastCalledWith('customer_id', { pii: true });
+
+    // Edit description opens in place with the current text; Escape cancels without closing the panel.
+    const edit = panel().querySelector<HTMLElement>('.edit-description')!;
+    edit.focus();
+    await press('{Enter}');
+    const editor = await waitFor(() => panel().querySelector<HTMLElement & { value: string }>('.description-editor mm-textarea')!);
+    await expect(editor.value).toBe('The customer who placed the order. Joins to customers_dim.');
+    await press('{Escape}');
+    await waitFor(() => expect(panel().querySelector('.description-editor')).toBeNull());
+    await expect(t.selected).toBe('customer_id');
+    await waitFor(() => expect(t.shadowRoot!.activeElement?.classList.contains('edit-description')).toBe(true));
+
+    // Ctrl+Enter saves the edited description.
+    await press('{Enter}');
+    await waitFor(() => expect(panel().querySelector('.description-editor mm-textarea')).not.toBeNull());
+    await press(' Paid orders only.');
+    await press('{Control>}{Enter}{/Control}');
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith('customer_id', { description: 'The customer who placed the order. Joins to customers_dim. Paid orders only.' }),
+    );
+    await waitFor(() => expect(panel().querySelector('.description-editor')).toBeNull());
+
+    // Removing a term asks the page to unlink it by id; Link term asks for the picker.
+    const tag = panel().querySelector('mm-tag[removable]')!;
+    await click(tag.shadowRoot!.querySelector<HTMLElement>('button')!);
+    await expect(onUnlink).toHaveBeenCalledWith('customer_id', 't-customer');
+    const link = panel().querySelector<HTMLElement>('.link-term')!;
+    await click(link.shadowRoot!.querySelector('button')!);
+    await expect(onLink).toHaveBeenCalledWith('customer_id');
   },
 };
 

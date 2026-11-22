@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, svg, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { live } from 'lit/directives/live.js';
 import { emit } from '../../core/events.js';
 import { formatCount } from '../../core/format.js';
 import { isRtl } from '../../core/roving.js';
@@ -12,6 +13,8 @@ import '../copy-button/define.js';
 import '../tag/define.js';
 import '../search-field/define.js';
 import '../filter-pill/define.js';
+import '../switch/define.js';
+import '../textarea/define.js';
 import '../skeleton/define.js';
 import '../empty-state/define.js';
 import '../segmented-control/define.js';
@@ -27,6 +30,14 @@ export interface SchemaColumnStats {
   distribution?: number[];
 }
 
+/** A glossary term linked to a field. */
+export interface SchemaTerm {
+  name: string;
+  id?: string;
+  /** Where the term's glossary page is. */
+  href?: string;
+}
+
 /** One column or nested field. */
 export interface SchemaColumn {
   name: string;
@@ -38,7 +49,8 @@ export interface SchemaColumn {
   /** `plugin` when a plugin wrote the description, `user` when a person did (marked "Edited"). */
   descriptionSource?: 'plugin' | 'user';
   tags?: string[];
-  glossaryTerms?: string[];
+  /** Glossary terms that say what the field means. A plain string is the term's name; give an object with `href` to link it to the glossary and `id` to tell which term the panel's Remove acts on. */
+  glossaryTerms?: (string | SchemaTerm)[];
   pii?: boolean;
   certified?: boolean;
   /** True for nullable (shown as "Optional"), false for not null. Leave undefined when the source does not say. */
@@ -123,11 +135,36 @@ export function toYaml(value: unknown, indent = 0): string {
   return pad + scalar(value);
 }
 
-export interface MmEditDescriptionDetail {
+/** What a person changed on a field in the panel. An empty description clears the person's edit. */
+export interface SchemaFieldChange {
+  pii?: boolean;
+  certified?: boolean;
+  description?: string;
+}
+
+export interface MmFieldChangeDetail {
   column: SchemaColumn;
   /** Dotted path of the field, e.g. `shipping_address.city`. */
   path: string;
+  change: SchemaFieldChange;
+  /**
+   * Pass the save so the panel waits for it: the control stays busy until it settles, and a save
+   * that rejects or resolves to `false` puts the switch back or keeps the description open. Without
+   * it the panel takes the change as saved.
+   */
+  waitUntil(save: Promise<unknown>): void;
 }
+
+export interface MmTermDetail {
+  column: SchemaColumn;
+  path: string;
+}
+
+export interface MmUnlinkTermDetail extends MmTermDetail {
+  term: SchemaTerm;
+}
+
+const termOf = (g: string | SchemaTerm): SchemaTerm => (typeof g === 'string' ? { name: g } : g);
 
 export interface MmSelectFieldDetail {
   column: SchemaColumn;
@@ -160,6 +197,11 @@ interface Row {
  * path. A Structure, JSON and YAML switch shows the schema as text with a copy button, from
  * `source` (the original Avro or JSON Schema document) when given, or from `columns`.
  *
+ * With `editable`, the panel is the one place a field is changed: switches for Personal data and
+ * Certified that apply at once, the description edited in place, and the field's glossary terms
+ * with Remove on each and a Link term button. The element only asks for each change through an
+ * event; the page saves it, passes the save to `waitUntil`, and sets `columns` again when done.
+ *
  * It is an ARIA treegrid (https://www.w3.org/WAI/ARIA/apg/patterns/treegrid/) with row focus: one
  * tab stop; Down and Up move between rows, Home and End go to the first and last; Right expands a
  * group or moves to its first field, Left collapses it or moves to its parent (flipped in
@@ -173,7 +215,9 @@ interface Row {
  * @csspart text - The JSON or YAML view.
  * @cssprop --mm-schema-table-height - Height at which the outline scrolls. Defaults to none.
  * @fires mm-select-field - {MmSelectFieldDetail} A field was opened in the panel.
- * @fires mm-edit-description - {MmEditDescriptionDetail} The person asked to edit a field's description.
+ * @fires mm-field-change - {MmFieldChangeDetail} The person turned Personal data or Certified on or off, or saved a description.
+ * @fires mm-link-term - {MmTermDetail} The person asked to link a glossary term to the field; the page opens its picker.
+ * @fires mm-unlink-term - {MmUnlinkTermDetail} The person removed a glossary term from the field.
  * @fires mm-retry - {null} The retry button in the error state was activated.
  */
 export class MmSchemaTable extends LitElement {
@@ -428,6 +472,24 @@ export class MmSchemaTable extends LitElement {
       .mono {
         font: var(--text-mono-dense);
       }
+      dd:has(> mm-switch) {
+        display: flex;
+        align-items: center;
+      }
+      .edit-description,
+      .link-term {
+        margin-block-start: var(--space-2);
+        margin-inline-start: calc(-1 * var(--space-2));
+      }
+      .description-editor {
+        display: grid;
+        gap: var(--space-2);
+      }
+      .editor-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-2);
+      }
       .chips {
         display: flex;
         flex-wrap: wrap;
@@ -490,7 +552,7 @@ export class MmSchemaTable extends LitElement {
   @property({ reflect: true }) accessor density: 'comfortable' | 'compact' = 'comfortable';
   /** Accessible name. Defaults to "Schema". */
   @property() accessor label = '';
-  /** Shows "Edit description" in the field panel. */
+  /** Lets people change the field in the panel: Personal data, Certified, the description and glossary terms. */
   @property({ type: Boolean, reflect: true }) accessor editable = false;
   /** Finds fields by name, including nested ones. */
   @property() accessor filter = '';
@@ -509,6 +571,11 @@ export class MmSchemaTable extends LitElement {
 
   @state() accessor #expanded = new Set<string>();
   @state() accessor #activeKey = '';
+  /** The description being edited in the panel, or undefined when it is not open. */
+  @state() accessor #draft: string | undefined;
+  /** Panel controls waiting on a save: pii, certified or description. */
+  @state() accessor #busy = new Set<keyof SchemaFieldChange>();
+  #focusAfterRender = '';
   #focusPending = false;
   #collapsedWhileFiltering = new Set<string>();
 
@@ -532,6 +599,10 @@ export class MmSchemaTable extends LitElement {
   }
 
   protected override willUpdate(changed: PropertyValues<this>) {
+    if (changed.has('selected')) {
+      this.#draft = undefined;
+      this.#busy = new Set();
+    }
     // Top-level groups start open, deeper ones closed.
     if (changed.has('columns')) this.#expanded = new Set(this.columns.filter((c) => c.fields?.length).map((c) => c.name));
     const { rows } = this.#rows();
@@ -539,6 +610,12 @@ export class MmSchemaTable extends LitElement {
   }
 
   protected override updated() {
+    if (this.#focusAfterRender) {
+      const target = this.renderRoot.querySelector<HTMLElement & { updateComplete?: Promise<unknown> }>(this.#focusAfterRender);
+      this.#focusAfterRender = '';
+      // A child element renders its inner control after this update, so wait for it before focusing.
+      void Promise.resolve(target?.updateComplete).then(() => target?.focus());
+    }
     if (this.#focusPending) {
       this.#focusPending = false;
       this.renderRoot.querySelector<HTMLElement>('.row[tabindex="0"]')?.focus();
@@ -679,8 +756,74 @@ export class MmSchemaTable extends LitElement {
   #onPanelKeydown = (e: KeyboardEvent) => {
     if (e.key !== 'Escape') return;
     e.preventDefault();
+    if (this.#draft !== undefined) {
+      this.#cancelDescription();
+      return;
+    }
     this.#closePanel();
   };
+
+  // ---- editing ------------------------------------------------------------
+
+  /** Asks the page to save a change and waits for it when the page passes its save to `waitUntil`. Resolves to whether it was saved. */
+  async #change(c: SchemaColumn, path: string, change: SchemaFieldChange): Promise<boolean> {
+    let save: Promise<unknown> | undefined;
+    emit<MmFieldChangeDetail>(this, 'mm-field-change', { column: c, path, change, waitUntil: (p) => (save = p) });
+    if (!save) return true;
+    const keys = Object.keys(change) as (keyof SchemaFieldChange)[];
+    this.#busy = new Set([...this.#busy, ...keys]);
+    let ok = false;
+    try {
+      ok = (await save) !== false;
+    } catch {
+      ok = false;
+    }
+    const busy = new Set(this.#busy);
+    keys.forEach((k) => busy.delete(k));
+    this.#busy = busy;
+    // A failed switch re-renders so `live` puts it back to the saved value.
+    if (!ok) this.requestUpdate();
+    return ok;
+  }
+
+  #toggleMarker(c: SchemaColumn, path: string, key: 'pii' | 'certified', e: Event) {
+    const checked = (e.target as HTMLElement & { checked: boolean }).checked;
+    void this.#change(c, path, { [key]: checked });
+  }
+
+  #editDescription(c: SchemaColumn) {
+    this.#draft = c.description ?? '';
+    this.#focusAfterRender = '.description-editor mm-textarea';
+  }
+
+  #cancelDescription() {
+    this.#draft = undefined;
+    this.#focusAfterRender = '.edit-description';
+  }
+
+  async #saveDescription(c: SchemaColumn, path: string) {
+    const value = (this.#draft ?? '').trim();
+    if (value === (c.description ?? '').trim()) {
+      this.#cancelDescription();
+      return;
+    }
+    if (await this.#change(c, path, { description: value })) this.#cancelDescription();
+  }
+
+  #onDescriptionKeydown = (c: SchemaColumn, path: string) => (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      void this.#saveDescription(c, path);
+    }
+  };
+
+  #unlink(c: SchemaColumn, path: string, term: SchemaTerm, e: Event) {
+    e.preventDefault();
+    emit<MmUnlinkTermDetail>(this, 'mm-unlink-term', { column: c, path, term });
+    // The removed tag goes away when the page sets columns again, so focus moves to the add control.
+    this.#focusAfterRender = '.link-term';
+    this.requestUpdate();
+  }
 
   #onClick = (e: MouseEvent) => {
     const key = ((e.target as Element).closest('.row') as HTMLElement | null)?.dataset.key;
@@ -756,7 +899,7 @@ export class MmSchemaTable extends LitElement {
         >
         ${filled !== undefined && filled < 100 ? html`<span class="filled">${tr('schemaFilledShort', '{pct} filled', { pct: this.#fmtPct(filled) })}</span>` : nothing}
         ${c.glossaryTerms?.length || c.tags?.length
-          ? html`<span class="terms">${(c.glossaryTerms ?? []).map((g) => html`<mm-tag>${g}</mm-tag>`)}${(c.tags ?? []).map((g) => html`<mm-tag>${g}</mm-tag>`)}</span>`
+          ? html`<span class="terms">${(c.glossaryTerms ?? []).map((g) => html`<mm-tag>${termOf(g).name}</mm-tag>`)}${(c.tags ?? []).map((g) => html`<mm-tag>${g}</mm-tag>`)}</span>`
           : nothing}
       </span>
     </div>`;
@@ -778,22 +921,82 @@ export class MmSchemaTable extends LitElement {
           <dt>${tr('schemaExactType', 'Exact type')}</dt><dd class="mono">${c.type}</dd>
           ${c.nullable === undefined ? nothing : html`<dt>${tr('schemaRequired', 'Required')}</dt><dd>${c.nullable ? tr('no', 'No') : tr('yes', 'Yes')}</dd>`}
           ${c.primaryKey ? html`<dt>${tr('schemaKey', 'Key')}</dt><dd>${tr('schemaPrimaryKey', 'Primary key')}</dd>` : nothing}
-          <dt>${tr('schemaPersonalData', 'Personal data')}</dt><dd>${c.pii ? html`<mm-tag variant="pii"></mm-tag>` : tr('none', 'None')}</dd>
+          ${this.editable
+            ? html`<dt>${tr('schemaPersonalData', 'Personal data')}</dt>
+                <dd>
+                  <mm-switch
+                    class="marker"
+                    hide-label
+                    label=${tr('schemaPersonalData', 'Personal data')}
+                    .checked=${live(!!c.pii)}
+                    ?disabled=${this.#busy.has('pii')}
+                    @mm-change=${(e: Event) => this.#toggleMarker(c, path, 'pii', e)}
+                  ></mm-switch>
+                </dd>
+                <dt>${tr('schemaCertified', 'Certified')}</dt>
+                <dd>
+                  <mm-switch
+                    class="marker"
+                    hide-label
+                    label=${tr('schemaCertified', 'Certified')}
+                    .checked=${live(!!c.certified)}
+                    ?disabled=${this.#busy.has('certified')}
+                    @mm-change=${(e: Event) => this.#toggleMarker(c, path, 'certified', e)}
+                  ></mm-switch>
+                </dd>`
+            : html`<dt>${tr('schemaPersonalData', 'Personal data')}</dt><dd>${c.pii ? html`<mm-tag variant="pii"></mm-tag>` : tr('none', 'None')}</dd>
+                ${c.certified ? html`<dt>${tr('schemaCertified', 'Certified')}</dt><dd><mm-tag variant="certified"></mm-tag></dd>` : nothing}`}
         </dl>
       </section>
       <section>
         <h4>${tr('schemaAbout', 'About')}</h4>
-        <div class=${c.description ? '' : 'edited'}>${c.description || tr('schemaNoDescription', 'No description yet')}</div>
-        ${this.editable
-          ? html`<mm-button style="margin-block-start: var(--space-3)" size="sm" icon="edit" @click=${() => emit<MmEditDescriptionDetail>(this, 'mm-edit-description', { column: c, path })}
-              >${tr('schemaEditDescriptionShort', 'Edit description')}</mm-button
-            >`
-          : nothing}
+        ${this.#draft !== undefined
+          ? html`<div class="description-editor" @keydown=${this.#onDescriptionKeydown(c, path)}>
+              <mm-textarea
+                hide-label
+                label=${tr('schemaDescriptionOf', 'Description of {name}', { name: c.name })}
+                help=${c.descriptionSource === 'user' ? tr('schemaDescriptionHelp', 'Leave it empty to show the description from the source again.') : ''}
+                rows="3"
+                autosize
+                .value=${this.#draft}
+                ?disabled=${this.#busy.has('description')}
+                @mm-input=${(e: CustomEvent<{ value: string }>) => (this.#draft = e.detail.value)}
+              ></mm-textarea>
+              <div class="editor-actions">
+                <mm-button size="sm" variant="ghost" ?disabled=${this.#busy.has('description')} @click=${() => this.#cancelDescription()}>${tr('cancel', 'Cancel')}</mm-button>
+                <mm-button size="sm" variant="primary" ?loading=${this.#busy.has('description')} @click=${() => this.#saveDescription(c, path)}
+                  >${tr('schemaSaveDescription', 'Save description')}</mm-button
+                >
+              </div>
+            </div>`
+          : html`<div class=${c.description ? '' : 'edited'}>${c.description || tr('schemaNoDescription', 'No description yet')}</div>
+              ${this.editable
+                ? html`<mm-button class="edit-description" size="sm" variant="ghost" icon="edit" @click=${() => this.#editDescription(c)}
+                    >${tr('schemaEditDescriptionShort', 'Edit description')}</mm-button
+                  >`
+                : nothing}`}
       </section>
-      ${c.glossaryTerms?.length || c.tags?.length
+      ${c.glossaryTerms?.length || c.tags?.length || this.editable
         ? html`<section>
             <h4>${tr('schemaMeaning', 'What it means')}</h4>
-            <div class="chips">${(c.glossaryTerms ?? []).map((g) => html`<mm-tag>${g}</mm-tag>`)}${(c.tags ?? []).map((g) => html`<mm-tag>${g}</mm-tag>`)}</div>
+            ${c.glossaryTerms?.length || c.tags?.length
+              ? html`<div class="chips">
+                  ${(c.glossaryTerms ?? []).map((g) => {
+                    const term = termOf(g);
+                    return html`<mm-tag
+                      href=${term.href ?? ''}
+                      ?removable=${this.editable}
+                      @mm-remove=${(e: Event) => this.#unlink(c, path, term, e)}
+                      >${term.name}</mm-tag
+                    >`;
+                  })}${(c.tags ?? []).map((g) => html`<mm-tag>${g}</mm-tag>`)}
+                </div>`
+              : nothing}
+            ${this.editable
+              ? html`<mm-button class="link-term" size="sm" variant="ghost" icon="add" @click=${() => emit<MmTermDetail>(this, 'mm-link-term', { column: c, path })}
+                  >${tr('schemaLinkTerm', 'Link term')}</mm-button
+                >`
+              : nothing}
           </section>`
         : nothing}
       ${hasValues
