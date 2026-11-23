@@ -98,6 +98,28 @@ export const Centred: Story = {
   },
 };
 
+// A target taller than the screen: the card sits inside it, in the bottom corner, below its heading.
+export const TallTarget: Story = {
+  args: { heading: 'Connect your own systems', step: 10, steps: 16 },
+  render: (a) => html`<section id="gallery" style="display:grid;gap:var(--space-3);padding:var(--space-4);min-height:2400px;border:1px solid var(--mm-rule)">
+      <h2 id="gallery-heading" style="margin:0;font:var(--text-heading)">Add a source</h2>
+      ${['PostgreSQL', 'BigQuery', 'Kafka', 'Snowflake', 'dbt', 'Airflow'].map((n) => html`<p style="margin:0;font:var(--text-dense)">${n}</p>`)}
+    </section>
+    <mm-coachmark open for="gallery" heading=${a.heading} step=${a.step} steps=${a.steps}>
+      Pick a plugin here when you are ready to bring in your own data.
+      <mm-button slot="actions" variant="primary">Next</mm-button>
+    </mm-coachmark>`,
+  play: async ({ canvasElement }) => {
+    const c = canvasElement.querySelector('mm-coachmark')!;
+    await shown(c);
+    await waitFor(() => expect(card(c).dataset.placement).toBe('inside'));
+    const box = card(c).getBoundingClientRect();
+    const heading = canvasElement.querySelector('#gallery-heading')!.getBoundingClientRect();
+    await expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);
+    await expect(box.top).toBeGreaterThan(heading.bottom);
+  },
+};
+
 export const Blocking: Story = { args: { blocking: true } };
 
 export const LongContent: Story = {

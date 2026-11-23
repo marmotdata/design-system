@@ -22,7 +22,9 @@ export interface CoachmarkDismissDetail {
  * Give the element to point at as the `target` property, or its id as `for`. The spotlight is cut
  * around the target and follows it as the page scrolls or resizes. By default the target stays
  * usable through the spotlight, so a step can ask people to press the button it points at; set
- * `blocking` to keep the rest of the page and the target inert.
+ * `blocking` to keep the rest of the page and the target inert. A target taller than the screen,
+ * such as a long list, is scrolled to its top edge and the card sits in its bottom corner, inside
+ * the spotlight, so it never covers the heading of what it points at.
  *
  * The card is a non-modal dialog in the top layer, named by its heading. It takes focus when it
  * opens so screen readers announce the step, and Escape or the close button fire a cancelable
@@ -45,6 +47,33 @@ export interface CoachmarkDismissDetail {
  * @cssprop --mm-coachmark-width - The card's width. Defaults to 340px.
  * @fires mm-dismiss - {CoachmarkDismissDetail} Escape or the close button asked to end the tour. Cancel it to keep the step open.
  */
+/** The least space between the card and the edge of the screen, in pixels. */
+const CARD_MARGIN = 16;
+
+/** The next element up the composed tree, through slots and shadow roots. */
+function composedParent(el: Element): Element | null {
+  if (el.assignedSlot) return el.assignedSlot;
+  if (el.parentElement) return el.parentElement;
+  const root = el.getRootNode();
+  return root instanceof ShadowRoot ? root.host : null;
+}
+
+/**
+ * Brings a target's top edge to the top of the nearest container that scrolls it. Unlike
+ * `scrollIntoView({ block: 'start' })` it moves only that container, so an app shell whose page
+ * must not scroll keeps its top bar in place.
+ */
+function scrollToTop(target: Element): void {
+  for (let el = composedParent(target); el; el = composedParent(el)) {
+    const { overflowY } = getComputedStyle(el);
+    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
+      el.scrollBy({ top: target.getBoundingClientRect().top - el.getBoundingClientRect().top - CARD_MARGIN });
+      return;
+    }
+  }
+  target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
 export class MmCoachmark extends LitElement {
   static override styles = [
     base,
@@ -299,8 +328,11 @@ export class MmCoachmark extends LitElement {
     delete card.dataset.centred;
     delete spot.dataset.centred;
     this.#layer?.removeAttribute('data-centred');
-    target.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
     const pad = this.padding;
+    // A target taller than the screen cannot be shown whole, and a card placed against it lands on top of it. It is scrolled to its top edge so the spotlight frames where it starts, and the card sits in the bottom corner inside it rather than over its heading.
+    const tall = () => target.getBoundingClientRect().height + pad * 2 > window.innerHeight - CARD_MARGIN * 2;
+    if (tall()) scrollToTop(target);
+    else target.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
     const update = () => {
       const r = target.getBoundingClientRect();
       Object.assign(spot.style, {
@@ -309,6 +341,16 @@ export class MmCoachmark extends LitElement {
         width: `${r.width + pad * 2}px`,
         height: `${r.height + pad * 2}px`,
       });
+      if (tall()) {
+        const right = Math.min(r.right, window.innerWidth) - CARD_MARGIN;
+        const bottom = Math.min(r.bottom, window.innerHeight) - CARD_MARGIN;
+        Object.assign(card.style, {
+          left: `${Math.max(CARD_MARGIN, right - card.offsetWidth)}px`,
+          top: `${Math.max(CARD_MARGIN, bottom - card.offsetHeight)}px`,
+        });
+        card.dataset.placement = 'inside';
+        return;
+      }
       void computePosition(target, card, {
         strategy: 'fixed',
         placement: this.placement,
