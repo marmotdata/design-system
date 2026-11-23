@@ -47,33 +47,6 @@ export interface CoachmarkDismissDetail {
  * @cssprop --mm-coachmark-width - The card's width. Defaults to 340px.
  * @fires mm-dismiss - {CoachmarkDismissDetail} Escape or the close button asked to end the tour. Cancel it to keep the step open.
  */
-/** The least space between the card and the edge of the screen, in pixels. */
-const CARD_MARGIN = 16;
-
-/** The next element up the composed tree, through slots and shadow roots. */
-function composedParent(el: Element): Element | null {
-  if (el.assignedSlot) return el.assignedSlot;
-  if (el.parentElement) return el.parentElement;
-  const root = el.getRootNode();
-  return root instanceof ShadowRoot ? root.host : null;
-}
-
-/**
- * Brings a target's top edge to the top of the nearest container that scrolls it. Unlike
- * `scrollIntoView({ block: 'start' })` it moves only that container, so an app shell whose page
- * must not scroll keeps its top bar in place.
- */
-function scrollToTop(target: Element): void {
-  for (let el = composedParent(target); el; el = composedParent(el)) {
-    const { overflowY } = getComputedStyle(el);
-    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
-      el.scrollBy({ top: target.getBoundingClientRect().top - el.getBoundingClientRect().top - CARD_MARGIN });
-      return;
-    }
-  }
-  target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-}
-
 export class MmCoachmark extends LitElement {
   static override styles = [
     base,
@@ -425,6 +398,33 @@ export class MmCoachmark extends LitElement {
       </div>
     </div>`;
   }
+}
+
+/** The least space between the card and the edge of the screen, in pixels. */
+const CARD_MARGIN = 16;
+
+/** The next element up the composed tree, through slots and shadow roots. */
+function composedParent(el: Element): Element | null {
+  if (el.assignedSlot) return el.assignedSlot;
+  if (el.parentElement) return el.parentElement;
+  const root = el.getRootNode();
+  return root instanceof ShadowRoot ? root.host : null;
+}
+
+/**
+ * Brings a target's top edge to the top of the nearest container that scrolls it. Unlike
+ * `scrollIntoView({ block: 'start' })` it moves only that container, so an app shell whose page
+ * must not scroll keeps its top bar in place.
+ */
+function scrollToTop(target: Element): void {
+  for (let el = composedParent(target); el; el = composedParent(el)) {
+    const { overflowY } = getComputedStyle(el);
+    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
+      el.scrollBy({ top: target.getBoundingClientRect().top - el.getBoundingClientRect().top - CARD_MARGIN });
+      return;
+    }
+  }
+  target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 declare global {
