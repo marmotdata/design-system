@@ -123,11 +123,14 @@ export const RawJson: Story = { name: 'View raw JSON', args: { raw: true } };
 export const Hover: Story = { parameters: { pseudo: { hover: true } } };
 export const Focus: Story = {
   play: async ({ canvasElement }) => {
+    // Tabbing before the rows render would land past the viewer on a slow runner.
+    const v = viewerOf(canvasElement);
+    await waitFor(() => expect(rowOf(v, 'metadata.database')).toBeTruthy());
     await tab(); // search
     await tab(); // raw toggle
     await tab(); // first row
-    await expect(focusedPath()).toBe('metadata.database');
-    await expect(rowOf(viewerOf(canvasElement), 'metadata.database')).toHaveAttribute('tabindex', '0');
+    await waitFor(() => expect(focusedPath()).toBe('metadata.database'));
+    await expect(rowOf(v, 'metadata.database')).toHaveAttribute('tabindex', '0');
   },
 };
 export const Compact: Story = { name: 'Compact density', render: (a, c) => html`<div data-density="compact">${meta.render!(a, c)}</div>` };
