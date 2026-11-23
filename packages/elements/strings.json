@@ -72,6 +72,7 @@
   "clearAll": "Clear all",
   "close": "Close",
   "closeNavigation": "Close navigation",
+  "coachmarkProgress": "{step} of {steps}",
   "codeEditorHint": "Press Escape then Tab to leave the editor.",
   "codeEditorLabel": "Code editor",
   "codeSample": "Code sample",

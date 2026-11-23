@@ -633,6 +633,11 @@
     "name": "Trino",
     "icon": "simple-icons:trino"
   },
+  "tutorial": {
+    "name": "Tutorial",
+    "icon": "marmot:monogram",
+    "color": "ink"
+  },
   "unitycatalog": {
     "name": "Unity Catalog",
     "icon": "simple-icons:databricks"
