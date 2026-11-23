@@ -14,6 +14,7 @@ export * from './components/button-group/define.js';
 export * from './components/callout/define.js';
 export * from './components/chart-core/define.js';
 export * from './components/checkbox/define.js';
+export * from './components/coachmark/define.js';
 export * from './components/code-editor/define.js';
 export * from './components/code-sample/define.js';
 export * from './components/combobox/define.js';

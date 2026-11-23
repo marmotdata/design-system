@@ -7275,6 +7275,436 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/components/coachmark/class.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A coachmark is one step of a guided tour. It points at a part of the page, dims everything\nelse and says in a sentence or two what that part is for, with the tour's buttons beneath.\nWithout a target it sits in the middle of the screen, for the welcome and the closing step.\n\nGive the element to point at as the `target` property, or its id as `for`. The spotlight is cut\naround the target and follows it as the page scrolls or resizes. By default the target stays\nusable through the spotlight, so a step can ask people to press the button it points at; set\n`blocking` to keep the rest of the page and the target inert.\n\nThe card is a non-modal dialog in the top layer, named by its heading. It takes focus when it\nopens so screen readers announce the step, and Escape or the close button fire a cancelable\n`mm-dismiss`: the app decides whether that ends the tour. Step counts are shown as \"2 of 7\",\nand the buttons are the app's own, in the `actions` slot, so their labels stay in its\ntranslations.",
+          "name": "MmCoachmark",
+          "cssProperties": [
+            {
+              "description": "The card's width. Defaults to 340px.",
+              "name": "--mm-coachmark-width"
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "The cut-out around the target, which also draws the scrim.",
+              "name": "spotlight"
+            },
+            {
+              "description": "The step card.",
+              "name": "card"
+            },
+            {
+              "description": "The heading.",
+              "name": "heading"
+            },
+            {
+              "description": "The \"2 of 7\" caption.",
+              "name": "progress"
+            },
+            {
+              "description": "The body.",
+              "name": "body"
+            },
+            {
+              "description": "The actions row.",
+              "name": "actions"
+            },
+            {
+              "description": "The close button.",
+              "name": "close"
+            }
+          ],
+          "slots": [
+            {
+              "description": "The body: one or two short sentences.",
+              "name": ""
+            },
+            {
+              "description": "A rich heading, in place of the `heading` attribute.",
+              "name": "heading"
+            },
+            {
+              "description": "The tour's buttons, for example Back and Next. Put the primary button last.",
+              "name": "actions"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "heading",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The heading, which also names the step.",
+              "attribute": "heading"
+            },
+            {
+              "kind": "field",
+              "name": "open",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows the step. Reflects.",
+              "attribute": "open",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "htmlFor",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The id of the element to point at, looked up in the coachmark's own root.",
+              "attribute": "for"
+            },
+            {
+              "kind": "field",
+              "name": "target",
+              "type": {
+                "text": "Element | null"
+              },
+              "default": "null",
+              "description": "The element to point at. Takes precedence over `for`. Without either, the card is centred."
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "type": {
+                "text": "Placement"
+              },
+              "default": "'bottom-start'",
+              "description": "Where the card sits against the target. It flips and shifts to stay on screen.",
+              "attribute": "placement"
+            },
+            {
+              "kind": "field",
+              "name": "step",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "This step's number, counted from 1. With `steps`, shows \"2 of 7\".",
+              "attribute": "step"
+            },
+            {
+              "kind": "field",
+              "name": "steps",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "How many steps the tour has.",
+              "attribute": "steps"
+            },
+            {
+              "kind": "field",
+              "name": "padding",
+              "type": {
+                "text": "number"
+              },
+              "default": "6",
+              "description": "Space between the target and the edge of the spotlight, in pixels.",
+              "attribute": "padding"
+            },
+            {
+              "kind": "field",
+              "name": "blocking",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Keeps the page, the target included, from being used while the step is open.",
+              "attribute": "blocking",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "closeLabel",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Accessible name of the close button. Defaults to the `close` string.",
+              "attribute": "close-label"
+            },
+            {
+              "kind": "field",
+              "name": "#hasActions",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#shown",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#layer",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLElement | null"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#card",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLElement | null"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#spotlight",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLElement | null"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#stopTracking",
+              "privacy": "private",
+              "type": {
+                "text": "() => void | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#returnFocus",
+              "privacy": "private",
+              "type": {
+                "text": "Element | null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "resolvedTarget",
+              "type": {
+                "text": "Element | null"
+              },
+              "description": "The element the step points at, if it is in the page.",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "#show",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#hide",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#focusIsInside",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#focusCard",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#track",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#untrack",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "requestDismiss",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "reason",
+                  "default": "'close-button'",
+                  "type": {
+                    "text": "CoachmarkDismissReason"
+                  }
+                }
+              ],
+              "description": "Asks to end the tour as Escape would: fires a cancelable `mm-dismiss`."
+            },
+            {
+              "kind": "field",
+              "name": "#onKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#onActions",
+              "privacy": "private"
+            }
+          ],
+          "events": [
+            {
+              "description": "Escape or the close button asked to end the tour. Cancel it to keep the step open.",
+              "name": "mm-dismiss",
+              "type": {
+                "text": "CustomEvent<CoachmarkDismissDetail>"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "heading",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The heading, which also names the step.",
+              "fieldName": "heading"
+            },
+            {
+              "name": "open",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows the step. Reflects.",
+              "fieldName": "open"
+            },
+            {
+              "name": "for",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The id of the element to point at, looked up in the coachmark's own root.",
+              "fieldName": "htmlFor"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "Placement"
+              },
+              "default": "'bottom-start'",
+              "description": "Where the card sits against the target. It flips and shifts to stay on screen.",
+              "fieldName": "placement"
+            },
+            {
+              "name": "step",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "This step's number, counted from 1. With `steps`, shows \"2 of 7\".",
+              "fieldName": "step"
+            },
+            {
+              "name": "steps",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "How many steps the tour has.",
+              "fieldName": "steps"
+            },
+            {
+              "name": "padding",
+              "type": {
+                "text": "number"
+              },
+              "default": "6",
+              "description": "Space between the target and the edge of the spotlight, in pixels.",
+              "fieldName": "padding"
+            },
+            {
+              "name": "blocking",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Keeps the page, the target included, from being used while the step is open.",
+              "fieldName": "blocking"
+            },
+            {
+              "name": "close-label",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Accessible name of the close button. Defaults to the `close` string.",
+              "fieldName": "closeLabel"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "mm-coachmark",
+          "customElement": true,
+          "summary": "One step of a guided tour, pointing at part of the page."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "MmCoachmark",
+          "declaration": {
+            "name": "MmCoachmark",
+            "module": "src/components/coachmark/class.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/components/code-editor/class.ts",
       "declarations": [
         {
