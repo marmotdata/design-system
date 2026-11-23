@@ -1184,19 +1184,21 @@ async function drag(c: MmLineageCanvas, name: string, dx: number, dy: number) {
   const r = el.getBoundingClientRect();
   const x = r.left + r.width / 2;
   const y = r.top + r.height / 2;
-  const opts = (cx: number, cy: number) => ({
+  // `buttons` says the primary button is held while it is: the canvas ends a drag on a move without it, taking it for a missed release.
+  const opts = (cx: number, cy: number, held: boolean) => ({
     bubbles: true,
     composed: true,
     pointerId: 1,
     isPrimary: true,
     button: 0,
+    buttons: held ? 1 : 0,
     clientX: cx,
     clientY: cy,
   });
-  el.dispatchEvent(new PointerEvent('pointerdown', opts(x, y)));
+  el.dispatchEvent(new PointerEvent('pointerdown', opts(x, y, true)));
   for (let i = 1; i <= 5; i++)
-    el.dispatchEvent(new PointerEvent('pointermove', opts(x + (dx * i) / 5, y + (dy * i) / 5)));
-  el.dispatchEvent(new PointerEvent('pointerup', opts(x + dx, y + dy)));
+    el.dispatchEvent(new PointerEvent('pointermove', opts(x + (dx * i) / 5, y + (dy * i) / 5, true)));
+  el.dispatchEvent(new PointerEvent('pointerup', opts(x + dx, y + dy, false)));
   // Browsers follow a mouse drag that starts and ends on the same element with a click.
   el.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, clientX: x + dx, clientY: y + dy }));
   await c.updateComplete;
