@@ -7279,8 +7279,58 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "",
+          "description": "A coachmark is one step of a guided tour. It points at a part of the page, dims everything\nelse and says in a sentence or two what that part is for, with the tour's buttons beneath.\nWithout a target it sits in the middle of the screen, for the welcome and the closing step.\n\nGive the element to point at as the `target` property, or its id as `for`. The spotlight is cut\naround the target and follows it as the page scrolls or resizes. By default the target stays\nusable through the spotlight, so a step can ask people to press the button it points at; set\n`blocking` to keep the rest of the page and the target inert. A target taller than the screen,\nsuch as a long list, is scrolled to its top edge and the card sits in its bottom corner, inside\nthe spotlight, so it never covers the heading of what it points at.\n\nThe card is a non-modal dialog in the top layer, named by its heading. It takes focus when it\nopens so screen readers announce the step, and Escape or the close button fire a cancelable\n`mm-dismiss`: the app decides whether that ends the tour. Step counts are shown as \"2 of 7\",\nand the buttons are the app's own, in the `actions` slot, so their labels stay in its\ntranslations.",
           "name": "MmCoachmark",
+          "cssProperties": [
+            {
+              "description": "The card's width. Defaults to 340px.",
+              "name": "--mm-coachmark-width"
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "The cut-out around the target, which also draws the scrim.",
+              "name": "spotlight"
+            },
+            {
+              "description": "The step card.",
+              "name": "card"
+            },
+            {
+              "description": "The heading.",
+              "name": "heading"
+            },
+            {
+              "description": "The \"2 of 7\" caption.",
+              "name": "progress"
+            },
+            {
+              "description": "The body.",
+              "name": "body"
+            },
+            {
+              "description": "The actions row.",
+              "name": "actions"
+            },
+            {
+              "description": "The close button.",
+              "name": "close"
+            }
+          ],
+          "slots": [
+            {
+              "description": "The body: one or two short sentences.",
+              "name": ""
+            },
+            {
+              "description": "A rich heading, in place of the `heading` attribute.",
+              "name": "heading"
+            },
+            {
+              "description": "The tour's buttons, for example Back and Next. Put the primary button last.",
+              "name": "actions"
+            }
+          ],
           "members": [
             {
               "kind": "field",
@@ -7541,6 +7591,15 @@
               "privacy": "private"
             }
           ],
+          "events": [
+            {
+              "description": "Escape or the close button asked to end the tour. Cancel it to keep the step open.",
+              "name": "mm-dismiss",
+              "type": {
+                "text": "CustomEvent<CoachmarkDismissDetail>"
+              }
+            }
+          ],
           "attributes": [
             {
               "name": "heading",
@@ -7628,7 +7687,9 @@
             "name": "LitElement",
             "package": "lit"
           },
-          "customElement": true
+          "tagName": "mm-coachmark",
+          "customElement": true,
+          "summary": "One step of a guided tour, pointing at part of the page."
         }
       ],
       "exports": [
