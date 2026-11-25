@@ -7,6 +7,7 @@ import type { MmDialog } from '../dialog/class.js';
 import '../dialog/define.js';
 import '../button/define.js';
 import '../text-field/define.js';
+import '../copy-button/define.js';
 
 export interface ConfirmOptions {
   /** States the consequence: "Delete orders_daily?". */
@@ -35,8 +36,9 @@ export interface ConfirmOptions {
  * never destroys anything by accident.
  *
  * With `confirm-text`, a mono field labelled "Type orders_daily to confirm" appears and the confirm
- * button stays disabled until the field matches exactly (case and spaces included). Enter in the
- * field confirms once it matches. Use it for deletions that cannot be undone and reach other
+ * button stays disabled until the field matches exactly (case and spaces included). A copy button
+ * beside the text copies it, so a long name can be pasted rather than retyped; the point is a
+ * deliberate second step, not a spelling test. Enter in the field confirms once it matches. Use it for deletions that cannot be undone and reach other
  * people's work.
  *
  * `tone="default"` uses the primary button for confirmations that are not destructive.
@@ -91,12 +93,24 @@ export class MmConfirmDialog extends LitElement {
         letter-spacing: var(--tracking-label);
         color: var(--mm-text-2);
       }
+      /* The text to type, with a button at its end that copies it: a long or awkward name (an ellipsis, a quote) is pasted rather than retyped */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        max-width: 100%;
+        vertical-align: middle;
+        background: var(--mm-sunken);
+        border-radius: var(--radius-sm);
+        padding: 1px 2px 1px 4px;
+      }
+      /* The copy button is sized to the chip's line, so it adds no height to the prompt */
+      .chip mm-copy-button {
+        --mm-control: 18px;
+      }
       code {
         font: var(--text-mono-dense);
         color: var(--mm-text);
-        background: var(--mm-sunken);
-        border-radius: var(--radius-sm);
-        padding: 1px 4px;
         overflow-wrap: anywhere;
       }
     `,
@@ -195,7 +209,12 @@ export class MmConfirmDialog extends LitElement {
     const label = tr('typeToConfirm', 'Type {text} to confirm', { text: this.confirmText });
     const [before = '', after = ''] = tr('typeToConfirm', 'Type {text} to confirm').split('{text}');
     return html`<div class="confirm-field">
-      <p class="prompt" aria-hidden="true">${before}<code>${this.confirmText}</code>${after}</p>
+      <p class="prompt">
+        <span aria-hidden="true">${before}</span><span class="chip"
+          ><code aria-hidden="true">${this.confirmText}</code
+          ><mm-copy-button .value=${this.confirmText}></mm-copy-button></span
+        ><span aria-hidden="true">${after}</span>
+      </p>
       <mm-text-field
         part="field"
         label=${label}
