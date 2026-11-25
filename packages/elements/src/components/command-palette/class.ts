@@ -35,8 +35,11 @@ export interface PaletteCommand {
 /** A live catalogue result returned by `search`. */
 export interface PaletteResult {
   id: string;
-  kind: 'asset' | 'glossary' | 'team' | 'data-product';
+  /** `other` is for a kind the palette has no tab for, such as an app's own records: it shows under `group`, in the All scope only, after the catalogue's kinds. */
+  kind: 'asset' | 'glossary' | 'team' | 'data-product' | 'other';
   label: string;
+  /** The group heading for an `other` result, e.g. "Tasks". */
+  group?: string;
   /** Asset MRN, shown in mono and truncated in the middle. */
   mrn?: string;
   /** Provider key for assets (`postgresql`, `kafka`); shows the provider logo. */
@@ -65,7 +68,7 @@ export interface MmPaletteSearchAllDetail {
   href: string;
 }
 
-const resultKinds = ['asset', 'glossary', 'team', 'data-product'] as const;
+const resultKinds = ['asset', 'glossary', 'team', 'data-product', 'other'] as const;
 const isResult = (i: PaletteItem): i is PaletteResult => (resultKinds as readonly string[]).includes(i.kind ?? '');
 const commandKind = (c: PaletteCommand): 'page' | 'action' => c.kind ?? (c.href && !c.run ? 'page' : 'action');
 
@@ -86,11 +89,12 @@ const kindGroup = (k: PaletteResult['kind']): string =>
     glossary: tr('paletteGroupGlossary', 'Glossary terms'),
     team: tr('paletteGroupTeams', 'Teams'),
     'data-product': tr('paletteGroupDataProducts', 'Data products'),
+    other: tr('paletteGroupOther', 'More results'),
   })[k];
 const kindIcon = (k: PaletteResult['kind']): string =>
-  ({ asset: 'table', glossary: 'book-2', team: 'groups', 'data-product': 'package-2' })[k];
+  ({ asset: 'table', glossary: 'book-2', team: 'groups', 'data-product': 'package-2', other: 'arrow-forward' })[k];
 const scopeKinds: Partial<Record<PaletteScope, PaletteResult['kind'][]>> = {
-  all: ['asset', 'glossary', 'team', 'data-product'],
+  all: ['asset', 'glossary', 'team', 'data-product', 'other'],
   assets: ['asset'],
   glossary: ['glossary'],
   teams: ['team'],
@@ -633,7 +637,9 @@ export class MmCommandPalette extends LitElement {
         else if (this.#resultsFor === this.#searchKey)
           for (const kind of resultKinds) {
             const rows = this.#results.filter((r) => r.kind === kind && resultInScope(r)).map((item) => ({ item, ranges: rangesFor(q, item.label) }));
-            add(kindGroup(kind), rows);
+            // Other results group by their own heading, so each app kind reads as its own group
+            if (kind === 'other') for (const row of rows) add((row.item as PaletteResult).group ?? kindGroup(kind), [row]);
+            else add(kindGroup(kind), rows);
           }
       }
       if (this.searchHref && scope !== 'pages' && scope !== 'commands') add(tr('paletteGroupSearch', 'Catalog search'), [{ item: 'search-all', ranges: [] }]);
