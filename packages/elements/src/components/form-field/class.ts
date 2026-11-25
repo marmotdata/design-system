@@ -70,13 +70,22 @@ export const fieldStyles = css`
     .box:focus-within {
       border-color: var(--mm-text);
     }
+    /* A field shows keyboard focus through its own border rather than the outer ring: the border goes ink and an inset
+       shadow makes it read as 2px without shifting layout. The outline: none also covers select and date triggers, where
+       the box itself takes focus and base would ring it. */
+    .box:focus-visible,
     .box:has(.input:focus-visible) {
-      outline: var(--mm-focus-ring-width, 2px) solid var(--mm-text);
-      outline-offset: var(--mm-focus-ring-offset, 2px);
+      outline: none;
+      box-shadow: inset 0 0 0 1px var(--mm-text);
     }
     .box.invalid,
     .box.invalid:hover {
       border-color: var(--mm-danger);
+    }
+    /* An invalid field keeps its crimson border when focused, thickened the same way, so the error stays visible. */
+    .box.invalid:focus-visible,
+    .box.invalid:has(.input:focus-visible) {
+      box-shadow: inset 0 0 0 1px var(--mm-danger);
     }
     .box.disabled {
       background: var(--mm-sunken);

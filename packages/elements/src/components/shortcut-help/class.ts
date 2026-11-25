@@ -151,9 +151,10 @@ export class MmShortcutHelp extends LitElement {
         border-radius: var(--radius-sm);
         background: var(--mm-surface);
       }
+      /* Focus shows on the field's own border, as on every text field, not as an outer ring. */
       .filter:focus-within {
-        outline: var(--mm-focus-ring-width, 2px) solid var(--mm-text);
-        outline-offset: var(--mm-focus-ring-offset, 2px);
+        border-color: var(--mm-text);
+        box-shadow: inset 0 0 0 1px var(--mm-text);
       }
       .filter mm-icon {
         color: var(--mm-text-2);

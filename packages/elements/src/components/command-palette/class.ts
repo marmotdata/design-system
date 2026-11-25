@@ -313,10 +313,15 @@ export class MmCommandPalette extends LitElement {
         padding-inline: var(--space-4);
         border-bottom: 1px solid var(--mm-rule);
       }
+      /* The row shows focus instead of the input, as in mm-org-switcher: a full ring inside the panel reads as a broken box. */
+      .field:focus-within {
+        box-shadow: inset 0 -2px 0 var(--mm-text);
+      }
       .field mm-icon {
         color: var(--mm-text-2);
       }
-      input {
+      /* Scoped to .field so it outranks base's :focus-visible ring, which a bare input selector loses to. */
+      .field input {
         flex: 1;
         min-width: 0;
         height: 100%;

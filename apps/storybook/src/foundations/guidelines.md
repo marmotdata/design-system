@@ -179,6 +179,7 @@ The components that are easiest to misuse:
 
 - **Selection** is `mm-selected`, a neutral ink tint, with ink text, in place of browser blue or the accent tint.
 - **Focus ring** is a 2px `mm-text` outline with a 2px offset on paper: at least 3:1 on every surface in both themes, and deliberately not burnt sienna so it can never be confused with selection.
+- **Text fields have no ring.** A text field, textarea, search field, select or combobox shows focus on its own border instead: `mm-control-border` turns `mm-text` and an inset shadow thickens it to 2px, with no offset and no layout shift (5.5:1 against the unfocused border, 3.9:1 in Peat). An invalid field keeps its `mm-danger` border, thickened the same way. A search row with no box of its own, as in the command palette or org switcher, shows a 2px `mm-text` bar along its bottom edge.
 - **Drawing conventions** appear sparingly in charts and empty states: leader lines with dots and dimension ticks where they explain something. Never decorative marks such as crosshairs, corner ticks or stray "+" glyphs.
 - **Typographic details:** curly quotes, a real ellipsis (…), non-breaking spaces in `10 MB` and `⌘ K`, and numerals for counts.
 - **Sample data** is specific and plausible: `orders_daily`, `customers_dim`, `shop.orders.v2`, `mrn://postgresql/table/shop.public.orders`, row counts like 1,284,019, owners like "Analytics Engineering", people like "Jane Doe". No lorem ipsum or "Acme Corp". Agents and other clients have neutral names ("support-triage-agent", "cli-agent") and the generic agent logo rather than a real vendor's.
@@ -250,7 +251,7 @@ Verified WCAG 2.2 contrast, light on `mm-paper` unless stated: ink 17.6:1, ink-2
 
 - Body text targets 7:1 (`mm-text`, `mm-text-2`). Nothing that must be read falls below 4.5:1.
 - `mm-rule` (1.3:1) is decorative only. Inputs and checkboxes use `mm-control-border`.
-- Focus is always visible through `:focus-visible`; sticky headers never hide the focused element.
+- Focus is always visible through `:focus-visible`; sticky headers never hide the focused element. Text fields show it on their own border rather than the ring. The caret alone is never enough here: it blinks and is easy to miss. Never remove a focus style without putting one of these in its place.
 - Interactive targets are at least 24×24px on desktop and 44×44px (`target-touch`) on touch.
 - Never rely on colour alone. Status pills carry words. Run strips and lineage edges carry a pattern or icon too (failed runs show an ×, observed edges are dashed). Charts use direct labels. Destructive actions say what they destroy.
 - Hover, active and focus states increase contrast, never reduce it.

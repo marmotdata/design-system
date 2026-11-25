@@ -232,9 +232,10 @@ export class MmSearchBar extends LitElement {
       .field:hover {
         border-color: var(--mm-text-2);
       }
+      /* Focus shows on the field's own border, as on every text field, not as an outer ring. */
       .field:focus-within {
-        outline: var(--mm-focus-ring-width, 2px) solid var(--mm-text);
-        outline-offset: var(--mm-focus-ring-offset, 2px);
+        border-color: var(--mm-text);
+        box-shadow: inset 0 0 0 1px var(--mm-text);
       }
       .lead {
         color: var(--mm-text-2);

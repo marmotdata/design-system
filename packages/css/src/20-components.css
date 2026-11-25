@@ -36,8 +36,10 @@
   input.mm-input { width: 100%; box-sizing: border-box; }
   .mm-input input { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
   .mm-input input::placeholder, input.mm-input::placeholder { color: var(--mm-text-3); }
-  .mm-input:focus-within, input.mm-input:focus-visible { border-color: var(--mm-text); outline: var(--mm-focus-ring-width) solid var(--mm-text); outline-offset: var(--mm-focus-ring-offset); }
+  /* Text fields show focus on their own border, thickened to 2px by an inset shadow so nothing shifts, not as an outer ring. */
+  .mm-input:focus-within, input.mm-input:focus-visible { border-color: var(--mm-text); box-shadow: inset 0 0 0 1px var(--mm-text); outline: none; }
   .mm-input--error { border-color: var(--mm-danger); }
+  .mm-input--error:focus-within, input.mm-input--error:focus-visible { border-color: var(--mm-danger); box-shadow: inset 0 0 0 1px var(--mm-danger); }
   .mm-input svg { width: 16px; height: 16px; color: var(--mm-text-3); flex: none; fill: currentColor; }
   .mm-help { font: var(--text-caption); color: var(--mm-text-2); }
   .mm-help--error { color: var(--mm-danger); display: flex; gap: 6px; align-items: center; }
